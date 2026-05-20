@@ -8,6 +8,11 @@ protocol VideoEncoderDelegate: AnyObject {
 class VideoEncoder {
     weak var delegate: VideoEncoderDelegate?
     private var compressionSession: VTCompressionSession?
+    private let timingLock = NSLock()
+    private var encodeFrameCount = 0
+    private var encodeFrameTotalNs: UInt64 = 0
+    private var handleFrameCount = 0
+    private var handleFrameTotalNs: UInt64 = 0
     
     func initialize(width: Int, height: Int) {
         let err = VTCompressionSessionCreate(
@@ -45,6 +50,7 @@ class VideoEncoder {
     
     func encode(pixelBuffer: CVPixelBuffer, presentationTime: CMTime) {
         guard let session = compressionSession else { return }
+        let start = DispatchTime.now().uptimeNanoseconds
         VTCompressionSessionEncodeFrame(
             session,
             imageBuffer: pixelBuffer,
@@ -54,9 +60,21 @@ class VideoEncoder {
             sourceFrameRefcon: nil,
             infoFlagsOut: nil
         )
+        let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
+        timingLock.lock()
+        encodeFrameCount += 1
+        encodeFrameTotalNs += elapsedNs
+        let shouldLog = encodeFrameCount % 60 == 0
+        let averageMs = Double(encodeFrameTotalNs) / Double(encodeFrameCount) / 1_000_000.0
+        timingLock.unlock()
+        if shouldLog {
+            let elapsedMs = Double(elapsedNs) / 1_000_000.0
+            print(String(format: "[Timing] encodeFrame: %.2f ms (avg %.2f ms)", elapsedMs, averageMs))
+        }
     }
     
     private func handleEncodedFrame(sampleBuffer: CMSampleBuffer) {
+        let start = DispatchTime.now().uptimeNanoseconds
         guard let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer) else { return }
         
         var isKeyFrame = false
@@ -114,12 +132,30 @@ class VideoEncoder {
                     headerData.append(startCode)
                     headerData.append(pps, count: ppsSizesOut)
                     
-                    delegate?.videoEncoder(self, didEncodeNALUnit: headerData + rawData, isKeyFrame: true)
+                    let payload = headerData + rawData
+                    let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
+                    delegate?.videoEncoder(self, didEncodeNALUnit: payload, isKeyFrame: true)
+                    recordHandleTiming(elapsedNs)
                     return
                 }
             }
             
+            let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
             delegate?.videoEncoder(self, didEncodeNALUnit: rawData, isKeyFrame: isKeyFrame)
+            recordHandleTiming(elapsedNs)
+        }
+    }
+
+    private func recordHandleTiming(_ elapsedNs: UInt64) {
+        timingLock.lock()
+        handleFrameCount += 1
+        handleFrameTotalNs += elapsedNs
+        let shouldLog = handleFrameCount % 60 == 0
+        let averageMs = Double(handleFrameTotalNs) / Double(handleFrameCount) / 1_000_000.0
+        timingLock.unlock()
+        if shouldLog {
+            let elapsedMs = Double(elapsedNs) / 1_000_000.0
+            print(String(format: "[Timing] handleEncodedFrame: %.2f ms (avg %.2f ms)", elapsedMs, averageMs))
         }
     }
     

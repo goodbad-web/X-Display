@@ -32,13 +32,15 @@
 
 ## 2. 既知の課題・調査中 (Active & Pending Issues)
 
-### ⚠️ Issue 03: TCC / 画面記録（Screen Recording）権限の取得問題
-- **ステータス**: 未発生（Phase 2実行時に想定される課題）
-- **現象**: `ScreenCaptureKit` でキャプチャを開始しようとすると、権限エラーまたは黒画面しか取得できない。
-- **原因**: macOSのセキュリティ制限（TCC）により、アプリが「システム設定 -> プライバシーとセキュリティ -> 画面記録」で許可を得ていないと画面取得がブロックされる。
-- **対策方針**:
-  - `SCShareableContent` 取得前に、APIが提供するアクセス権取得ロジック（`CGRequestScreenCaptureAccess()`等）をコールする。
-  - 権限が却下された場合、ユーザーへシステム設定を促すUIポップアップを表示する。
+### ✅ Issue 03: TCC / 画面記録（Screen Recording）権限の取得問題
+- **ステータス**: 解決済み
+- **現象**: `Screen & System Audio Recording` を許可して再起動しても、`SCShareableContent` が `The user declined TCCs for application, window, display capture` で失敗する。
+- **原因**: TCC に古い code requirement が残り、現在の `X-Display.app` の署名条件と一致しなかった。ログでは `Failed to match existing code requirement for subject com.goodbad-web.X-Display` が出る。
+- **解決策**:
+  - Debug ビルドで `ENABLE_DEBUG_DYLIB = NO` を明示し、`X-Display.debug.dylib` 分離による署名条件の揺れを避ける。
+  - `CGPreflightScreenCaptureAccess()` の結果だけで起動を止めず、実際の可否は `SCShareableContent` / `SCStream` に委ねる。
+  - 音声権限要求を混ぜないため、`SCStreamConfiguration.capturesAudio = false` を明示する。
+  - 既存の stale TCC 登録は `tccutil reset ScreenCapture` で全消しし、現在の署名済み app で許可を取り直す。
 
 ### ⚠️ Issue 04: macOSメジャーアップデート時のPrivate APIシグネチャ変更リスク
 - **ステータス**: 警戒中（将来のOSアップデート時に想定）

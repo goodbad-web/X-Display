@@ -34,6 +34,9 @@ final class StreamServer: @unchecked Sendable {
     private var listener: NWListener?
     private var activeConnections: [UUID: ClientSession] = [:]
     private let connectionQueue = DispatchQueue(label: "com.xdisplay.server.connection-queue", qos: .userInteractive)
+    private let timingLock = NSLock()
+    private var broadcastCount = 0
+    private var broadcastTotalNs: UInt64 = 0
     
     func start(port: UInt16) throws {
         let nwPort = NWEndpoint.Port(rawValue: port)!
@@ -271,6 +274,7 @@ final class StreamServer: @unchecked Sendable {
     func broadcast(data: Data) {
         connectionQueue.async { [weak self] in
             guard let self = self else { return }
+            let start = DispatchTime.now().uptimeNanoseconds
             let pairedSessions = self.activeConnections.values.filter { $0.isPaired && $0.sessionKey != nil }
             guard !pairedSessions.isEmpty else { return }
             
@@ -291,6 +295,18 @@ final class StreamServer: @unchecked Sendable {
                 } catch {
                     print("[-] Failed to encrypt video frame: \(error.localizedDescription)")
                 }
+            }
+
+            let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
+            self.timingLock.lock()
+            self.broadcastCount += 1
+            self.broadcastTotalNs += elapsedNs
+            let shouldLog = self.broadcastCount % 60 == 0
+            let averageMs = Double(self.broadcastTotalNs) / Double(self.broadcastCount) / 1_000_000.0
+            self.timingLock.unlock()
+            if shouldLog {
+                let elapsedMs = Double(elapsedNs) / 1_000_000.0
+                print(String(format: "[Timing] broadcast: %.2f ms (avg %.2f ms)", elapsedMs, averageMs))
             }
         }
     }

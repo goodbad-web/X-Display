@@ -1,6 +1,7 @@
 #if os(macOS)
 import Foundation
 import AppKit
+import CoreGraphics
 import ScreenCaptureKit
 #if canImport(CVirtualDisplay)
 import CVirtualDisplay
@@ -17,9 +18,26 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private let encoder = VideoEncoder()
     private let server = StreamServer()
     private var displayID: CGDirectDisplayID?
+    private var didRequestScreenCaptureAccess = false
+
+    private func requestScreenCaptureAccessIfNeeded() async {
+        if CGPreflightScreenCaptureAccess() {
+            return
+        }
+
+        if !didRequestScreenCaptureAccess {
+            didRequestScreenCaptureAccess = true
+            _ = CGRequestScreenCaptureAccess()
+        }
+
+        // macOS may take a moment to propagate Screen Recording permission after a quit/reopen cycle.
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+    }
     
     func startCaptureOfVirtualDisplay(width: Int, height: Int) async throws {
         do {
+            await requestScreenCaptureAccessIfNeeded()
+            
             print("[*] Starting StreamServer...")
             server.delegate = self
             try server.start(port: 12345)
@@ -52,6 +70,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             config.queueDepth = 3 // Keep queue depth shallow to prevent latency accumulation
             config.minimumFrameInterval = CMTime(value: 1, timescale: 60) // Target 60 FPS
             config.showsCursor = true
+            config.capturesAudio = false
             
             print("[*] Initializing SCStream...")
             stream = SCStream(filter: filter, configuration: config, delegate: nil)
@@ -90,18 +109,20 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         frameCount += 1
         let now = Date()
         let interval = now.timeIntervalSince(lastFrameTime)
+        let encodeStart = DispatchTime.now().uptimeNanoseconds
         
         // Log status every 60 frames (approx. 1 second at 60fps)
-        if frameCount % 60 == 0 {
-            let fps = 60.0 / interval
-            print(String(format: "[+] Cap Frame #%04d | Latency tracking OK | FPS: %.1f", frameCount, fps))
-            lastFrameTime = now
-        }
-        
-        // Retrieve the pixel buffer and pass it to VideoToolbox encoder
         if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
             let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
             encoder.encode(pixelBuffer: pixelBuffer, presentationTime: pts)
+        }
+
+        let encodeElapsedMs = Double(DispatchTime.now().uptimeNanoseconds - encodeStart) / 1_000_000.0
+        
+        if frameCount % 60 == 0 {
+            let fps = 60.0 / interval
+            print(String(format: "[+] Cap Frame #%04d | FPS: %.1f | encodeFrame: %.2f ms", frameCount, fps, encodeElapsedMs))
+            lastFrameTime = now
         }
     }
     
@@ -171,10 +192,13 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         #endif
         
         setupMenuBar()
-        
-        // Test automation: trigger virtual display on startup
-        print("[*] Test Mode: Auto-starting virtual display...")
-        startDisplay()
+
+        if ProcessInfo.processInfo.environment["XDISPLAY_AUTO_START"] == "1" {
+            print("[*] Test Mode: Auto-starting virtual display...")
+            startDisplay()
+        } else {
+            print("[*] Auto-start disabled. Use the menu to start virtual display.")
+        }
     }
     
     private func setupMenuBar() {
