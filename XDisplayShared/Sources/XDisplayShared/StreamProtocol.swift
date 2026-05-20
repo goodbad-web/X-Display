@@ -1,0 +1,119 @@
+import Foundation
+
+public enum XDisplayProtocol {
+    public static let bonjourServiceType = "_xdisplay._tcp"
+    public static let saltLength = 16
+    public static let pairingVerificationToken = "SUCCESS"
+    public static let rawInputEventIdentifier: UInt8 = 0x01
+}
+
+public enum XDisplayProtocolError: Error, Equatable {
+    case emptyPayload
+    case invalidLength
+    case invalidMagic(UInt8)
+    case invalidInputIdentifier(UInt8)
+}
+
+public enum XDisplayPayloadMagic: UInt8, Equatable {
+    case pairingRequest = 0x02
+    case pairingVerify = 0x03
+    case pairingResult = 0x04
+    case videoFrame = 0x10
+    case inputEvent = 0x11
+}
+
+public enum XDisplayPacketCodec {
+    public static let lengthHeaderSize = 4
+
+    public static func encodeLengthHeader(payloadLength: Int) -> Data {
+        var length = UInt32(payloadLength).bigEndian
+        return withUnsafeBytes(of: &length) { Data($0) }
+    }
+
+    public static func decodeLengthHeader(_ data: Data) throws -> Int {
+        guard data.count == lengthHeaderSize else {
+            throw XDisplayProtocolError.invalidLength
+        }
+
+        let value = data.reduce(UInt32(0)) { partial, byte in
+            (partial << 8) | UInt32(byte)
+        }
+        return Int(value)
+    }
+
+    public static func encodePacket(payload: Data) -> Data {
+        var packet = Data()
+        packet.reserveCapacity(lengthHeaderSize + payload.count)
+        packet.append(encodeLengthHeader(payloadLength: payload.count))
+        packet.append(payload)
+        return packet
+    }
+
+    public static func payloadMagic(in payload: Data) throws -> XDisplayPayloadMagic {
+        guard let rawMagic = payload.first else {
+            throw XDisplayProtocolError.emptyPayload
+        }
+        guard let magic = XDisplayPayloadMagic(rawValue: rawMagic) else {
+            throw XDisplayProtocolError.invalidMagic(rawMagic)
+        }
+        return magic
+    }
+
+    public static func payloadBody(in payload: Data, expectedMagic: XDisplayPayloadMagic) throws -> Data {
+        let magic = try payloadMagic(in: payload)
+        guard magic == expectedMagic else {
+            throw XDisplayProtocolError.invalidMagic(payload[0])
+        }
+        return payload.dropFirst()
+    }
+
+    public static func makePayload(magic: XDisplayPayloadMagic, body: Data = Data()) -> Data {
+        var payload = Data([magic.rawValue])
+        payload.append(body)
+        return payload
+    }
+
+    public static func makePairingRequest(salt: Data) -> Data {
+        makePayload(magic: .pairingRequest, body: salt)
+    }
+
+    public static func decodePairingRequestSalt(_ payload: Data) throws -> Data {
+        let body = try payloadBody(in: payload, expectedMagic: .pairingRequest)
+        guard body.count >= XDisplayProtocol.saltLength else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        return body.prefix(XDisplayProtocol.saltLength)
+    }
+
+    public static func makePairingVerification(encryptedToken: Data) -> Data {
+        makePayload(magic: .pairingVerify, body: encryptedToken)
+    }
+
+    public static func makePairingResult(success: Bool) -> Data {
+        makePayload(magic: .pairingResult, body: Data([success ? 1 : 0]))
+    }
+
+    public static func decodePairingResult(_ payload: Data) throws -> Bool {
+        let body = try payloadBody(in: payload, expectedMagic: .pairingResult)
+        guard let status = body.first else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        return status == 1
+    }
+
+    public static func makeEncryptedVideoFrame(_ encryptedData: Data) -> Data {
+        makePayload(magic: .videoFrame, body: encryptedData)
+    }
+
+    public static func decodeEncryptedVideoFrame(_ payload: Data) throws -> Data {
+        try payloadBody(in: payload, expectedMagic: .videoFrame)
+    }
+
+    public static func makeEncryptedInputEvent(_ encryptedData: Data) -> Data {
+        makePayload(magic: .inputEvent, body: encryptedData)
+    }
+
+    public static func decodeEncryptedInputEvent(_ payload: Data) throws -> Data {
+        try payloadBody(in: payload, expectedMagic: .inputEvent)
+    }
+}

@@ -8,6 +8,9 @@ let package = Package(
     platforms: [
         .macOS(.v13)
     ],
+    dependencies: [
+        .package(path: "XDisplayShared")
+    ],
     targets: [
         .target(
             name: "CVirtualDisplay",
@@ -16,7 +19,10 @@ let package = Package(
         ),
         .executableTarget(
             name: "X-display",
-            dependencies: ["CVirtualDisplay"],
+            dependencies: [
+                "CVirtualDisplay",
+                .product(name: "XDisplayShared", package: "XDisplayShared")
+            ],
             path: "Sources/X-display"
         ),
         .testTarget(
@@ -26,4 +32,3 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
-

@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import XDisplayShared
 
 struct DiscoveredDevice: Identifiable, Hashable {
     let id: String // Device unique identifier
@@ -14,7 +15,7 @@ class DeviceBrowser: ObservableObject {
     
     func startBrowsing() {
         let parameters = NWParameters()
-        let serviceType = NWBrowser.Descriptor.bonjour(type: "_xdisplay._tcp", domain: "local.")
+        let serviceType = NWBrowser.Descriptor.bonjour(type: XDisplayProtocol.bonjourServiceType, domain: "local.")
         
         browser = NWBrowser(for: serviceType, using: parameters)
         

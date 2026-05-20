@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import CryptoKit
+import XDisplayShared
 
 protocol StreamClientDelegate: AnyObject {
     func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data)
@@ -88,15 +89,10 @@ class StreamClient {
             self.sessionKey = key
             
             do {
-                // Encrypt "SUCCESS" token to prove key validity
-                let token = "SUCCESS".data(using: .utf8)!
+                let token = Data(XDisplayProtocol.pairingVerificationToken.utf8)
                 let encryptedToken = try CryptoHelper.encrypt(data: token, key: key)
                 
-                // Format payload: [0x03] + [Encrypted verification token]
-                var payload = Data()
-                var magic: UInt8 = 0x03
-                payload.append(&magic, count: 1)
-                payload.append(encryptedToken)
+                let payload = XDisplayPacketCodec.makePairingVerification(encryptedToken: encryptedToken)
                 
                 self.sendPacket(payload)
             } catch {
@@ -105,40 +101,15 @@ class StreamClient {
         }
     }
     
-    func sendInputEvent(phase: TouchPhaseType, x: Float, y: Float, pressure: Float) {
+    func sendInputEvent(phase: XDisplayTouchPhase, x: Float, y: Float, pressure: Float) {
         guard isRunning, isPaired, let key = sessionKey else { return }
         
-        var rawEvent = Data()
-        
-        // 1. Magic identifier for Input Event: 0x01 (1 byte)
-        var identifier: UInt8 = 0x01
-        rawEvent.append(&identifier, count: 1)
-        
-        // 2. Touch Phase (1 byte)
-        var rawPhase = phase.rawValue
-        rawEvent.append(&rawPhase, count: 1)
-        
-        // 3. X (4 bytes Float bitPattern Big-Endian)
-        var xBits = x.bitPattern.bigEndian
-        withUnsafeBytes(of: &xBits) { rawEvent.append(contentsOf: $0) }
-        
-        // 4. Y (4 bytes Float bitPattern Big-Endian)
-        var yBits = y.bitPattern.bigEndian
-        withUnsafeBytes(of: &yBits) { rawEvent.append(contentsOf: $0) }
-        
-        // 5. Pressure (4 bytes Float bitPattern Big-Endian)
-        var pressureBits = pressure.bitPattern.bigEndian
-        withUnsafeBytes(of: &pressureBits) { rawEvent.append(contentsOf: $0) }
+        let rawEvent = XDisplayTouchEvent(phase: phase, x: x, y: y, pressure: pressure).encodeRawPayload()
         
         // Encrypt the event data
         do {
             let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
-            
-            // Format packet: [0x11] + [Encrypted Event Data]
-            var payload = Data()
-            var magic: UInt8 = 0x11
-            payload.append(&magic, count: 1)
-            payload.append(encryptedEvent)
+            let payload = XDisplayPacketCodec.makeEncryptedInputEvent(encryptedEvent)
             
             sendPacket(payload)
         } catch {
@@ -149,10 +120,7 @@ class StreamClient {
     private func sendPacket(_ payload: Data) {
         guard let connection = connection else { return }
         
-        var packet = Data()
-        var size = UInt32(payload.count).bigEndian
-        withUnsafeBytes(of: &size) { packet.append(contentsOf: $0) }
-        packet.append(payload)
+        let packet = XDisplayPacketCodec.encodePacket(payload: payload)
         
         clientQueue.async {
             connection.send(content: packet, completion: .contentProcessed({ error in
@@ -184,7 +152,14 @@ class StreamClient {
                 return
             }
             
-            let payloadSize = data.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+            let payloadSize: Int
+            do {
+                payloadSize = try XDisplayPacketCodec.decodeLengthHeader(data)
+            } catch {
+                print("[-] Invalid client packet length header: \(error)")
+                self.disconnect()
+                return
+            }
             self.receivePayload(size: Int(payloadSize))
         }
     }
@@ -222,13 +197,23 @@ class StreamClient {
     
     private func handleIncomingPayload(_ data: Data) {
         guard data.count > 0 else { return }
-        let magic = data[0]
+        let magic: XDisplayPayloadMagic
+        do {
+            magic = try XDisplayPacketCodec.payloadMagic(in: data)
+        } catch {
+            print("[-] Unknown magic received from server: \(data[0])")
+            return
+        }
         
         switch magic {
-        case 0x02: // Pairing request (Mac -> iPad)
-            // Payload: [0x02] + [Salt (16 bytes)]
-            guard data.count >= 17 else { return }
-            let saltData = data.subdata(in: 1..<17)
+        case .pairingRequest:
+            let saltData: Data
+            do {
+                saltData = try XDisplayPacketCodec.decodePairingRequestSalt(data)
+            } catch {
+                print("[-] Invalid pairing request payload: \(error)")
+                return
+            }
             self.salt = saltData
             
             print("[+] Received pairing salt. Requesting PIN from UI...")
@@ -237,11 +222,14 @@ class StreamClient {
                 self.delegate?.streamClient(self, didRequestPINWithSalt: saltData)
             }
             
-        case 0x04: // Pairing Result (Mac -> iPad)
-            // Payload: [0x04] + [Status (1 byte)]
-            guard data.count >= 2 else { return }
-            let status = data[1]
-            let success = (status == 1)
+        case .pairingResult:
+            let success: Bool
+            do {
+                success = try XDisplayPacketCodec.decodePairingResult(data)
+            } catch {
+                print("[-] Invalid pairing result payload: \(error)")
+                return
+            }
             
             if success {
                 print("[+] Pairing verified by host! Communication is now secure.")
@@ -256,13 +244,19 @@ class StreamClient {
                 self.delegate?.streamClient(self, didFinishPairingWithResult: success)
             }
             
-        case 0x10: // Encrypted video data frame (Mac -> iPad)
+        case .videoFrame:
             guard isPaired, let key = sessionKey else {
                 print("[-] Warning: Received video data before pairing completion.")
                 return
             }
             
-            let encryptedVideo = data.subdata(in: 1..<data.count)
+            let encryptedVideo: Data
+            do {
+                encryptedVideo = try XDisplayPacketCodec.decodeEncryptedVideoFrame(data)
+            } catch {
+                print("[-] Invalid video frame payload: \(error)")
+                return
+            }
             do {
                 let decryptedVideo = try CryptoHelper.decrypt(combinedData: encryptedVideo, key: key)
                 self.delegate?.streamClient(self, didReceiveNALUnit: decryptedVideo)
@@ -270,8 +264,8 @@ class StreamClient {
                 print("[-] Failed to decrypt video frame: \(error.localizedDescription)")
             }
             
-        default:
-            print("[-] Unknown magic received from server: \(magic)")
+        case .pairingVerify, .inputEvent:
+            print("[-] Unexpected magic received from server: \(magic.rawValue)")
         }
     }
 }

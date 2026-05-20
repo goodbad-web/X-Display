@@ -34,9 +34,15 @@ let package = Package(
             ]
         )
     ],
+    dependencies: [
+        .package(path: "../XDisplayShared")
+    ],
     targets: [
         .executableTarget(
             name: "App",
+            dependencies: [
+                .product(name: "XDisplayShared", package: "XDisplayShared")
+            ],
             path: "Sources",
             resources: [
                 .process("Shaders.metal")
@@ -48,7 +54,8 @@ let package = Package(
 let package = Package(
     name: "X-Display-Client",
     platforms: [
-        .iOS(.v17)
+        .iOS(.v17),
+        .macOS(.v13)
     ],
     products: [
         .library(
@@ -56,9 +63,15 @@ let package = Package(
             targets: ["App"]
         )
     ],
+    dependencies: [
+        .package(path: "../XDisplayShared")
+    ],
     targets: [
         .target(
             name: "App",
+            dependencies: [
+                .product(name: "XDisplayShared", package: "XDisplayShared")
+            ],
             path: "Sources",
             resources: [
                 .process("Shaders.metal")
@@ -67,4 +80,3 @@ let package = Package(
     ]
 )
 #endif
-

@@ -1,15 +1,9 @@
 import SwiftUI
 import UIKit
-
-enum TouchPhaseType: UInt8 {
-    case began = 0
-    case moved = 1
-    case ended = 2
-    case cancelled = 3
-}
+import XDisplayShared
 
 struct TouchEvent {
-    let phase: TouchPhaseType
+    let phase: XDisplayTouchPhase
     let x: Float // Normalized 0.0 ~ 1.0
     let y: Float // Normalized 0.0 ~ 1.0
     let pressure: Float // 0.0 ~ 1.0 (or force)
@@ -49,7 +43,7 @@ struct TouchOverlayView: UIViewRepresentable {
             handleTouches(touches, phase: .cancelled)
         }
         
-        private func handleTouches(_ touches: Set<UITouch>, phase: TouchPhaseType) {
+        private func handleTouches(_ touches: Set<UITouch>, phase: XDisplayTouchPhase) {
             guard let touch = touches.first, let onTouchEvent = onTouchEvent else { return }
             
             let location = touch.location(in: self)
