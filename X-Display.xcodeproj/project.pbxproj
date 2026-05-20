@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */; };
 		4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */; };
+		71127414ACB457D41216179E /* CryptoHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C8FAEAD5ACBCD37ECA0B0D /* CryptoHelper.swift */; };
 		7B44FE1B2E7F0BFBC4701FDC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E012EEAE1C152C149F15424C /* Sparkle */; };
 		E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */; };
 		F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290006FF26BEE7AA02629929 /* X_display.swift */; };
@@ -18,6 +19,7 @@
 		290006FF26BEE7AA02629929 /* X_display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = X_display.swift; sourceTree = "<group>"; };
 		2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamServer.swift; sourceTree = "<group>"; };
 		3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CVirtualDisplay.m; sourceTree = "<group>"; };
+		46C8FAEAD5ACBCD37ECA0B0D /* CryptoHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoHelper.swift; sourceTree = "<group>"; };
 		8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEncoder.swift; sourceTree = "<group>"; };
 		B03C43BAEBDCCC175FD6B26F /* CVirtualDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVirtualDisplay.h; sourceTree = "<group>"; };
 		D9E5399A892FC09030ECEA07 /* X-Display.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X-Display.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -48,6 +50,7 @@
 		6D39F757F809C9728B8A677A /* X-display */ = {
 			isa = PBXGroup;
 			children = (
+				46C8FAEAD5ACBCD37ECA0B0D /* CryptoHelper.swift */,
 				2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */,
 				8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */,
 				290006FF26BEE7AA02629929 /* X_display.swift */,
@@ -142,6 +145,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */,
+				71127414ACB457D41216179E /* CryptoHelper.swift in Sources */,
 				4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */,
 				3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */,
 				F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */,
@@ -156,6 +160,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_SUFeedURL = "https://goodbad-web.github.io/xdisplay/appcast.xml";
@@ -165,6 +170,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.goodbad-web.X-Display";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = Sources/CVirtualDisplay/include/CVirtualDisplay.h;
@@ -177,6 +183,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_SUFeedURL = "https://goodbad-web.github.io/xdisplay/appcast.xml";
@@ -186,6 +193,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.goodbad-web.X-Display";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = Sources/CVirtualDisplay/include/CVirtualDisplay.h;

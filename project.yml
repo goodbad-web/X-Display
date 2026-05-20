@@ -25,3 +25,5 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: "14.0"
         INFOPLIST_KEY_SUFeedURL: "https://goodbad-web.github.io/xdisplay/appcast.xml"
         INFOPLIST_KEY_SUPublicEDKey: "placeholder_ed25519_public_key_value_for_sparkle_signing"
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"

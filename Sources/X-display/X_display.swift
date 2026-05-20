@@ -164,8 +164,10 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         
         #if canImport(Sparkle)
+        #if !DEBUG
         // Initialize Sparkle Updater
         updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        #endif
         #endif
         
         setupMenuBar()
@@ -175,9 +177,15 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         guard let button = statusItem?.button else { return }
         
-        // Set menu bar image using SF Symbols
-        button.image = NSImage(systemSymbolName: "display.and.ipad", accessibilityDescription: "X-Display Menu")
-        button.imagePosition = .imageLeft
+        // Set menu bar image using SF Symbols with template coloring for dark/light mode compatibility
+        if let image = NSImage(systemSymbolName: "display.and.ipad", accessibilityDescription: "X-Display Menu") {
+            image.isTemplate = true
+            button.image = image
+            button.imagePosition = .imageLeft
+        } else {
+            // Fallback to text title if SF Symbol loading fails
+            button.title = "🖥️📱"
+        }
         
         updateMenu()
     }
