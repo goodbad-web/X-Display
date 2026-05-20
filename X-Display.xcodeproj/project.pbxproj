@@ -156,10 +156,11 @@
 		55E73489EBF4EC980F50C153 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-					CODE_SIGN_ENTITLEMENTS = "X-Display.entitlements";
-					CODE_SIGN_IDENTITY = "Apple Development";
-					CODE_SIGN_STYLE = Automatic;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "X-Display.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 76Q8Z9XK4F;
@@ -187,10 +188,11 @@
 		69C3AAB0E2624C33AE844772 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-					ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-					CODE_SIGN_ENTITLEMENTS = "X-Display.entitlements";
-					CODE_SIGN_IDENTITY = "Apple Development";
-					CODE_SIGN_STYLE = Automatic;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "X-Display.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 76Q8Z9XK4F;
@@ -374,15 +376,15 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E012EEAE1C152C149F15424C /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
 		9B7D0F7E2A9349E7B6E7F3D1 /* XDisplayShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B7D0F7D2A9349E7B6E7F3D1 /* XCLocalSwiftPackageReference "XDisplayShared" */;
 			productName = XDisplayShared;
+		};
+		E012EEAE1C152C149F15424C /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

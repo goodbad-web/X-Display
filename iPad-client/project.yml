@@ -1,6 +1,7 @@
 name: X-Display-Client
 options:
   minimumXcodeGenVersion: 2.40.0
+  xcodeVersion: "26.5"
   deploymentTarget:
     iOS: "17.0"
 packages:
