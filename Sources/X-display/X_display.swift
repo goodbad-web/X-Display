@@ -18,7 +18,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private let server = StreamServer()
     private var displayID: CGDirectDisplayID?
     
-    func startCaptureOfVirtualDisplay(width: Int, height: Int) async {
+    func startCaptureOfVirtualDisplay(width: Int, height: Int) async throws {
         do {
             print("[*] Starting StreamServer...")
             server.delegate = self
@@ -31,20 +31,20 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             print("[*] Retrieving shareable content...")
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
             
-            // Find the virtual display by width and height resolution
+            // Find the virtual display by width and height resolution.
             guard let targetDisplay = content.displays.first(where: { Int($0.width) == width && Int($0.height) == height }) else {
                 print("[-] Target virtual display not found. Please ensure it is created.")
                 server.stop()
-                return
+                throw NSError(domain: "ScreenCaptureManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Target virtual display not found."])
             }
             
             self.displayID = targetDisplay.displayID
             print("[+] Target display found! ID: \(targetDisplay.displayID) Resolution: \(Int(targetDisplay.width))x\(Int(targetDisplay.height))")
             
-            // Create a content filter targeting the virtual display
+            // Create a content filter targeting the virtual display.
             let filter = SCContentFilter(display: targetDisplay, excludingWindows: [])
             
-            // Configure zero-latency stream settings
+            // Configure zero-latency stream settings.
             let config = SCStreamConfiguration()
             config.width = width
             config.height = height
@@ -56,7 +56,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             print("[*] Initializing SCStream...")
             stream = SCStream(filter: filter, configuration: config, delegate: nil)
             
-            // Set output callback on a dedicated user-interactive serial queue
+            // Set output callback on a dedicated user-interactive serial queue.
             let captureQueue = DispatchQueue(label: "com.xdisplay.capture-queue", qos: .userInteractive)
             try stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
             
@@ -64,10 +64,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             try await stream?.startCapture()
             print("[+] SCStream started successfully! Capturing frames...")
             lastFrameTime = Date()
-            
         } catch {
             print("[-] SCStream start failed: \(error.localizedDescription)")
             server.stop()
+            throw error
         }
     }
     
@@ -171,6 +171,10 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         #endif
         
         setupMenuBar()
+        
+        // Test automation: trigger virtual display on startup
+        print("[*] Test Mode: Auto-starting virtual display...")
+        startDisplay()
     }
     
     private func setupMenuBar() {
@@ -245,24 +249,28 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     
     @objc private func startDisplay() {
         guard !isDisplayActive else { return }
-        isDisplayActive = true
-        updateMenu()
         
         Task {
             do {
                 print("[*] Creating virtual display (\(selectedWidth)x\(selectedHeight))...")
                 try helper.createVirtualDisplay(withWidth: UInt32(selectedWidth), height: UInt32(selectedHeight))
+
+                isDisplayActive = true
+                updateMenu()
                 
                 print("[*] Waiting 1.5s for WindowServer display registration...")
                 try await Task.sleep(nanoseconds: 1_500_000_000)
                 
                 print("[*] Launching capture & streaming pipeline...")
-                await captureManager.startCaptureOfVirtualDisplay(width: selectedWidth, height: selectedHeight)
+                try await captureManager.startCaptureOfVirtualDisplay(width: selectedWidth, height: selectedHeight)
                 
                 print("[+] X-Display Streaming is now active.")
             } catch {
                 print("[-] Error while starting display: \(error.localizedDescription)")
-                stopDisplay()
+                await captureManager.stopCapture()
+                helper.destroyVirtualDisplay()
+                isDisplayActive = false
+                updateMenu()
             }
         }
     }
@@ -308,13 +316,18 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 @main
 struct X_display {
     @MainActor
+    private static var strongDelegate: XDisplayAppManager?
+
+    @MainActor
     static func main() {
+        setvbuf(stdout, nil, _IONBF, 0)
+        setvbuf(stderr, nil, _IONBF, 0)
         print("[*] Initializing macOS MenuBar Application...")
         let app = NSApplication.shared
         let delegate = XDisplayAppManager()
+        strongDelegate = delegate
         app.delegate = delegate
         app.run()
     }
 }
 #endif
-

@@ -162,6 +162,7 @@
 				CODE_SIGN_ENTITLEMENTS = "X-Display.entitlements";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_SUFeedURL = "https://goodbad-web.github.io/xdisplay/appcast.xml";
@@ -186,6 +187,7 @@
 				CODE_SIGN_ENTITLEMENTS = "X-Display.entitlements";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_SUFeedURL = "https://goodbad-web.github.io/xdisplay/appcast.xml";
