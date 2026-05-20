@@ -9,6 +9,13 @@
     "swift-dependencies": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/App.swiftdeps",
     "diagnostics": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/App.dia"
   },
+  "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/CryptoHelper.swift": {
+    "dependencies": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper.d",
+    "object": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper.swift.o",
+    "swiftmodule": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper~partial.swiftmodule",
+    "swift-dependencies": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper.swiftdeps",
+    "diagnostics": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper.dia"
+  },
   "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/DeviceBrowser.swift": {
     "dependencies": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/DeviceBrowser.d",
     "object": "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/DeviceBrowser.swift.o",

@@ -11,6 +11,10 @@ import CoreMedia
 import Sparkle
 #endif
 
+struct SendablePixelBuffer: @unchecked Sendable {
+    let buffer: CVPixelBuffer
+}
+
 final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
     private var frameCount = 0
@@ -19,6 +23,11 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private let server = StreamServer()
     private var displayID: CGDirectDisplayID?
     private var didRequestScreenCaptureAccess = false
+    
+    // Low-Latency active frame skip pipeline
+    private let encodeQueue = DispatchQueue(label: "com.xdisplay.encode-queue", qos: .userInteractive)
+    private var isEncoding = false
+    private let encodingLock = NSLock()
 
     private func requestScreenCaptureAccessIfNeeded() async {
         if CGPreflightScreenCaptureAccess() {
@@ -67,8 +76,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             config.width = width
             config.height = height
             config.pixelFormat = kCVPixelFormatType_32BGRA // GPU-friendly format
-            config.queueDepth = 3 // Keep queue depth shallow to prevent latency accumulation
-            config.minimumFrameInterval = CMTime(value: 1, timescale: 60) // Target 60 FPS
+            config.queueDepth = 8 // Increased to 8 to prevent frame drops and backlog
             config.showsCursor = true
             config.capturesAudio = false
             
@@ -109,19 +117,35 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         frameCount += 1
         let now = Date()
         let interval = now.timeIntervalSince(lastFrameTime)
-        let encodeStart = DispatchTime.now().uptimeNanoseconds
         
-        // Log status every 60 frames (approx. 1 second at 60fps)
         if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
             let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-            encoder.encode(pixelBuffer: pixelBuffer, presentationTime: pts)
+            
+            // Wrap in @unchecked Sendable to prevent concurrency warnings
+            let wrappedBuffer = SendablePixelBuffer(buffer: pixelBuffer)
+            
+            // Skip frame if the encoder is currently busy to avoid backlog & pool starvation
+            encodingLock.lock()
+            if isEncoding {
+                encodingLock.unlock()
+                return // Active Frame Drop
+            }
+            isEncoding = true
+            encodingLock.unlock()
+            
+            encodeQueue.async { [weak self] in
+                guard let self = self else { return }
+                self.encoder.encode(pixelBuffer: wrappedBuffer.buffer, presentationTime: pts)
+                
+                self.encodingLock.lock()
+                self.isEncoding = false
+                self.encodingLock.unlock()
+            }
         }
-
-        let encodeElapsedMs = Double(DispatchTime.now().uptimeNanoseconds - encodeStart) / 1_000_000.0
         
         if frameCount % 60 == 0 {
             let fps = 60.0 / interval
-            print(String(format: "[+] Cap Frame #%04d | FPS: %.1f | encodeFrame: %.2f ms", frameCount, fps, encodeElapsedMs))
+            print(String(format: "[+] Cap Frame #%04d | FPS: %.1f", frameCount, fps))
             lastFrameTime = now
         }
     }

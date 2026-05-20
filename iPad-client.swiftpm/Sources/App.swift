@@ -10,10 +10,14 @@ struct XDisplayClientApp: App {
     }
 }
 
+class FrameHolder: ObservableObject {
+    @Published var pixelBuffer: CVPixelBuffer? = nil
+}
+
 class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate {
     @Published var connectionStatus: String = "Disconnected"
     @Published var isConnected = false
-    @Published var currentPixelBuffer: CVPixelBuffer? = nil
+    let frameHolder = FrameHolder()
     @Published var discoveredDevices: [DiscoveredDevice] = []
     
     private let streamClient = StreamClient()
@@ -45,7 +49,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         streamClient.disconnect()
         isConnected = false
         connectionStatus = "Disconnected"
-        currentPixelBuffer = nil
+        frameHolder.pixelBuffer = nil
     }
     
     func sendTouchEvent(_ event: TouchEvent) {
@@ -82,7 +86,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     // VideoDecoderDelegate
     func videoDecoder(_ decoder: VideoDecoder, didDecodeImageBuffer pixelBuffer: CVPixelBuffer) {
         DispatchQueue.main.async {
-            self.currentPixelBuffer = pixelBuffer
+            self.frameHolder.pixelBuffer = pixelBuffer
         }
     }
     
@@ -102,7 +106,7 @@ struct ContentView: View {
             if viewModel.isConnected {
                 // Zero-Latency Video streaming viewport with touch overlay
                 ZStack {
-                    MetalRendererView(currentPixelBuffer: $viewModel.currentPixelBuffer)
+                    StreamViewport(frameHolder: viewModel.frameHolder)
                     
                     TouchOverlayView { event in
                         viewModel.sendTouchEvent(event)
@@ -404,6 +408,14 @@ extension Color {
             blue:  Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+}
+
+struct StreamViewport: View {
+    @ObservedObject var frameHolder: FrameHolder
+    
+    var body: some View {
+        MetalRendererView(currentPixelBuffer: $frameHolder.pixelBuffer)
     }
 }
 

@@ -41,6 +41,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/CryptoHelper.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/DeviceBrowser.swift"
         },
         {
@@ -81,6 +85,7 @@
       "moduleOutputPath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/Modules/App.swiftmodule",
       "objects" : [
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/App.swift.o",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper.swift.o",
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/DeviceBrowser.swift.o",
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/MetalRendererView.swift.o",
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/StreamClient.swift.o",
@@ -122,10 +127,6 @@
         "-L",
         "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
         "-g",
-        "-sdk",
-        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk",
-        "-target",
-        "arm64-apple-ios17.0-simulator",
         "-Xcc",
         "-isysroot",
         "-Xcc",
@@ -146,6 +147,10 @@
         {
           "kind" : "file",
           "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/App.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-macosx/debug/App.build/CryptoHelper.swift.o"
         },
         {
           "kind" : "file",
@@ -179,6 +184,7 @@
       "prepareForIndexing" : false,
       "sources" : [
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/CryptoHelper.swift",
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/DeviceBrowser.swift",
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift",
         "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift",
@@ -202,6 +208,7 @@
       "ipad_client_swiftpm",
       "-c",
       "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/CryptoHelper.swift",
       "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/DeviceBrowser.swift",
       "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift",
       "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift",
@@ -243,10 +250,6 @@
       "-L",
       "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
       "-g",
-      "-sdk",
-      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk",
-      "-target",
-      "arm64-apple-ios17.0-simulator",
       "-Xcc",
       "-isysroot",
       "-Xcc",
@@ -292,6 +295,10 @@
         {
           "kind" : "file",
           "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/CryptoHelper.swift"
         },
         {
           "kind" : "file",

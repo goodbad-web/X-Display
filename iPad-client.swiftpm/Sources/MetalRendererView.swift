@@ -11,6 +11,11 @@ struct MetalRendererView: UIViewRepresentable {
         mtkView.colorPixelFormat = .bgra8Unorm
         mtkView.framebufferOnly = true
         mtkView.clearColor = MTLClearColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        
+        // Passive rendering: draw only when a new frame is received
+        mtkView.isPaused = true
+        mtkView.enableSetNeedsDisplay = true
+        
         mtkView.delegate = context.coordinator
         
         context.coordinator.setupMetal(device: mtkView.device!)
