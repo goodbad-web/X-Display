@@ -7,18 +7,19 @@
   - [x] `NSInvocation` を用いた `createVirtualDisplay` の実行とARC所有権エラーの修正
   - [x] Swiftメイン（`X_display.swift`）からの `shared()` 呼び出しと動作確認・ビルド成功
 
-- [ ] **Phase 2: ScreenCaptureKitによる超低遅延キャプチャ PoC**
-  - [ ] macOSの画面収録権限の確認およびチェックロジックの実装
-  - [ ] `ScreenCaptureKit` の `SCShareableContent` から、作成した仮想ディスプレイを特定するフィルタリング処理の記述
-  - [ ] `SCStream` の初期化とフレームキャプチャコールバックの記述
-  - [ ] キャプチャした `CVPixelBuffer` のサイズ、解像度、タイムスタンプのログ出力検証
+- [x] **Phase 2: ScreenCaptureKitによる超低遅延キャプチャ PoC**
+  - [x] macOSの画面収録権限の確認およびチェックロジックの実装
+  - [x] `ScreenCaptureKit` の `SCShareableContent` から、作成した仮想ディスプレイを特定するフィルタリング処理の記述
+  - [x] `SCStream` の初期化とフレームキャプチャコールバックの記述
+  - [x] キャプチャした `CVPixelBuffer` のサイズ、解像度、タイムスタンプのログ出力検証
 
-- [ ] **Phase 3: 有線/無線通信 & ストリーミング配信 PoC**
-  - [ ] iPadOSクライアントアプリのプロジェクト作成
-  - [ ] **無線**: `Network.framework` (Bonjour) を用いたローカルTCPソケット通信の構築
-  - [ ] **有線**: `USBMuxd` を利用したTCPポート転送経由の有線通信の検証
-  - [ ] Mac側での `VideoToolbox` H.264 ハードウェア圧縮（Bフレーム無効）パケット化処理の実装
-  - [ ] iPad側でのデコードと `Metal` (MTKView) へのダイレクトレンダリング実装
+
+- [/] **Phase 3: 有線/無線通信 & ストリーミング配信 PoC**
+  - [/] iPadOSクライアントアプリのプロジェクト作成
+  - [/] **無線**: `Network.framework` (Bonjour) を用いたローカルTCPソケット通信の構築
+  - [ ] **有線**: `USBMuxd` を利用したTCPポート転送経由 of 有線通信の検証
+  - [/] Mac側での `VideoToolbox` H.264 ハードウェア圧縮（Bフレーム無効）パケット化処理の実装
+  - [/] iPad側でのデコードと `Metal` (MTKView) へのダイレクトレンダリング実装
 
 - [ ] **Phase 4: 入力フィードバック PoC**
   - [ ] iPad上でのタッチ位置、Pencil（筆圧・傾き）のイベントハンドリング
