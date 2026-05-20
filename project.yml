@@ -1,0 +1,19 @@
+name: X-Display
+options:
+  bundleIdPrefix: com.goodbad-web
+targets:
+  X-Display:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources/X-display
+      - path: Sources/CVirtualDisplay
+    settings:
+      base:
+        SWIFT_VERSION: "6.0"
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/CVirtualDisplay/include/CVirtualDisplay.h
+        INFOPLIST_KEY_LSUIElement: YES
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.goodbad-web.X-Display
+        MACOSX_DEPLOYMENT_TARGET: "14.0"

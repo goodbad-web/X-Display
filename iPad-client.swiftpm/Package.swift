@@ -16,7 +16,7 @@ let package = Package(
             bundleIdentifier: "com.goodbad-web.X-Display-Client",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .screen),
+            appIcon: .placeholder(icon: .heart),
             accentColor: .presetColor(.indigo),
             supportedDeviceFamilies: [
                 .pad,

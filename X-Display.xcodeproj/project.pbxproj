@@ -1,0 +1,316 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */; };
+		4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */; };
+		E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */; };
+		F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290006FF26BEE7AA02629929 /* X_display.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		290006FF26BEE7AA02629929 /* X_display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = X_display.swift; sourceTree = "<group>"; };
+		2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamServer.swift; sourceTree = "<group>"; };
+		3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CVirtualDisplay.m; sourceTree = "<group>"; };
+		8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEncoder.swift; sourceTree = "<group>"; };
+		B03C43BAEBDCCC175FD6B26F /* CVirtualDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVirtualDisplay.h; sourceTree = "<group>"; };
+		D9E5399A892FC09030ECEA07 /* X-Display.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X-Display.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		532DDC3B4C111BDC74262258 /* CVirtualDisplay */ = {
+			isa = PBXGroup;
+			children = (
+				3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */,
+				75F8AF861ACD62C1BA9DC3D9 /* include */,
+			);
+			name = CVirtualDisplay;
+			path = Sources/CVirtualDisplay;
+			sourceTree = "<group>";
+		};
+		6D39F757F809C9728B8A677A /* X-display */ = {
+			isa = PBXGroup;
+			children = (
+				2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */,
+				8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */,
+				290006FF26BEE7AA02629929 /* X_display.swift */,
+			);
+			name = "X-display";
+			path = "Sources/X-display";
+			sourceTree = "<group>";
+		};
+		75F8AF861ACD62C1BA9DC3D9 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				B03C43BAEBDCCC175FD6B26F /* CVirtualDisplay.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		A547C70AD6881F3EB108630A = {
+			isa = PBXGroup;
+			children = (
+				532DDC3B4C111BDC74262258 /* CVirtualDisplay */,
+				6D39F757F809C9728B8A677A /* X-display */,
+				E7CACBB4842F5A365FEAA184 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E7CACBB4842F5A365FEAA184 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D9E5399A892FC09030ECEA07 /* X-Display.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		838EED820729F1C04584D502 /* X-Display */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F7DF0E6CC0AD3EBDBFF5D4F1 /* Build configuration list for PBXNativeTarget "X-Display" */;
+			buildPhases = (
+				36CDEC56908B5A8DA39D376C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "X-Display";
+			packageProductDependencies = (
+			);
+			productName = "X-Display";
+			productReference = D9E5399A892FC09030ECEA07 /* X-Display.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		47FC65D3F5943AD7BA77A159 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = B2508B2EB64180EABA49C7A8 /* Build configuration list for PBXProject "X-Display" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A547C70AD6881F3EB108630A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E7CACBB4842F5A365FEAA184 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				838EED820729F1C04584D502 /* X-Display */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		36CDEC56908B5A8DA39D376C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */,
+				4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */,
+				3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */,
+				F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		55E73489EBF4EC980F50C153 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goodbad-web.X-Display";
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Sources/CVirtualDisplay/include/CVirtualDisplay.h;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		69C3AAB0E2624C33AE844772 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.goodbad-web.X-Display";
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Sources/CVirtualDisplay/include/CVirtualDisplay.h;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		9CD83B3362A482E7B8CAD285 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A70699B85F980B4281AF2579 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B2508B2EB64180EABA49C7A8 /* Build configuration list for PBXProject "X-Display" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9CD83B3362A482E7B8CAD285 /* Debug */,
+				A70699B85F980B4281AF2579 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F7DF0E6CC0AD3EBDBFF5D4F1 /* Build configuration list for PBXNativeTarget "X-Display" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55E73489EBF4EC980F50C153 /* Debug */,
+				69C3AAB0E2624C33AE844772 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 47FC65D3F5943AD7BA77A159 /* Project object */;
+}

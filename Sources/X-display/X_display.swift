@@ -1,10 +1,13 @@
 #if os(macOS)
 import Foundation
+import AppKit
 import ScreenCaptureKit
+#if canImport(CVirtualDisplay)
 import CVirtualDisplay
+#endif
 import CoreMedia
 
-class ScreenCaptureManager: NSObject, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
+final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
     private var frameCount = 0
     private var lastFrameTime = Date()
@@ -139,49 +142,158 @@ class ScreenCaptureManager: NSObject, SCStreamOutput, VideoEncoderDelegate, Stre
     }
 }
 
-@main
-struct X_display {
-    static func main() async {
-        print("==================================================")
-        print("  macOS ScreenCaptureKit Zero-Latency Capture PoC ")
-        print("==================================================")
+@MainActor
+class XDisplayAppManager: NSObject, NSApplicationDelegate {
+    private var statusItem: NSStatusItem?
+    private let helper = CVirtualDisplayHelper.shared()
+    private let captureManager = ScreenCaptureManager()
+    
+    private var isDisplayActive = false
+    private var selectedWidth = 1920
+    private var selectedHeight = 1080
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Configure as a background/accessory app (no Dock icon)
+        NSApp.setActivationPolicy(.accessory)
         
-        let helper = CVirtualDisplayHelper.shared()
-        let captureManager = ScreenCaptureManager()
+        setupMenuBar()
+    }
+    
+    private func setupMenuBar() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        guard let button = statusItem?.button else { return }
         
-        let displayWidth = 1920
-        let displayHeight = 1080
+        // Set menu bar image using SF Symbols
+        button.image = NSImage(systemSymbolName: "display.and.ipad", accessibilityDescription: "X-Display Menu")
+        button.imagePosition = .imageLeft
         
-        do {
-            print("[*] Step 1: Creating virtual display (\(displayWidth)x\(displayHeight))...")
-            try helper.createVirtualDisplay(withWidth: UInt32(displayWidth), height: UInt32(displayHeight))
-            print("[+] Virtual display created successfully!")
-            
-            // Sleep briefly to let WindowServer register the new display
-            print("[*] Waiting 1.5s for OS to register the display...")
-            try await Task.sleep(nanoseconds: 1_500_000_000)
-            
-            print("[*] Step 2: Starting ScreenCaptureKit stream...")
-            await captureManager.startCaptureOfVirtualDisplay(width: displayWidth, height: displayHeight)
-            
-            print("==================================================")
-            print("[!] Verification status: ACTIVE")
-            print("[!] Please check System Settings -> Displays")
-            print("[*] Press [ENTER] key to stop capturing, destroy display and exit...")
-            print("==================================================")
-            
-            _ = readLine()
-            
+        updateMenu()
+    }
+    
+    private func updateMenu() {
+        let menu = NSMenu()
+        
+        // 1. Status Indicator
+        let statusTitle = isDisplayActive ? "Status: Active Streaming" : "Status: Idle"
+        let statusMenuItem = NSMenuItem(title: statusTitle, action: nil, keyEquivalent: "")
+        statusMenuItem.isEnabled = false
+        menu.addItem(statusMenuItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        // 2. Start / Stop Action
+        if isDisplayActive {
+            let stopItem = NSMenuItem(title: "Stop Virtual Display", action: #selector(stopDisplay), keyEquivalent: "s")
+            stopItem.target = self
+            menu.addItem(stopItem)
+        } else {
+            let startItem = NSMenuItem(title: "Start Virtual Display", action: #selector(startDisplay), keyEquivalent: "g")
+            startItem.target = self
+            menu.addItem(startItem)
+        }
+        
+        // 3. Resolutions Submenu
+        let resItem = NSMenuItem(title: "Resolution", action: nil, keyEquivalent: "")
+        let resMenu = NSMenu()
+        
+        let resolutions = [
+            (1920, 1080, "1920 x 1080 (16:9)"),
+            (2048, 1536, "2048 x 1536 (4:3)"),
+            (2732, 2048, "2732 x 2048 (iPad Pro)")
+        ]
+        
+        for (w, h, title) in resolutions {
+            let item = NSMenuItem(title: title, action: #selector(selectResolution(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = [w, h]
+            item.state = (w == selectedWidth && h == selectedHeight) ? .on : .off
+            resMenu.addItem(item)
+        }
+        
+        resItem.submenu = resMenu
+        menu.addItem(resItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        // 4. Quit Action
+        let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+        
+        statusItem?.menu = menu
+    }
+    
+    @objc private func startDisplay() {
+        guard !isDisplayActive else { return }
+        isDisplayActive = true
+        updateMenu()
+        
+        Task {
+            do {
+                print("[*] Creating virtual display (\(selectedWidth)x\(selectedHeight))...")
+                try helper.createVirtualDisplay(withWidth: UInt32(selectedWidth), height: UInt32(selectedHeight))
+                
+                print("[*] Waiting 1.5s for WindowServer display registration...")
+                try await Task.sleep(nanoseconds: 1_500_000_000)
+                
+                print("[*] Launching capture & streaming pipeline...")
+                await captureManager.startCaptureOfVirtualDisplay(width: selectedWidth, height: selectedHeight)
+                
+                print("[+] X-Display Streaming is now active.")
+            } catch {
+                print("[-] Error while starting display: \(error.localizedDescription)")
+                stopDisplay()
+            }
+        }
+    }
+    
+    @objc private func stopDisplay() {
+        guard isDisplayActive else { return }
+        isDisplayActive = false
+        updateMenu()
+        
+        Task {
             print("[*] Stopping screen capture stream...")
             await captureManager.stopCapture()
             
-        } catch {
-            print("[-] Error occurred: \(error.localizedDescription)")
+            print("[*] Destroying virtual display and releasing ports...")
+            helper.destroyVirtualDisplay()
+            print("[+] Streaming stopped & resources cleaned up.")
         }
+    }
+    
+    @objc private func selectResolution(_ sender: NSMenuItem) {
+        guard let size = sender.representedObject as? [Int], size.count == 2 else { return }
+        selectedWidth = size[0]
+        selectedHeight = size[1]
         
-        print("[*] Destroying virtual display and releasing resources...")
-        helper.destroyVirtualDisplay()
-        print("[+] Terminated successfully.")
+        print("[*] Resolution changed to: \(selectedWidth)x\(selectedHeight)")
+        updateMenu()
+        
+        if isDisplayActive {
+            stopDisplay()
+            // Grace period to let the old virtual display tear down cleanly
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.startDisplay()
+            }
+        }
+    }
+    
+    @objc private func quitApp() {
+        stopDisplay()
+        NSApp.terminate(nil)
+    }
+}
+
+@main
+struct X_display {
+    @MainActor
+    static func main() {
+        print("[*] Initializing macOS MenuBar Application...")
+        let app = NSApplication.shared
+        let delegate = XDisplayAppManager()
+        app.delegate = delegate
+        app.run()
     }
 }
 #endif

@@ -12,9 +12,7 @@ class StreamClient {
     private let clientQueue = DispatchQueue(label: "com.xdisplay.client.network-queue", qos: .userInteractive)
     private var isRunning = false
     
-    func connect(host: String, port: UInt16) {
-        let endpointHost = NWEndpoint.Host(host)
-        let endpointPort = NWEndpoint.Port(rawValue: port)!
+    func connect(endpoint: NWEndpoint) {
         let parameters = NWParameters.tcp
         
         // Disable Nagle's algorithm for ultra-low latency
@@ -22,7 +20,7 @@ class StreamClient {
             tcpOpt.noDelay = true
         }
         
-        connection = NWConnection(to: .hostPort(host: endpointHost, port: endpointPort), using: parameters)
+        connection = NWConnection(to: endpoint, using: parameters)
         
         connection?.stateUpdateHandler = { [weak self] state in
             guard let self = self else { return }
@@ -45,6 +43,12 @@ class StreamClient {
         
         isRunning = true
         connection?.start(queue: clientQueue)
+    }
+
+    func connect(host: String, port: UInt16) {
+        let endpointHost = NWEndpoint.Host(host)
+        let endpointPort = NWEndpoint.Port(rawValue: port)!
+        connect(endpoint: .hostPort(host: endpointHost, port: endpointPort))
     }
     
     func disconnect() {

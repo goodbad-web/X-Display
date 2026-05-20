@@ -23,6 +23,9 @@ final class StreamServer: @unchecked Sendable {
         
         listener = try NWListener(using: parameters, on: nwPort)
         
+        // Broadcast via Bonjour
+        listener?.service = NWListener.Service(name: "X-Display Host", type: "_xdisplay._tcp")
+        
         listener?.stateUpdateHandler = { state in
             switch state {
             case .ready:
