@@ -93,6 +93,15 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         streamClient.sendRightClickEvent(x: x, y: y)
     }
 
+    func sendPencilEvent(_ event: XDisplayPencilEvent) {
+        streamClient.sendPencilEvent(event)
+    }
+
+    func sendPencilInteractionEvent(_ event: XDisplayPencilInteractionEvent) {
+        streamClient.sendPencilInteractionEvent(event)
+    }
+
+
 
     // StreamClientDelegate
     func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data) {
@@ -172,6 +181,12 @@ struct ContentView: View {
                         },
                         onRightClickEvent: { x, y in
                             viewModel.sendRightClickEvent(x: x, y: y)
+                        },
+                        onPencilEvent: { event in
+                            viewModel.sendPencilEvent(event)
+                        },
+                        onPencilInteractionEvent: { event in
+                            viewModel.sendPencilInteractionEvent(event)
                         }
                     )
 

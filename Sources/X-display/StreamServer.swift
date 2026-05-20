@@ -8,6 +8,8 @@ protocol StreamServerDelegate: AnyObject {
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float)
     func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float)
     func streamServer(_ server: StreamServer, didReceiveRightClickEvent x: Float, y: Float)
+    func streamServer(_ server: StreamServer, didReceivePencilEvent event: XDisplayPencilEvent)
+    func streamServer(_ server: StreamServer, didReceivePencilInteractionEvent event: XDisplayPencilInteractionEvent)
     func streamServerDidCompletePairing(_ server: StreamServer)
     func streamServer(_ server: StreamServer, didGeneratePIN pin: String)
 }
@@ -285,6 +287,12 @@ final class StreamServer: @unchecked Sendable {
             } else if identifier == 0x03 {
                 let event = try XDisplayRightClickEvent.decodeRawPayload(data)
                 delegate?.streamServer(self, didReceiveRightClickEvent: event.x, y: event.y)
+            } else if identifier == 0x04 {
+                let event = try XDisplayPencilEvent.decodeRawPayload(data)
+                delegate?.streamServer(self, didReceivePencilEvent: event)
+            } else if identifier == 0x05 {
+                let event = try XDisplayPencilInteractionEvent.decodeRawPayload(data)
+                delegate?.streamServer(self, didReceivePencilInteractionEvent: event)
             } else {
                 print("[-] Unknown input event identifier: \(identifier)")
             }

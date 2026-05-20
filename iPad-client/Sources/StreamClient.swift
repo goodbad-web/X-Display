@@ -147,6 +147,37 @@ class StreamClient {
         }
     }
 
+    func sendPencilEvent(_ event: XDisplayPencilEvent) {
+        guard isRunning, isPaired, let key = sessionKey else { return }
+        
+        let rawEvent = event.encodeRawPayload()
+        
+        do {
+            let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
+            let payload = XDisplayPacketCodec.makeEncryptedInputEvent(encryptedEvent)
+            
+            sendPacket(payload)
+        } catch {
+            print("[-] Encryption failed for pencil event: \(error.localizedDescription)")
+        }
+    }
+
+    func sendPencilInteractionEvent(_ event: XDisplayPencilInteractionEvent) {
+        guard isRunning, isPaired, let key = sessionKey else { return }
+        
+        let rawEvent = event.encodeRawPayload()
+        
+        do {
+            let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
+            let payload = XDisplayPacketCodec.makeEncryptedInputEvent(encryptedEvent)
+            
+            sendPacket(payload)
+        } catch {
+            print("[-] Encryption failed for pencil interaction event: \(error.localizedDescription)")
+        }
+    }
+
+
     
     private func sendPacket(_ payload: Data) {
         guard let connection = connection else { return }

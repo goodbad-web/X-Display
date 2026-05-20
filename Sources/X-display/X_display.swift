@@ -10,6 +10,7 @@ import CoreMedia
 #if canImport(Sparkle)
 import Sparkle
 #endif
+import XDisplayShared
 
 struct SendablePixelBuffer: @unchecked Sendable {
     let buffer: CVPixelBuffer
@@ -319,6 +320,67 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         downEvent.post(tap: .cghidEventTap)
         upEvent.post(tap: .cghidEventTap)
     }
+
+    func streamServer(_ server: StreamServer, didReceivePencilEvent event: XDisplayPencilEvent) {
+        guard let displayID = self.displayID else { return }
+
+        let bounds = CGDisplayBounds(displayID)
+        guard bounds.width > 0 && bounds.height > 0 else { return }
+
+        let absoluteX = bounds.origin.x + CGFloat(event.x) * bounds.size.width
+        let absoluteY = bounds.origin.y + CGFloat(event.y) * bounds.size.height
+        let point = CGPoint(x: absoluteX, y: absoluteY)
+
+        let mouseType: CGEventType
+        if event.isHover {
+            mouseType = .mouseMoved
+        } else {
+            switch event.phase {
+            case .began:
+                mouseType = .leftMouseDown
+            case .moved:
+                mouseType = .leftMouseDragged
+            case .ended, .cancelled:
+                mouseType = .leftMouseUp
+            }
+        }
+
+        guard let cgEvent = CGEvent(mouseEventSource: nil, mouseType: mouseType, mouseCursorPosition: point, mouseButton: .left) else { return }
+        
+        if !event.isHover {
+            cgEvent.setDoubleValueField(CGEventField.tabletEventPointPressure, value: Double(event.pressure))
+            cgEvent.setDoubleValueField(CGEventField.tabletEventTiltX, value: Double(event.tiltX))
+            cgEvent.setDoubleValueField(CGEventField.tabletEventTiltY, value: Double(event.tiltY))
+            cgEvent.setDoubleValueField(CGEventField.tabletEventRotation, value: Double(event.roll * 180.0 / .pi))
+            cgEvent.setIntegerValueField(CGEventField.mouseEventSubtype, value: Int64(CGEventMouseSubtype.tabletPoint.rawValue))
+        } else {
+            cgEvent.setIntegerValueField(CGEventField.mouseEventSubtype, value: Int64(CGEventMouseSubtype.tabletPoint.rawValue))
+            cgEvent.setDoubleValueField(CGEventField.tabletEventPointPressure, value: 0.0)
+        }
+        
+        cgEvent.post(tap: CGEventTapLocation.cghidEventTap)
+    }
+
+    func streamServer(_ server: StreamServer, didReceivePencilInteractionEvent event: XDisplayPencilInteractionEvent) {
+        switch event.type {
+        case .doubleTap:
+            postKeyboardEvent(keyCode: 0x30, flags: []) // Tab key (0x30)
+        case .squeeze:
+            postKeyboardEvent(keyCode: 0x06, flags: [.maskCommand]) // Z key (0x06) + Cmd
+        }
+    }
+    
+    private func postKeyboardEvent(keyCode: CGKeyCode, flags: CGEventFlags) {
+        guard let downEvent = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true) else { return }
+        guard let upEvent = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false) else { return }
+        
+        downEvent.flags = flags
+        upEvent.flags = flags
+        
+        downEvent.post(tap: .cghidEventTap)
+        upEvent.post(tap: .cghidEventTap)
+    }
+
 
 }
 
