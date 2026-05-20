@@ -55,6 +55,47 @@ class StreamClient {
         print("[*] StreamClient disconnected.")
     }
     
+    func sendInputEvent(phase: TouchPhaseType, x: Float, y: Float, pressure: Float) {
+        guard isRunning, let connection = connection else { return }
+        
+        var payload = Data()
+        
+        // 1. Magic identifier for Input Event: 0x01 (1 byte)
+        var identifier: UInt8 = 0x01
+        payload.append(&identifier, count: 1)
+        
+        // 2. Touch Phase (1 byte)
+        var rawPhase = phase.rawValue
+        payload.append(&rawPhase, count: 1)
+        
+        // 3. X (4 bytes Float bitPattern Big-Endian)
+        var xBits = x.bitPattern.bigEndian
+        withUnsafeBytes(of: &xBits) { payload.append(contentsOf: $0) }
+        
+        // 4. Y (4 bytes Float bitPattern Big-Endian)
+        var yBits = y.bitPattern.bigEndian
+        withUnsafeBytes(of: &yBits) { payload.append(contentsOf: $0) }
+        
+        // 5. Pressure (4 bytes Float bitPattern Big-Endian)
+        var pressureBits = pressure.bitPattern.bigEndian
+        withUnsafeBytes(of: &pressureBits) { payload.append(contentsOf: $0) }
+        
+        // Frame packet: [4-Byte Payload Size] + [Payload]
+        var payloadSize = UInt32(payload.count).bigEndian
+        var packet = Data()
+        withUnsafeBytes(of: &payloadSize) { packet.append(contentsOf: $0) }
+        packet.append(payload)
+        
+        // Send on network queue
+        clientQueue.async {
+            connection.send(content: packet, completion: .contentProcessed({ error in
+                if let error = error {
+                    print("[-] Failed to send input event: \(error.localizedDescription)")
+                }
+            }))
+        }
+    }
+    
     private func startReceiving() {
         guard isRunning else { return }
         // Read 4-byte big-endian payload size first

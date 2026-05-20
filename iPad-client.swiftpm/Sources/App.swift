@@ -35,6 +35,10 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         currentPixelBuffer = nil
     }
     
+    func sendTouchEvent(_ event: TouchEvent) {
+        streamClient.sendInputEvent(phase: event.phase, x: event.x, y: event.y, pressure: event.pressure)
+    }
+    
     // StreamClientDelegate
     func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data) {
         videoDecoder.decode(data: data)
@@ -78,9 +82,15 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             if viewModel.isConnected {
-                // Video streaming view
-                MetalRendererView(currentPixelBuffer: $viewModel.currentPixelBuffer)
-                    .edgesIgnoringSafeArea(.all)
+                // Video streaming view with touch overlay capture
+                ZStack {
+                    MetalRendererView(currentPixelBuffer: $viewModel.currentPixelBuffer)
+                    
+                    TouchOverlayView { event in
+                        viewModel.sendTouchEvent(event)
+                    }
+                }
+                .edgesIgnoringSafeArea(.all)
                 
                 // Floating Disconnect button for quick escape
                 VStack {

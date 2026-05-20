@@ -1,18 +1,21 @@
+#if os(macOS)
 import Foundation
 import ScreenCaptureKit
 import CVirtualDisplay
 import CoreMedia
 
-class ScreenCaptureManager: NSObject, SCStreamOutput, VideoEncoderDelegate {
+class ScreenCaptureManager: NSObject, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
     private var frameCount = 0
     private var lastFrameTime = Date()
     private let encoder = VideoEncoder()
     private let server = StreamServer()
+    private var displayID: CGDirectDisplayID?
     
     func startCaptureOfVirtualDisplay(width: Int, height: Int) async {
         do {
             print("[*] Starting StreamServer...")
+            server.delegate = self
             try server.start(port: 12345)
             
             print("[*] Initializing VideoEncoder...")
@@ -29,6 +32,7 @@ class ScreenCaptureManager: NSObject, SCStreamOutput, VideoEncoderDelegate {
                 return
             }
             
+            self.displayID = targetDisplay.displayID
             print("[+] Target display found! ID: \(targetDisplay.displayID) Resolution: \(Int(targetDisplay.width))x\(Int(targetDisplay.height))")
             
             // Create a content filter targeting the virtual display
@@ -100,6 +104,39 @@ class ScreenCaptureManager: NSObject, SCStreamOutput, VideoEncoderDelegate {
         // Broadcast the H.264 raw NAL unit to all connected clients
         server.broadcast(data: data)
     }
+    
+    // StreamServerDelegate callback
+    func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
+        guard let displayID = self.displayID else { return }
+        
+        let bounds = CGDisplayBounds(displayID)
+        guard bounds.width > 0 && bounds.height > 0 else { return }
+        
+        // Map normalized 0.0 ~ 1.0 coordinates to the target virtual display bounds
+        let absoluteX = bounds.origin.x + CGFloat(x) * bounds.size.width
+        let absoluteY = bounds.origin.y + CGFloat(y) * bounds.size.height
+        let point = CGPoint(x: absoluteX, y: absoluteY)
+        
+        var mouseType: CGEventType
+        let mouseButton: CGMouseButton = .left
+        
+        switch phase {
+        case 0: // Began
+            mouseType = .leftMouseDown
+        case 1: // Moved / Dragged
+            mouseType = .leftMouseDragged
+        case 2: // Ended
+            mouseType = .leftMouseUp
+        case 3: // Cancelled
+            mouseType = .leftMouseUp
+        default:
+            return
+        }
+        
+        // Generate and post the system mouse event to simulate user input
+        guard let event = CGEvent(mouseEventSource: nil, mouseType: mouseType, mouseCursorPosition: point, mouseButton: mouseButton) else { return }
+        event.post(tap: .cghidEventTap)
+    }
 }
 
 @main
@@ -147,3 +184,5 @@ struct X_display {
         print("[+] Terminated successfully.")
     }
 }
+#endif
+

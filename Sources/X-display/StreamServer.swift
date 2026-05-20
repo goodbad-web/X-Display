@@ -1,7 +1,13 @@
 import Foundation
 import Network
 
+#if os(macOS)
+protocol StreamServerDelegate: AnyObject {
+    func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float)
+}
+
 final class StreamServer: @unchecked Sendable {
+    weak var delegate: StreamServerDelegate?
     private var listener: NWListener?
     private var activeConnections: [UUID: NWConnection] = [:]
     private let connectionQueue = DispatchQueue(label: "com.xdisplay.server.connection-queue", qos: .userInteractive)
@@ -69,7 +75,85 @@ final class StreamServer: @unchecked Sendable {
                 }
             }
             connection.start(queue: self.connectionQueue)
+            
+            // Start receiving input events from client
+            self.startReceiving(connection, id: id)
         }
+    }
+    
+    private func startReceiving(_ connection: NWConnection, id: UUID) {
+        // Read 4-byte size header
+        connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] (data, context, isComplete, error) in
+            guard let self = self else { return }
+            if let error = error {
+                print("[-] Server receive failed for \(id): \(error.localizedDescription)")
+                self.removeConnection(id: id)
+                return
+            }
+            
+            guard let data = data, data.count == 4 else {
+                if isComplete {
+                    self.removeConnection(id: id)
+                } else {
+                    self.startReceiving(connection, id: id)
+                }
+                return
+            }
+            
+            let payloadSize = data.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+            self.receivePayload(connection, id: id, size: Int(payloadSize))
+        }
+    }
+    
+    private func receivePayload(_ connection: NWConnection, id: UUID, size: Int) {
+        guard size > 0 else {
+            self.startReceiving(connection, id: id)
+            return
+        }
+        
+        connection.receive(minimumIncompleteLength: size, maximumLength: size) { [weak self] (data, context, isComplete, error) in
+            guard let self = self else { return }
+            if let error = error {
+                print("[-] Server receive payload failed: \(error.localizedDescription)")
+                self.removeConnection(id: id)
+                return
+            }
+            
+            guard let data = data, data.count == size else {
+                if isComplete {
+                    self.removeConnection(id: id)
+                } else {
+                    self.startReceiving(connection, id: id)
+                }
+                return
+            }
+            
+            self.parseAndDispatchInput(data)
+            
+            // Wait for next packet
+            self.startReceiving(connection, id: id)
+        }
+    }
+    
+    private func parseAndDispatchInput(_ data: Data) {
+        // Minimum payload size: magic(1) + phase(1) + X(4) + Y(4) + pressure(4) = 14 bytes
+        guard data.count >= 14 else { return }
+        
+        let identifier = data[0]
+        guard identifier == 0x01 else { return } // Not an input event
+        
+        let rawPhase = data[1]
+        
+        // Extract X, Y, Pressure (Float from bigEndian bitPattern)
+        let xBits = data.subdata(in: 2..<6).withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+        let yBits = data.subdata(in: 6..<10).withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+        let pressureBits = data.subdata(in: 10..<14).withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
+        
+        let x = Float(bitPattern: xBits)
+        let y = Float(bitPattern: yBits)
+        let pressure = Float(bitPattern: pressureBits)
+        
+        delegate?.streamServer(self, didReceiveInputEvent: rawPhase, x: x, y: y, pressure: pressure)
     }
     
     private func removeConnection(id: UUID) {
@@ -103,3 +187,4 @@ final class StreamServer: @unchecked Sendable {
         }
     }
 }
+#endif
