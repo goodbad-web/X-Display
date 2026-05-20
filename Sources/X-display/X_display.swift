@@ -223,7 +223,23 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         server.broadcast(data: data)
     }
 
-    // StreamServerDelegate callback
+    // StreamServerDelegate callbacks
+    func streamServer(_ server: StreamServer, didGeneratePIN pin: String) {
+        Task { @MainActor in
+            let alert = NSAlert()
+            alert.messageText = "iPad Connection Request"
+            alert.informativeText = "Enter this PIN on your iPad:\n\n\(pin)"
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+
+    func streamServerDidCompletePairing(_ server: StreamServer) {
+        print("[+] Client pairing complete – forcing immediate keyframe.")
+        encoder.requestKeyFrame()
+    }
+
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
         guard let displayID = self.displayID else { return }
 

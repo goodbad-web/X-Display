@@ -161,18 +161,12 @@ class VideoDecoder {
         self.formatDescription = format
         setupDecompressionSession(format: format)
 
-        // If there's an active frame trailing the SPS/PPS in AnnexB format, decode it as well.
+        // If there's an active frame trailing the SPS/PPS, decode it directly as AVCC
         if offsets.count > 2 {
-            let frameStart = offsets[2]
+            let frameStart = offsets[2] + 4
             let frameData = data.subdata(in: frameStart..<data.count)
 
-            // Convert H.264 frame NAL unit from AnnexB to AVCC format (replace start code with 4-byte size)
-            var avccData = Data()
-            var size = UInt32(frameData.count - 4).bigEndian
-            withUnsafeBytes(of: &size) { avccData.append(contentsOf: $0) }
-            avccData.append(frameData.subdata(in: 4..<frameData.count))
-
-            decode(data: avccData)
+            decode(data: frameData)
         }
     }
 

@@ -6,6 +6,8 @@ import XDisplayShared
 #if os(macOS)
 protocol StreamServerDelegate: AnyObject {
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float)
+    func streamServerDidCompletePairing(_ server: StreamServer)
+    func streamServer(_ server: StreamServer, didGeneratePIN pin: String)
 }
 
 final class ClientSession: @unchecked Sendable {
@@ -100,6 +102,13 @@ final class StreamServer: @unchecked Sendable {
             print("[***] NEW CLIENT PENDING PAIRING!")
             print("[***] ENTER THIS PIN ON YOUR IPAD: \(session.pin)")
             print(String(repeating: "*", count: 40) + "\n")
+
+            // Notify delegate so UI can show the PIN to the user
+            let pin = session.pin
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.delegate?.streamServer(self, didGeneratePIN: pin)
+            }
             
             connection.stateUpdateHandler = { state in
                 switch state {
@@ -224,6 +233,7 @@ final class StreamServer: @unchecked Sendable {
                     
                     let reply = XDisplayPacketCodec.makePairingResult(success: true)
                     self.sendPacket(reply, to: session.connection)
+                    self.delegate?.streamServerDidCompletePairing(self)
                 } else {
                     throw NSError(domain: "AuthError", code: -1, userInfo: nil)
                 }

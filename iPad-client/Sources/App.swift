@@ -37,6 +37,8 @@ final class FrameHolder {
 class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate {
     @Published var connectionStatus: String = "Disconnected"
     @Published var isConnected = false
+    @Published var isPairingRequired = false
+    @Published var enteredPIN: String = ""
     let frameHolder = FrameHolder()
     @Published var discoveredDevices: [DiscoveredDevice] = []
 
@@ -68,8 +70,15 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     func disconnect() {
         streamClient.disconnect()
         isConnected = false
+        isPairingRequired = false
+        enteredPIN = ""
         connectionStatus = "Disconnected"
         frameHolder.display(nil)
+    }
+
+    func submitPIN() {
+        streamClient.submitPIN(enteredPIN)
+        enteredPIN = ""
     }
 
     func sendTouchEvent(_ event: TouchEvent) {
@@ -91,14 +100,16 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             case .waiting(let error):
                 self.connectionStatus = "Waiting: \(error.localizedDescription)"
             case .ready:
-                self.connectionStatus = "Connected"
-                self.isConnected = true
+                // TCP接続確立のみ。isConnected はペアリング完了後に設定する
+                self.connectionStatus = "Authenticating..."
             case .failed(let error):
                 self.connectionStatus = "Failed: \(error.localizedDescription)"
                 self.isConnected = false
+                self.isPairingRequired = false
             case .cancelled:
                 self.connectionStatus = "Disconnected"
                 self.isConnected = false
+                self.isPairingRequired = false
             @unknown default:
                 break
             }
@@ -107,12 +118,14 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data) {
         DispatchQueue.main.async {
-            self.connectionStatus = "Pairing required"
+            self.connectionStatus = "PIN required"
+            self.isPairingRequired = true
         }
     }
 
     func streamClient(_ client: StreamClient, didFinishPairingWithResult success: Bool) {
         DispatchQueue.main.async {
+            self.isPairingRequired = false
             self.connectionStatus = success ? "Connected" : "Pairing failed"
             self.isConnected = success
         }
@@ -202,7 +215,7 @@ struct ContentView: View {
                         VStack(spacing: 32) {
                             // Header
                             VStack(spacing: 8) {
-                                Image(systemName: "display.and.ipad")
+                                Image(systemName: "ipad")
                                     .font(.system(size: 64))
                                     .foregroundStyle(
                                         LinearGradient(colors: [.indigo, .emerald], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -245,7 +258,7 @@ struct ContentView: View {
                                 if viewModel.discoveredDevices.isEmpty {
                                     // Empty State Card
                                     VStack(spacing: 16) {
-                                        Image(systemName: "wifi.radiowaves.left.and.right")
+                                        Image(systemName: "wifi")
                                             .font(.largeTitle)
                                             .foregroundColor(.gray.opacity(0.6))
 
@@ -397,8 +410,12 @@ struct ContentView: View {
                 }
             }
         }
-        .onDisappear {
-            viewModel.disconnect()
+        .sheet(isPresented: $viewModel.isPairingRequired) {
+            PINEntryView(pin: $viewModel.enteredPIN) {
+                viewModel.submitPIN()
+            } onCancel: {
+                viewModel.disconnect()
+            }
         }
     }
 
@@ -449,5 +466,81 @@ struct StreamViewport: View {
 
     var body: some View {
         MetalRendererView(frameHolder: frameHolder)
+    }
+}
+
+struct PINEntryView: View {
+    @Binding var pin: String
+    let onSubmit: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color(hex: "0B0F19").edgesIgnoringSafeArea(.all)
+
+            VStack(spacing: 32) {
+                VStack(spacing: 8) {
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(
+                            LinearGradient(colors: [.indigo, .emerald],
+                                           startPoint: .topLeading,
+                                           endPoint: .bottomTrailing)
+                        )
+
+                    Text("Enter Pairing PIN")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text("Check the Mac terminal for a 4-digit PIN")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(spacing: 12) {
+                    TextField("0000", text: $pin)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .font(.system(size: 48, weight: .bold, design: .monospaced))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: 200)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.indigo.opacity(0.6), lineWidth: 1)
+                                )
+                        )
+                }
+
+                VStack(spacing: 12) {
+                    Button(action: onSubmit) {
+                        Text("Connect")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: 280)
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.indigo)
+                            )
+                    }
+                    .disabled(pin.count < 4)
+                    .opacity(pin.count < 4 ? 0.5 : 1.0)
+
+                    Button(action: onCancel) {
+                        Text("Cancel")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .padding(40)
+        }
     }
 }

@@ -9,12 +9,21 @@ class VideoEncoder {
     weak var delegate: VideoEncoderDelegate?
     private var compressionSession: VTCompressionSession?
     private let timingLock = NSLock()
+    private let keyFrameLock = NSLock()
+    private var forceNextKeyFrame = false
     private var encodeFrameCount = 0
     private var encodeFrameTotalNs: UInt64 = 0
     private var encodeFrameMaxNs: UInt64 = 0
     private var handleFrameCount = 0
     private var handleFrameTotalNs: UInt64 = 0
     private var handleFrameMaxNs: UInt64 = 0
+
+    func requestKeyFrame() {
+        keyFrameLock.lock()
+        forceNextKeyFrame = true
+        keyFrameLock.unlock()
+        print("[*] VideoEncoder: next frame will be forced keyframe.")
+    }
 
     func initialize(width: Int, height: Int) {
         let err = VTCompressionSessionCreate(
@@ -61,13 +70,23 @@ class VideoEncoder {
 
     func encode(pixelBuffer: CVPixelBuffer, presentationTime: CMTime) {
         guard let session = compressionSession else { return }
+        keyFrameLock.lock()
+        let shouldForce = forceNextKeyFrame
+        forceNextKeyFrame = false
+        keyFrameLock.unlock()
+
+        var frameProperties: CFDictionary? = nil
+        if shouldForce {
+            frameProperties = [kVTEncodeFrameOptionKey_ForceKeyFrame as String: true] as CFDictionary
+        }
+
         let start = DispatchTime.now().uptimeNanoseconds
         VTCompressionSessionEncodeFrame(
             session,
             imageBuffer: pixelBuffer,
             presentationTimeStamp: presentationTime,
             duration: .invalid,
-            frameProperties: nil,
+            frameProperties: frameProperties,
             sourceFrameRefcon: nil,
             infoFlagsOut: nil
         )
@@ -147,9 +166,11 @@ class VideoEncoder {
                     headerData.append(pps, count: ppsSizesOut)
 
                     var payload = Data()
-                    payload.reserveCapacity(headerData.count + rawData.count)
+                    payload.reserveCapacity(headerData.count + startCode.count + rawData.count)
                     payload.append(headerData)
+                    payload.append(startCode)
                     payload.append(rawData)
+
                     let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
                     delegate?.videoEncoder(self, didEncodeNALUnit: payload, isKeyFrame: true)
                     recordHandleTiming(elapsedNs)
