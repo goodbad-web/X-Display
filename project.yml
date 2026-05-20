@@ -10,6 +10,8 @@ targets:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
+    entitlements:
+      path: X-Display.entitlements
     sources:
       - path: Sources/X-display
       - path: Sources/CVirtualDisplay

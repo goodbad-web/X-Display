@@ -184,7 +184,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             button.imagePosition = .imageLeft
         } else {
             // Fallback to text title if SF Symbol loading fails
-            button.title = "🖥️📱"
+            button.title = "🖥️"
         }
         
         updateMenu()
