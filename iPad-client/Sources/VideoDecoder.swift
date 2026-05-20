@@ -179,7 +179,8 @@ class VideoDecoder {
         // Configure output pixel buffer format as 32BGRA for seamless Metal compatibility
         let destinationImageBufferAttributes: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferMetalCompatibilityKey as String: true
+            kCVPixelBufferMetalCompatibilityKey as String: true,
+            kCVPixelBufferIOSurfacePropertiesKey as String: [:] as [String: Any]
         ]
 
         var session: VTDecompressionSession?
