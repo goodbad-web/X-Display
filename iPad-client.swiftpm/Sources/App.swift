@@ -1,5 +1,6 @@
 import SwiftUI
 import Network
+import CoreVideo
 
 @main
 struct XDisplayClientApp: App {
@@ -10,8 +11,27 @@ struct XDisplayClientApp: App {
     }
 }
 
-class FrameHolder: ObservableObject {
-    @Published var pixelBuffer: CVPixelBuffer? = nil
+final class FrameHolder {
+    typealias Renderer = @MainActor (CVPixelBuffer?) -> Void
+
+    private let lock = NSLock()
+    private var renderer: Renderer?
+
+    func setRenderer(_ renderer: Renderer?) {
+        lock.lock()
+        self.renderer = renderer
+        lock.unlock()
+    }
+
+    func display(_ pixelBuffer: CVPixelBuffer?) {
+        lock.lock()
+        let renderer = self.renderer
+        lock.unlock()
+
+        Task { @MainActor in
+            renderer?(pixelBuffer)
+        }
+    }
 }
 
 class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate {
@@ -19,52 +39,54 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     @Published var isConnected = false
     let frameHolder = FrameHolder()
     @Published var discoveredDevices: [DiscoveredDevice] = []
-    
+
     private let streamClient = StreamClient()
     private let videoDecoder = VideoDecoder()
     private let deviceBrowser = DeviceBrowser()
-    
+
     init() {
         streamClient.delegate = self
         videoDecoder.delegate = self
-        
+
         // Bind Bonjour browser results
         deviceBrowser.$discoveredDevices
             .assign(to: &$discoveredDevices)
-        
+
         deviceBrowser.startBrowsing()
     }
-    
+
     func connect(endpoint: NWEndpoint) {
         connectionStatus = "Connecting..."
         streamClient.connect(endpoint: endpoint)
     }
-    
+
     func connect(host: String, port: UInt16) {
         connectionStatus = "Connecting..."
         streamClient.connect(host: host, port: port)
     }
-    
+
     func disconnect() {
         streamClient.disconnect()
         isConnected = false
         connectionStatus = "Disconnected"
-        frameHolder.pixelBuffer = nil
+        frameHolder.display(nil)
     }
-    
+
     func sendTouchEvent(_ event: TouchEvent) {
         streamClient.sendInputEvent(phase: event.phase, x: event.x, y: event.y, pressure: event.pressure)
     }
-    
+
     // StreamClientDelegate
     func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data) {
         videoDecoder.decode(data: data)
     }
-    
+
     func streamClient(_ client: StreamClient, connectionStateDidChange state: NWConnection.State) {
         DispatchQueue.main.async {
             switch state {
             case .setup:
+                self.connectionStatus = "Connecting..."
+            case .preparing:
                 self.connectionStatus = "Connecting..."
             case .waiting(let error):
                 self.connectionStatus = "Waiting: \(error.localizedDescription)"
@@ -82,14 +104,25 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             }
         }
     }
-    
-    // VideoDecoderDelegate
-    func videoDecoder(_ decoder: VideoDecoder, didDecodeImageBuffer pixelBuffer: CVPixelBuffer) {
+
+    func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data) {
         DispatchQueue.main.async {
-            self.frameHolder.pixelBuffer = pixelBuffer
+            self.connectionStatus = "Pairing required"
         }
     }
-    
+
+    func streamClient(_ client: StreamClient, didFinishPairingWithResult success: Bool) {
+        DispatchQueue.main.async {
+            self.connectionStatus = success ? "Connected" : "Pairing failed"
+            self.isConnected = success
+        }
+    }
+
+    // VideoDecoderDelegate
+    func videoDecoder(_ decoder: VideoDecoder, didDecodeImageBuffer pixelBuffer: CVPixelBuffer) {
+        frameHolder.display(pixelBuffer)
+    }
+
     deinit {
         deviceBrowser.stopBrowsing()
     }
@@ -100,20 +133,20 @@ struct ContentView: View {
     @State private var hostAddress: String = ""
     @State private var hostPort: String = "12345"
     @State private var showManualConnection = false
-    
+
     var body: some View {
         ZStack {
             if viewModel.isConnected {
                 // Zero-Latency Video streaming viewport with touch overlay
                 ZStack {
                     StreamViewport(frameHolder: viewModel.frameHolder)
-                    
+
                     TouchOverlayView { event in
                         viewModel.sendTouchEvent(event)
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
-                
+
                 // Disconnect overlay button
                 VStack {
                     HStack {
@@ -144,7 +177,7 @@ struct ContentView: View {
                     // Deep futuristic background
                     LinearGradient(gradient: Gradient(colors: [Color(hex: "0B0F19"), Color(hex: "1A233A")]), startPoint: .topLeading, endPoint: .bottomTrailing)
                         .edgesIgnoringSafeArea(.all)
-                    
+
                     // Subtle glowing ambient light
                     VStack {
                         HStack {
@@ -164,7 +197,7 @@ struct ContentView: View {
                         }
                     }
                     .edgesIgnoringSafeArea(.all)
-                    
+
                     ScrollView {
                         VStack(spacing: 32) {
                             // Header
@@ -175,18 +208,18 @@ struct ContentView: View {
                                         LinearGradient(colors: [.indigo, .emerald], startPoint: .topLeading, endPoint: .bottomTrailing)
                                     )
                                     .padding(.bottom, 8)
-                                
+
                                 Text("X-Display")
                                     .font(.system(size: 38, weight: .black, design: .rounded))
                                     .foregroundColor(.white)
-                                
+
                                 Text("Secondary Display Receiver")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
                                     .foregroundColor(.gray)
                             }
                             .padding(.top, 40)
-                            
+
                             // Bonjour Scan Section
                             VStack(alignment: .leading, spacing: 16) {
                                 HStack {
@@ -194,9 +227,9 @@ struct ContentView: View {
                                         .font(.headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
-                                    
+
                                     Spacer()
-                                    
+
                                     // Scanning Indicator
                                     HStack(spacing: 6) {
                                         ProgressView()
@@ -208,14 +241,14 @@ struct ContentView: View {
                                     }
                                 }
                                 .padding(.horizontal, 8)
-                                
+
                                 if viewModel.discoveredDevices.isEmpty {
                                     // Empty State Card
                                     VStack(spacing: 16) {
                                         Image(systemName: "wifi.radiowaves.left.and.right")
                                             .font(.largeTitle)
                                             .foregroundColor(.gray.opacity(0.6))
-                                        
+
                                         Text("Searching for Mac hosts on your local network...")
                                             .font(.footnote)
                                             .foregroundColor(.gray)
@@ -244,7 +277,7 @@ struct ContentView: View {
                                                         .padding(12)
                                                         .background(Color.emerald.opacity(0.1))
                                                         .cornerRadius(12)
-                                                    
+
                                                     VStack(alignment: .leading, spacing: 4) {
                                                         Text(device.name)
                                                             .font(.body)
@@ -254,9 +287,9 @@ struct ContentView: View {
                                                             .font(.caption)
                                                             .foregroundColor(.gray)
                                                     }
-                                                    
+
                                                     Spacer()
-                                                    
+
                                                     Image(systemName: "chevron.right")
                                                         .font(.footnote)
                                                         .foregroundColor(.gray)
@@ -277,7 +310,7 @@ struct ContentView: View {
                                 }
                             }
                             .frame(maxWidth: 480)
-                            
+
                             // Expandable Manual IP Connection
                             VStack(alignment: .leading, spacing: 16) {
                                 Button(action: { withAnimation { showManualConnection.toggle() } }) {
@@ -286,16 +319,16 @@ struct ContentView: View {
                                             .font(.subheadline)
                                             .fontWeight(.semibold)
                                             .foregroundColor(.indigo)
-                                        
+
                                         Spacer()
-                                        
+
                                         Image(systemName: showManualConnection ? "chevron.up" : "chevron.down")
                                             .font(.caption)
                                             .foregroundColor(.indigo)
                                     }
                                     .padding(.horizontal, 8)
                                 }
-                                
+
                                 if showManualConnection {
                                     VStack(spacing: 16) {
                                         VStack(alignment: .leading, spacing: 8) {
@@ -303,7 +336,7 @@ struct ContentView: View {
                                                 .font(.caption2)
                                                 .fontWeight(.bold)
                                                 .foregroundColor(.gray)
-                                            
+
                                             TextField("192.168.1.100", text: $hostAddress)
                                                 .textFieldStyle(PlainTextFieldStyle())
                                                 .padding()
@@ -312,13 +345,13 @@ struct ContentView: View {
                                                 .foregroundColor(.white)
                                                 .keyboardType(.numbersAndPunctuation)
                                         }
-                                        
+
                                         VStack(alignment: .leading, spacing: 8) {
                                             Text("Port")
                                                 .font(.caption2)
                                                 .fontWeight(.bold)
                                                 .foregroundColor(.gray)
-                                            
+
                                             TextField("12345", text: $hostPort)
                                                 .textFieldStyle(PlainTextFieldStyle())
                                                 .padding()
@@ -327,7 +360,7 @@ struct ContentView: View {
                                                 .foregroundColor(.white)
                                                 .keyboardType(.numberPad)
                                         }
-                                        
+
                                         Button(action: connectManually) {
                                             Text("Connect")
                                                 .font(.subheadline)
@@ -352,7 +385,7 @@ struct ContentView: View {
                                 }
                             }
                             .frame(maxWidth: 480)
-                            
+
                             // Bottom Status
                             Text("Status: \(viewModel.connectionStatus)")
                                 .font(.caption)
@@ -368,7 +401,7 @@ struct ContentView: View {
             viewModel.disconnect()
         }
     }
-    
+
     private func connectManually() {
         guard !hostAddress.isEmpty else {
             viewModel.connectionStatus = "IP required"
@@ -385,7 +418,7 @@ struct ContentView: View {
 // Beautiful Emerald green
 extension Color {
     static let emerald = Color(hex: "10B981")
-    
+
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -412,10 +445,9 @@ extension Color {
 }
 
 struct StreamViewport: View {
-    @ObservedObject var frameHolder: FrameHolder
-    
+    let frameHolder: FrameHolder
+
     var body: some View {
-        MetalRendererView(currentPixelBuffer: $frameHolder.pixelBuffer)
+        MetalRendererView(frameHolder: frameHolder)
     }
 }
-

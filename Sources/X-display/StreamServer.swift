@@ -37,6 +37,9 @@ final class StreamServer: @unchecked Sendable {
     private let timingLock = NSLock()
     private var broadcastCount = 0
     private var broadcastTotalNs: UInt64 = 0
+    private var broadcastMaxNs: UInt64 = 0
+    private var lastBroadcastLogTime = Date()
+    private var lastBroadcastCount = 0
     
     func start(port: UInt16) throws {
         let nwPort = NWEndpoint.Port(rawValue: port)!
@@ -125,6 +128,7 @@ final class StreamServer: @unchecked Sendable {
     
     private func sendPacket(_ payload: Data, to connection: NWConnection) {
         var packet = Data()
+        packet.reserveCapacity(MemoryLayout<UInt32>.size + payload.count)
         var size = UInt32(payload.count).bigEndian
         withUnsafeBytes(of: &size) { packet.append(contentsOf: $0) }
         packet.append(payload)
@@ -287,6 +291,7 @@ final class StreamServer: @unchecked Sendable {
                     
                     // Format packet: [0x10] + [Encrypted Data]
                     var payload = Data()
+                    payload.reserveCapacity(1 + encryptedData.count)
                     var magic: UInt8 = 0x10
                     payload.append(&magic, count: 1)
                     payload.append(encryptedData)
@@ -301,12 +306,22 @@ final class StreamServer: @unchecked Sendable {
             self.timingLock.lock()
             self.broadcastCount += 1
             self.broadcastTotalNs += elapsedNs
+            self.broadcastMaxNs = max(self.broadcastMaxNs, elapsedNs)
             let shouldLog = self.broadcastCount % 60 == 0
             let averageMs = Double(self.broadcastTotalNs) / Double(self.broadcastCount) / 1_000_000.0
+            let maxMs = Double(self.broadcastMaxNs) / 1_000_000.0
+            let now = Date()
+            let interval = now.timeIntervalSince(self.lastBroadcastLogTime)
+            let sentDelta = self.broadcastCount - self.lastBroadcastCount
+            if shouldLog {
+                self.lastBroadcastLogTime = now
+                self.lastBroadcastCount = self.broadcastCount
+            }
             self.timingLock.unlock()
             if shouldLog {
                 let elapsedMs = Double(elapsedNs) / 1_000_000.0
-                print(String(format: "[Timing] broadcast: %.2f ms (avg %.2f ms)", elapsedMs, averageMs))
+                let sentFPS = interval > 0 ? Double(sentDelta) / interval : 0
+                print(String(format: "[Timing] broadcast: %.2f ms (avg %.2f ms, max %.2f ms) | sent FPS: %.1f", elapsedMs, averageMs, maxMs, sentFPS))
             }
         }
     }

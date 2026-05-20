@@ -75,7 +75,7 @@ class StreamClient {
     
     // Submit PIN from User Input View
     func submitPIN(_ pin: String) {
-        guard let salt = salt, let connection = connection else {
+        guard let salt = salt, connection != nil else {
             print("[-] Cannot submit PIN: Pairing not initialized or no connection.")
             return
         }

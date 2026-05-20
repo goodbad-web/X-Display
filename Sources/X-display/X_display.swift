@@ -15,19 +15,30 @@ struct SendablePixelBuffer: @unchecked Sendable {
     let buffer: CVPixelBuffer
 }
 
+private struct PendingVideoFrame {
+    let pixelBuffer: SendablePixelBuffer
+    let presentationTime: CMTime
+}
+
 final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
-    private var frameCount = 0
-    private var lastFrameTime = Date()
     private let encoder = VideoEncoder()
     private let server = StreamServer()
     private var displayID: CGDirectDisplayID?
     private var didRequestScreenCaptureAccess = false
-    
-    // Low-Latency active frame skip pipeline
+
+    // Keep only the newest pending frame so latency does not grow under load.
     private let encodeQueue = DispatchQueue(label: "com.xdisplay.encode-queue", qos: .userInteractive)
-    private var isEncoding = false
+    private var isEncodeWorkerRunning = false
+    private var pendingFrame: PendingVideoFrame?
     private let encodingLock = NSLock()
+    private var capturedFrameCount = 0
+    private var submittedFrameCount = 0
+    private var replacedFrameCount = 0
+    private var lastStatsTime = Date()
+    private var lastCapturedFrameCount = 0
+    private var lastSubmittedFrameCount = 0
+    private var lastReplacedFrameCount = 0
 
     private func requestScreenCaptureAccessIfNeeded() async {
         if CGPreflightScreenCaptureAccess() {
@@ -42,62 +53,63 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         // macOS may take a moment to propagate Screen Recording permission after a quit/reopen cycle.
         try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
-    
+
     func startCaptureOfVirtualDisplay(width: Int, height: Int) async throws {
         do {
             await requestScreenCaptureAccessIfNeeded()
-            
+
             print("[*] Starting StreamServer...")
             server.delegate = self
             try server.start(port: 12345)
-            
+
             print("[*] Initializing VideoEncoder...")
             encoder.delegate = self
             encoder.initialize(width: width, height: height)
-            
+
             print("[*] Retrieving shareable content...")
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-            
+
             // Find the virtual display by width and height resolution.
             guard let targetDisplay = content.displays.first(where: { Int($0.width) == width && Int($0.height) == height }) else {
                 print("[-] Target virtual display not found. Please ensure it is created.")
                 server.stop()
                 throw NSError(domain: "ScreenCaptureManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Target virtual display not found."])
             }
-            
+
             self.displayID = targetDisplay.displayID
             print("[+] Target display found! ID: \(targetDisplay.displayID) Resolution: \(Int(targetDisplay.width))x\(Int(targetDisplay.height))")
-            
+
             // Create a content filter targeting the virtual display.
             let filter = SCContentFilter(display: targetDisplay, excludingWindows: [])
-            
+
             // Configure zero-latency stream settings.
             let config = SCStreamConfiguration()
             config.width = width
             config.height = height
             config.pixelFormat = kCVPixelFormatType_32BGRA // GPU-friendly format
-            config.queueDepth = 8 // Increased to 8 to prevent frame drops and backlog
+            config.queueDepth = 3
+            config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
             config.showsCursor = true
             config.capturesAudio = false
-            
+
             print("[*] Initializing SCStream...")
             stream = SCStream(filter: filter, configuration: config, delegate: nil)
-            
+
             // Set output callback on a dedicated user-interactive serial queue.
             let captureQueue = DispatchQueue(label: "com.xdisplay.capture-queue", qos: .userInteractive)
             try stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
-            
+
             print("[*] Starting SCStream capture...")
             try await stream?.startCapture()
             print("[+] SCStream started successfully! Capturing frames...")
-            lastFrameTime = Date()
+            resetCaptureStats()
         } catch {
             print("[-] SCStream start failed: \(error.localizedDescription)")
             server.stop()
             throw error
         }
     }
-    
+
     func stopCapture() async {
         guard let stream = stream else { return }
         do {
@@ -109,68 +121,123 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         self.stream = nil
         server.stop()
     }
-    
+
     // SCStreamOutput callback
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen else { return }
-        
-        frameCount += 1
-        let now = Date()
-        let interval = now.timeIntervalSince(lastFrameTime)
-        
+
         if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
-            let pts = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-            
-            // Wrap in @unchecked Sendable to prevent concurrency warnings
-            let wrappedBuffer = SendablePixelBuffer(buffer: pixelBuffer)
-            
-            // Skip frame if the encoder is currently busy to avoid backlog & pool starvation
-            encodingLock.lock()
-            if isEncoding {
-                encodingLock.unlock()
-                return // Active Frame Drop
-            }
-            isEncoding = true
-            encodingLock.unlock()
-            
-            encodeQueue.async { [weak self] in
-                guard let self = self else { return }
-                self.encoder.encode(pixelBuffer: wrappedBuffer.buffer, presentationTime: pts)
-                
-                self.encodingLock.lock()
-                self.isEncoding = false
-                self.encodingLock.unlock()
-            }
+            enqueueLatestFrame(
+                PendingVideoFrame(
+                    pixelBuffer: SendablePixelBuffer(buffer: pixelBuffer),
+                    presentationTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                )
+            )
         }
-        
-        if frameCount % 60 == 0 {
-            let fps = 60.0 / interval
-            print(String(format: "[+] Cap Frame #%04d | FPS: %.1f", frameCount, fps))
-            lastFrameTime = now
+
+        logCaptureStatsIfNeeded()
+    }
+
+    private func enqueueLatestFrame(_ frame: PendingVideoFrame) {
+        var shouldStartWorker = false
+
+        encodingLock.lock()
+        capturedFrameCount += 1
+        if isEncodeWorkerRunning {
+            pendingFrame = frame
+            replacedFrameCount += 1
+        } else {
+            isEncodeWorkerRunning = true
+            shouldStartWorker = true
+        }
+        encodingLock.unlock()
+
+        guard shouldStartWorker else { return }
+        encodeQueue.async { [weak self] in
+            self?.drainEncodeQueue(startingWith: frame)
         }
     }
-    
+
+    private func drainEncodeQueue(startingWith frame: PendingVideoFrame) {
+        var nextFrame: PendingVideoFrame? = frame
+
+        while let frameToEncode = nextFrame {
+            encoder.encode(pixelBuffer: frameToEncode.pixelBuffer.buffer, presentationTime: frameToEncode.presentationTime)
+
+            encodingLock.lock()
+            submittedFrameCount += 1
+            nextFrame = pendingFrame
+            pendingFrame = nil
+            if nextFrame == nil {
+                isEncodeWorkerRunning = false
+            }
+            encodingLock.unlock()
+        }
+    }
+
+    private func resetCaptureStats() {
+        encodingLock.lock()
+        capturedFrameCount = 0
+        submittedFrameCount = 0
+        replacedFrameCount = 0
+        lastCapturedFrameCount = 0
+        lastSubmittedFrameCount = 0
+        lastReplacedFrameCount = 0
+        lastStatsTime = Date()
+        encodingLock.unlock()
+    }
+
+    private func logCaptureStatsIfNeeded() {
+        encodingLock.lock()
+        let captured = capturedFrameCount
+        guard captured > 0, captured % 60 == 0 else {
+            encodingLock.unlock()
+            return
+        }
+
+        let submitted = submittedFrameCount
+        let replaced = replacedFrameCount
+        let now = Date()
+        let interval = now.timeIntervalSince(lastStatsTime)
+        let capturedDelta = captured - lastCapturedFrameCount
+        let submittedDelta = submitted - lastSubmittedFrameCount
+        let replacedDelta = replaced - lastReplacedFrameCount
+        lastCapturedFrameCount = captured
+        lastSubmittedFrameCount = submitted
+        lastReplacedFrameCount = replaced
+        lastStatsTime = now
+        encodingLock.unlock()
+
+        guard interval > 0 else { return }
+        print(String(
+            format: "[FPS] capture: %.1f | encode-submit: %.1f | latest-replaced: %d",
+            Double(capturedDelta) / interval,
+            Double(submittedDelta) / interval,
+            replacedDelta
+        ))
+    }
+
     // VideoEncoderDelegate callback
     func videoEncoder(_ encoder: VideoEncoder, didEncodeNALUnit data: Data, isKeyFrame: Bool) {
         // Broadcast the H.264 raw NAL unit to all connected clients
         server.broadcast(data: data)
     }
-    
+
     // StreamServerDelegate callback
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
         guard let displayID = self.displayID else { return }
-        
+
         let bounds = CGDisplayBounds(displayID)
         guard bounds.width > 0 && bounds.height > 0 else { return }
-        
+
         // Map normalized 0.0 ~ 1.0 coordinates to the target virtual display bounds
         let absoluteX = bounds.origin.x + CGFloat(x) * bounds.size.width
         let absoluteY = bounds.origin.y + CGFloat(y) * bounds.size.height
         let point = CGPoint(x: absoluteX, y: absoluteY)
-        
+
         var mouseType: CGEventType
         let mouseButton: CGMouseButton = .left
-        
+
         switch phase {
         case 0: // Began
             mouseType = .leftMouseDown
@@ -183,7 +250,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         default:
             return
         }
-        
+
         // Generate and post the system mouse event to simulate user input
         guard let event = CGEvent(mouseEventSource: nil, mouseType: mouseType, mouseCursorPosition: point, mouseButton: mouseButton) else { return }
         event.post(tap: .cghidEventTap)
@@ -195,26 +262,26 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let helper = CVirtualDisplayHelper.shared()
     private let captureManager = ScreenCaptureManager()
-    
+
     #if canImport(Sparkle)
     private var updaterController: SPUStandardUpdaterController?
     #endif
-    
+
     private var isDisplayActive = false
     private var selectedWidth = 1920
     private var selectedHeight = 1080
-    
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Configure as a background/accessory app (no Dock icon)
         NSApp.setActivationPolicy(.accessory)
-        
+
         #if canImport(Sparkle)
         #if !DEBUG
         // Initialize Sparkle Updater
         updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         #endif
         #endif
-        
+
         setupMenuBar()
 
         if ProcessInfo.processInfo.environment["XDISPLAY_AUTO_START"] == "1" {
@@ -224,11 +291,11 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             print("[*] Auto-start disabled. Use the menu to start virtual display.")
         }
     }
-    
+
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         guard let button = statusItem?.button else { return }
-        
+
         // Set menu bar image using SF Symbols with template coloring for dark/light mode compatibility
         if let image = NSImage(systemSymbolName: "display.and.ipad", accessibilityDescription: "X-Display Menu") {
             image.isTemplate = true
@@ -238,21 +305,21 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             // Fallback to text title if SF Symbol loading fails
             button.title = "🖥️"
         }
-        
+
         updateMenu()
     }
-    
+
     private func updateMenu() {
         let menu = NSMenu()
-        
+
         // 1. Status Indicator
         let statusTitle = isDisplayActive ? "Status: Active Streaming" : "Status: Idle"
         let statusMenuItem = NSMenuItem(title: statusTitle, action: nil, keyEquivalent: "")
         statusMenuItem.isEnabled = false
         menu.addItem(statusMenuItem)
-        
+
         menu.addItem(NSMenuItem.separator())
-        
+
         // 2. Start / Stop Action
         if isDisplayActive {
             let stopItem = NSMenuItem(title: "Stop Virtual Display", action: #selector(stopDisplay), keyEquivalent: "s")
@@ -263,17 +330,17 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             startItem.target = self
             menu.addItem(startItem)
         }
-        
+
         // 3. Resolutions Submenu
         let resItem = NSMenuItem(title: "Resolution", action: nil, keyEquivalent: "")
         let resMenu = NSMenu()
-        
+
         let resolutions = [
             (1920, 1080, "1920 x 1080 (16:9)"),
             (2048, 1536, "2048 x 1536 (4:3)"),
             (2732, 2048, "2732 x 2048 (iPad Pro)")
         ]
-        
+
         for (w, h, title) in resolutions {
             let item = NSMenuItem(title: title, action: #selector(selectResolution(_:)), keyEquivalent: "")
             item.target = self
@@ -281,23 +348,23 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             item.state = (w == selectedWidth && h == selectedHeight) ? .on : .off
             resMenu.addItem(item)
         }
-        
+
         resItem.submenu = resMenu
         menu.addItem(resItem)
-        
+
         menu.addItem(NSMenuItem.separator())
-        
+
         // 4. Quit Action
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
-        
+
         statusItem?.menu = menu
     }
-    
+
     @objc private func startDisplay() {
         guard !isDisplayActive else { return }
-        
+
         Task {
             do {
                 print("[*] Creating virtual display (\(selectedWidth)x\(selectedHeight))...")
@@ -305,13 +372,13 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 
                 isDisplayActive = true
                 updateMenu()
-                
+
                 print("[*] Waiting 1.5s for WindowServer display registration...")
                 try await Task.sleep(nanoseconds: 1_500_000_000)
-                
+
                 print("[*] Launching capture & streaming pipeline...")
                 try await captureManager.startCaptureOfVirtualDisplay(width: selectedWidth, height: selectedHeight)
-                
+
                 print("[+] X-Display Streaming is now active.")
             } catch {
                 print("[-] Error while starting display: \(error.localizedDescription)")
@@ -322,30 +389,30 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             }
         }
     }
-    
+
     @objc private func stopDisplay() {
         guard isDisplayActive else { return }
         isDisplayActive = false
         updateMenu()
-        
+
         Task {
             print("[*] Stopping screen capture stream...")
             await captureManager.stopCapture()
-            
+
             print("[*] Destroying virtual display and releasing ports...")
             helper.destroyVirtualDisplay()
             print("[+] Streaming stopped & resources cleaned up.")
         }
     }
-    
+
     @objc private func selectResolution(_ sender: NSMenuItem) {
         guard let size = sender.representedObject as? [Int], size.count == 2 else { return }
         selectedWidth = size[0]
         selectedHeight = size[1]
-        
+
         print("[*] Resolution changed to: \(selectedWidth)x\(selectedHeight)")
         updateMenu()
-        
+
         if isDisplayActive {
             stopDisplay()
             // Grace period to let the old virtual display tear down cleanly
@@ -354,7 +421,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             }
         }
     }
-    
+
     @objc private func quitApp() {
         stopDisplay()
         NSApp.terminate(nil)
