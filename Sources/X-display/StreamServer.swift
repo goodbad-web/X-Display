@@ -1,15 +1,38 @@
 import Foundation
 import Network
+import CryptoKit
 
 #if os(macOS)
 protocol StreamServerDelegate: AnyObject {
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float)
 }
 
+final class ClientSession: @unchecked Sendable {
+    let id: UUID
+    let connection: NWConnection
+    var isPaired = false
+    var sessionKey: SymmetricKey?
+    let salt: Data
+    let pin: String
+    
+    init(id: UUID, connection: NWConnection) {
+        self.id = id
+        self.connection = connection
+        
+        // Generate 4-digit PIN
+        self.pin = String(format: "%04d", Int.random(in: 0...9999))
+        
+        // Generate random 16-byte salt
+        var saltBytes = [UInt8](repeating: 0, count: 16)
+        _ = SecRandomCopyBytes(kSecRandomDefault, 16, &saltBytes)
+        self.salt = Data(saltBytes)
+    }
+}
+
 final class StreamServer: @unchecked Sendable {
     weak var delegate: StreamServerDelegate?
     private var listener: NWListener?
-    private var activeConnections: [UUID: NWConnection] = [:]
+    private var activeConnections: [UUID: ClientSession] = [:]
     private let connectionQueue = DispatchQueue(label: "com.xdisplay.server.connection-queue", qos: .userInteractive)
     
     func start(port: UInt16) throws {
@@ -50,8 +73,8 @@ final class StreamServer: @unchecked Sendable {
         
         connectionQueue.async { [weak self] in
             guard let self = self else { return }
-            for connection in self.activeConnections.values {
-                connection.cancel()
+            for session in self.activeConnections.values {
+                session.connection.cancel()
             }
             self.activeConnections.removeAll()
             print("[+] StreamServer stopped.")
@@ -62,8 +85,14 @@ final class StreamServer: @unchecked Sendable {
         let id = UUID()
         connectionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.activeConnections[id] = connection
-            print("[+] Client connected! Total clients: \(self.activeConnections.count)")
+            
+            let session = ClientSession(id: id, connection: connection)
+            self.activeConnections[id] = session
+            
+            print("\n" + String(repeating: "*", count: 40))
+            print("[***] NEW CLIENT PENDING PAIRING!")
+            print("[***] ENTER THIS PIN ON YOUR IPAD: \(session.pin)")
+            print(String(repeating: "*", count: 40) + "\n")
             
             connection.stateUpdateHandler = { state in
                 switch state {
@@ -79,62 +108,132 @@ final class StreamServer: @unchecked Sendable {
             }
             connection.start(queue: self.connectionQueue)
             
-            // Start receiving input events from client
-            self.startReceiving(connection, id: id)
+            // Send pairing request immediately (0x02 + 16-byte Salt)
+            var authRequest = Data()
+            var magic: UInt8 = 0x02
+            authRequest.append(&magic, count: 1)
+            authRequest.append(session.salt)
+            self.sendPacket(authRequest, to: connection)
+            
+            // Start receiving packets
+            self.startReceiving(session)
         }
     }
     
-    private func startReceiving(_ connection: NWConnection, id: UUID) {
+    private func sendPacket(_ payload: Data, to connection: NWConnection) {
+        var packet = Data()
+        var size = UInt32(payload.count).bigEndian
+        withUnsafeBytes(of: &size) { packet.append(contentsOf: $0) }
+        packet.append(payload)
+        
+        connection.send(content: packet, completion: .contentProcessed({ error in
+            if let error = error {
+                print("[-] Server failed to send packet: \(error.localizedDescription)")
+            }
+        }))
+    }
+    
+    private func startReceiving(_ session: ClientSession) {
         // Read 4-byte size header
-        connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] (data, context, isComplete, error) in
+        session.connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] (data, context, isComplete, error) in
             guard let self = self else { return }
             if let error = error {
-                print("[-] Server receive failed for \(id): \(error.localizedDescription)")
-                self.removeConnection(id: id)
+                print("[-] Server receive failed for \(session.id): \(error.localizedDescription)")
+                self.removeConnection(id: session.id)
                 return
             }
             
             guard let data = data, data.count == 4 else {
                 if isComplete {
-                    self.removeConnection(id: id)
+                    self.removeConnection(id: session.id)
                 } else {
-                    self.startReceiving(connection, id: id)
+                    self.startReceiving(session)
                 }
                 return
             }
             
             let payloadSize = data.withUnsafeBytes { $0.load(as: UInt32.self).bigEndian }
-            self.receivePayload(connection, id: id, size: Int(payloadSize))
+            self.receivePayload(session, size: Int(payloadSize))
         }
     }
     
-    private func receivePayload(_ connection: NWConnection, id: UUID, size: Int) {
+    private func receivePayload(_ session: ClientSession, size: Int) {
         guard size > 0 else {
-            self.startReceiving(connection, id: id)
+            self.startReceiving(session)
             return
         }
         
-        connection.receive(minimumIncompleteLength: size, maximumLength: size) { [weak self] (data, context, isComplete, error) in
+        session.connection.receive(minimumIncompleteLength: size, maximumLength: size) { [weak self] (data, context, isComplete, error) in
             guard let self = self else { return }
             if let error = error {
                 print("[-] Server receive payload failed: \(error.localizedDescription)")
-                self.removeConnection(id: id)
+                self.removeConnection(id: session.id)
                 return
             }
             
             guard let data = data, data.count == size else {
                 if isComplete {
-                    self.removeConnection(id: id)
+                    self.removeConnection(id: session.id)
                 } else {
-                    self.startReceiving(connection, id: id)
+                    self.startReceiving(session)
                 }
                 return
             }
             
-            self.parseAndDispatchInput(data)
+            self.handleIncomingPayload(data, session: session)
             
             // Wait for next packet
-            self.startReceiving(connection, id: id)
+            self.startReceiving(session)
+        }
+    }
+    
+    private func handleIncomingPayload(_ data: Data, session: ClientSession) {
+        guard data.count > 0 else { return }
+        let magic = data[0]
+        
+        switch magic {
+        case 0x03: // Verification Attempt (iPad -> Mac)
+            // Payload: [0x03] + [Encrypted verification token]
+            let encryptedToken = data.subdata(in: 1..<data.count)
+            let derivedKey = CryptoHelper.deriveKey(pin: session.pin, salt: session.salt)
+            
+            do {
+                let decryptedData = try CryptoHelper.decrypt(combinedData: encryptedToken, key: derivedKey)
+                if let decryptedString = String(data: decryptedData, encoding: .utf8), decryptedString == "SUCCESS" {
+                    print("[+] PIN Pairing Successful! Session is now encrypted.")
+                    session.isPaired = true
+                    session.sessionKey = derivedKey
+                    
+                    // Reply with success status: [0x04] + [1]
+                    let reply = Data([0x04, 1])
+                    self.sendPacket(reply, to: session.connection)
+                } else {
+                    throw NSError(domain: "AuthError", code: -1, userInfo: nil)
+                }
+            } catch {
+                print("[-] PIN Pairing Failed. Invalid PIN submitted by client.")
+                // Reply with failure status: [0x04] + [0]
+                let reply = Data([0x04, 0])
+                self.sendPacket(reply, to: session.connection)
+                self.removeConnection(id: session.id)
+            }
+            
+        case 0x11: // Encrypted input event (iPad -> Mac)
+            guard session.isPaired, let key = session.sessionKey else {
+                print("[-] Warning: Received input event from unauthenticated client.")
+                return
+            }
+            
+            let encryptedEvent = data.subdata(in: 1..<data.count)
+            do {
+                let decryptedEvent = try CryptoHelper.decrypt(combinedData: encryptedEvent, key: key)
+                self.parseAndDispatchInput(decryptedEvent)
+            } catch {
+                print("[-] Error decrypting client input event: \(error.localizedDescription)")
+            }
+            
+        default:
+            print("[-] Unknown package magic received: \(magic)")
         }
     }
     
@@ -143,7 +242,7 @@ final class StreamServer: @unchecked Sendable {
         guard data.count >= 14 else { return }
         
         let identifier = data[0]
-        guard identifier == 0x01 else { return } // Not an input event
+        guard identifier == 0x01 else { return } // Not a valid touch input event
         
         let rawPhase = data[1]
         
@@ -162,8 +261,8 @@ final class StreamServer: @unchecked Sendable {
     private func removeConnection(id: UUID) {
         connectionQueue.async { [weak self] in
             guard let self = self else { return }
-            if let connection = self.activeConnections.removeValue(forKey: id) {
-                connection.cancel()
+            if let session = self.activeConnections.removeValue(forKey: id) {
+                session.connection.cancel()
                 print("[-] Client disconnected. Total clients: \(self.activeConnections.count)")
             }
         }
@@ -172,20 +271,26 @@ final class StreamServer: @unchecked Sendable {
     func broadcast(data: Data) {
         connectionQueue.async { [weak self] in
             guard let self = self else { return }
-            guard !self.activeConnections.isEmpty else { return }
+            let pairedSessions = self.activeConnections.values.filter { $0.isPaired && $0.sessionKey != nil }
+            guard !pairedSessions.isEmpty else { return }
             
-            // Format packet: [4-Byte Payload Size] + [Data]
-            var packet = Data()
-            var size = UInt32(data.count).bigEndian
-            withUnsafeBytes(of: &size) { packet.append(contentsOf: $0) }
-            packet.append(data)
-            
-            for (id, connection) in self.activeConnections {
-                connection.send(content: packet, completion: .contentProcessed({ error in
-                    if let error = error {
-                        print("[-] Send failed to \(id): \(error.localizedDescription)")
-                    }
-                }))
+            for session in pairedSessions {
+                guard let key = session.sessionKey else { continue }
+                
+                do {
+                    // Encrypt NAL unit video data
+                    let encryptedData = try CryptoHelper.encrypt(data: data, key: key)
+                    
+                    // Format packet: [0x10] + [Encrypted Data]
+                    var payload = Data()
+                    var magic: UInt8 = 0x10
+                    payload.append(&magic, count: 1)
+                    payload.append(encryptedData)
+                    
+                    self.sendPacket(payload, to: session.connection)
+                } catch {
+                    print("[-] Failed to encrypt video frame: \(error.localizedDescription)")
+                }
             }
         }
     }

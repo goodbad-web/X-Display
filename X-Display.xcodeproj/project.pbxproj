@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */; };
 		4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */; };
+		7B44FE1B2E7F0BFBC4701FDC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E012EEAE1C152C149F15424C /* Sparkle */; };
 		E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */; };
 		F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290006FF26BEE7AA02629929 /* X_display.swift */; };
 /* End PBXBuildFile section */
@@ -21,6 +22,17 @@
 		B03C43BAEBDCCC175FD6B26F /* CVirtualDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVirtualDisplay.h; sourceTree = "<group>"; };
 		D9E5399A892FC09030ECEA07 /* X-Display.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X-Display.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C2A147E5860F0BC2A35D660E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B44FE1B2E7F0BFBC4701FDC /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		532DDC3B4C111BDC74262258 /* CVirtualDisplay */ = {
@@ -77,6 +89,7 @@
 			buildConfigurationList = F7DF0E6CC0AD3EBDBFF5D4F1 /* Build configuration list for PBXNativeTarget "X-Display" */;
 			buildPhases = (
 				36CDEC56908B5A8DA39D376C /* Sources */,
+				C2A147E5860F0BC2A35D660E /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -84,6 +97,7 @@
 			);
 			name = "X-Display";
 			packageProductDependencies = (
+				E012EEAE1C152C149F15424C /* Sparkle */,
 			);
 			productName = "X-Display";
 			productReference = D9E5399A892FC09030ECEA07 /* X-Display.app */;
@@ -109,6 +123,9 @@
 			);
 			mainGroup = A547C70AD6881F3EB108630A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E7CACBB4842F5A365FEAA184 /* Products */;
 			projectDirPath = "";
@@ -141,6 +158,8 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_SUFeedURL = "https://goodbad-web.github.io/xdisplay/appcast.xml";
+				INFOPLIST_KEY_SUPublicEDKey = placeholder_ed25519_public_key_value_for_sparkle_signing;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -160,6 +179,8 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_SUFeedURL = "https://goodbad-web.github.io/xdisplay/appcast.xml";
+				INFOPLIST_KEY_SUPublicEDKey = placeholder_ed25519_public_key_value_for_sparkle_signing;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -311,6 +332,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E012EEAE1C152C149F15424C /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 47FC65D3F5943AD7BA77A159 /* Project object */;
 }

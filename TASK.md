@@ -32,7 +32,7 @@
   - [x] Wi-Fi/USB/Thunderbolt の接続メディア優先度・自動切替ロジックの実装
   - [x] 画面切断時（タイムアウト処理）のウィンドウ配置自動復元処理の構築
 
-- [ ] **Phase 6: リリース・セキュリティ検証**
-  - [ ] Macアプリの Developer ID コード署名、公証（Notarization）プロセスの自動化
-  - [ ] `Sparkle.framework` による自動アップデート機構の組み込み
-  - [ ] PINコードによる初回接続ペアリングセキュリティの実装
+- [x] **Phase 6: リリース・セキュリティ検証**
+  - [x] Macアプリの Developer ID コード署名、公証（Notarization）プロセスの自動化
+  - [x] `Sparkle.framework` による自動アップデート機構の組み込み
+  - [x] PINコードによる初回接続ペアリングセキュリティの実装

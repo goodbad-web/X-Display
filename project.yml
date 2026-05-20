@@ -1,6 +1,10 @@
 name: X-Display
 options:
   bundleIdPrefix: com.goodbad-web
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
   X-Display:
     type: application
@@ -9,6 +13,8 @@ targets:
     sources:
       - path: Sources/X-display
       - path: Sources/CVirtualDisplay
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         SWIFT_VERSION: "6.0"
@@ -17,3 +23,5 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.goodbad-web.X-Display
         MACOSX_DEPLOYMENT_TARGET: "14.0"
+        INFOPLIST_KEY_SUFeedURL: "https://goodbad-web.github.io/xdisplay/appcast.xml"
+        INFOPLIST_KEY_SUPublicEDKey: "placeholder_ed25519_public_key_value_for_sparkle_signing"

@@ -6,6 +6,9 @@ import ScreenCaptureKit
 import CVirtualDisplay
 #endif
 import CoreMedia
+#if canImport(Sparkle)
+import Sparkle
+#endif
 
 final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
@@ -148,6 +151,10 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     private let helper = CVirtualDisplayHelper.shared()
     private let captureManager = ScreenCaptureManager()
     
+    #if canImport(Sparkle)
+    private var updaterController: SPUStandardUpdaterController?
+    #endif
+    
     private var isDisplayActive = false
     private var selectedWidth = 1920
     private var selectedHeight = 1080
@@ -155,6 +162,11 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Configure as a background/accessory app (no Dock icon)
         NSApp.setActivationPolicy(.accessory)
+        
+        #if canImport(Sparkle)
+        // Initialize Sparkle Updater
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        #endif
         
         setupMenuBar()
     }
