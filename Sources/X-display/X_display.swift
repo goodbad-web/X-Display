@@ -88,7 +88,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             config.width = width
             config.height = height
             config.pixelFormat = kCVPixelFormatType_32BGRA // GPU-friendly format
-            config.queueDepth = 3
+            config.queueDepth = 1
             config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
             config.showsCursor = true
             config.capturesAudio = false

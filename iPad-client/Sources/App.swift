@@ -1,6 +1,7 @@
 import SwiftUI
 import Network
 import CoreVideo
+import XDisplayShared
 
 @main
 struct XDisplayClientApp: App {
@@ -28,7 +29,7 @@ final class FrameHolder {
         let renderer = self.renderer
         lock.unlock()
 
-        Task { @MainActor in
+        DispatchQueue.main.async {
             renderer?(pixelBuffer)
         }
     }

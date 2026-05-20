@@ -44,6 +44,7 @@ struct TouchOverlayView: UIViewRepresentable {
         var onPencilInteractionEvent: ((XDisplayPencilInteractionEvent) -> Void)?
         
         private var lastPanTranslation: CGPoint = .zero
+        private var activePencilTouch: UITouch?
         
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -55,6 +56,34 @@ struct TouchOverlayView: UIViewRepresentable {
             super.init(coder: coder)
             setupGestures()
             setupPencilInteraction()
+        }
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesBegan(touches, with: event)
+            if let touch = touches.first(where: { $0.type == .pencil }) {
+                activePencilTouch = touch
+            }
+        }
+        
+        override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesMoved(touches, with: event)
+            if let touch = touches.first(where: { $0.type == .pencil }) {
+                activePencilTouch = touch
+            }
+        }
+        
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesEnded(touches, with: event)
+            if touches.contains(where: { $0.type == .pencil }) {
+                activePencilTouch = nil
+            }
+        }
+        
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesCancelled(touches, with: event)
+            if touches.contains(where: { $0.type == .pencil }) {
+                activePencilTouch = nil
+            }
         }
         
         private func setupGestures() {
@@ -95,7 +124,13 @@ struct TouchOverlayView: UIViewRepresentable {
         }
         
         private func setupPencilInteraction() {
-            let pencilInteraction = UIPencilInteraction(delegate: self)
+            let pencilInteraction: UIPencilInteraction
+            if #available(iOS 17.5, *) {
+                pencilInteraction = UIPencilInteraction(delegate: self)
+            } else {
+                pencilInteraction = UIPencilInteraction()
+                pencilInteraction.delegate = self
+            }
             addInteraction(pencilInteraction)
         }
         
@@ -104,7 +139,7 @@ struct TouchOverlayView: UIViewRepresentable {
         }
         
         private func getPencilEvent(from gesture: UIGestureRecognizer, phase: XDisplayTouchPhase) -> XDisplayPencilEvent? {
-            guard let touch = gesture.touches(byTargeting: self)?.first, touch.type == .pencil else {
+            guard let touch = activePencilTouch else {
                 return nil
             }
             
@@ -269,6 +304,7 @@ struct TouchOverlayView: UIViewRepresentable {
         
         // MARK: - UIPencilInteractionDelegate
         
+        @available(iOS 17.5, *)
         func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveTap tap: UIPencilInteraction.Tap) {
             guard let onPencilInteractionEvent = onPencilInteractionEvent else { return }
             onPencilInteractionEvent(XDisplayPencilInteractionEvent(type: .doubleTap))
@@ -278,6 +314,12 @@ struct TouchOverlayView: UIViewRepresentable {
         func pencilInteraction(_ interaction: UIPencilInteraction, didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
             guard let onPencilInteractionEvent = onPencilInteractionEvent else { return }
             onPencilInteractionEvent(XDisplayPencilInteractionEvent(type: .squeeze))
+        }
+
+        // Fallback double-tap support for iOS 17.0 ~ 17.4
+        func pencilInteractionDidTap(_ interaction: UIPencilInteraction) {
+            guard let onPencilInteractionEvent = onPencilInteractionEvent else { return }
+            onPencilInteractionEvent(XDisplayPencilInteractionEvent(type: .doubleTap))
         }
     }
 }

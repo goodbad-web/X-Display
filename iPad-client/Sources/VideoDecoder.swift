@@ -193,10 +193,13 @@ class VideoDecoder {
             decompressionSessionOut: &session
         )
 
-        guard status == noErr else {
+        guard status == noErr, let session = session else {
             print("[-] VTDecompressionSessionCreate failed: \(status)")
             return
         }
+
+        // Enable real-time / zero-latency decoding
+        VTSessionSetProperty(session, key: kVTDecompressionPropertyKey_RealTime, value: kCFBooleanTrue)
 
         self.decompressionSession = session
         print("[+] VTDecompressionSession initialized successfully!")
