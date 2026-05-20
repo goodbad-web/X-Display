@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */; };
 		4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */; };
-		71127414ACB457D41216179E /* CryptoHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C8FAEAD5ACBCD37ECA0B0D /* CryptoHelper.swift */; };
 		7B44FE1B2E7F0BFBC4701FDC /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E012EEAE1C152C149F15424C /* Sparkle */; };
+		9B7D0F7F2A9349E7B6E7F3D1 /* XDisplayShared in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7D0F7E2A9349E7B6E7F3D1 /* XDisplayShared */; };
 		E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = 3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */; };
 		F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290006FF26BEE7AA02629929 /* X_display.swift */; };
 /* End PBXBuildFile section */
@@ -19,7 +19,6 @@
 		290006FF26BEE7AA02629929 /* X_display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = X_display.swift; sourceTree = "<group>"; };
 		2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamServer.swift; sourceTree = "<group>"; };
 		3563C92D6E278664E738E4D7 /* CVirtualDisplay.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CVirtualDisplay.m; sourceTree = "<group>"; };
-		46C8FAEAD5ACBCD37ECA0B0D /* CryptoHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoHelper.swift; sourceTree = "<group>"; };
 		8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEncoder.swift; sourceTree = "<group>"; };
 		B03C43BAEBDCCC175FD6B26F /* CVirtualDisplay.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CVirtualDisplay.h; sourceTree = "<group>"; };
 		D9E5399A892FC09030ECEA07 /* X-Display.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X-Display.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -31,6 +30,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7B44FE1B2E7F0BFBC4701FDC /* Sparkle in Frameworks */,
+				9B7D0F7F2A9349E7B6E7F3D1 /* XDisplayShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,7 +50,6 @@
 		6D39F757F809C9728B8A677A /* X-display */ = {
 			isa = PBXGroup;
 			children = (
-				46C8FAEAD5ACBCD37ECA0B0D /* CryptoHelper.swift */,
 				2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */,
 				8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */,
 				290006FF26BEE7AA02629929 /* X_display.swift */,
@@ -101,6 +100,7 @@
 			name = "X-Display";
 			packageProductDependencies = (
 				E012EEAE1C152C149F15424C /* Sparkle */,
+				9B7D0F7E2A9349E7B6E7F3D1 /* XDisplayShared */,
 			);
 			productName = "X-Display";
 			productReference = D9E5399A892FC09030ECEA07 /* X-Display.app */;
@@ -125,6 +125,7 @@
 			mainGroup = A547C70AD6881F3EB108630A;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				9B7D0F7D2A9349E7B6E7F3D1 /* XCLocalSwiftPackageReference "XDisplayShared" */,
 				F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -143,7 +144,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E4554E1705E5CC21AE48A89F /* CVirtualDisplay.m in Sources */,
-				71127414ACB457D41216179E /* CryptoHelper.swift in Sources */,
 				4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */,
 				3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */,
 				F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */,
@@ -355,6 +355,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		9B7D0F7D2A9349E7B6E7F3D1 /* XCLocalSwiftPackageReference "XDisplayShared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = XDisplayShared;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -371,6 +378,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F1977EE0F544693456AD185F /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		9B7D0F7E2A9349E7B6E7F3D1 /* XDisplayShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B7D0F7D2A9349E7B6E7F3D1 /* XCLocalSwiftPackageReference "XDisplayShared" */;
+			productName = XDisplayShared;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
