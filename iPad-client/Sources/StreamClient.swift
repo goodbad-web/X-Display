@@ -116,6 +116,37 @@ class StreamClient {
             print("[-] Encryption failed for input event: \(error.localizedDescription)")
         }
     }
+
+    func sendScrollEvent(deltaX: Float, deltaY: Float) {
+        guard isRunning, isPaired, let key = sessionKey else { return }
+        
+        let rawEvent = XDisplayScrollEvent(deltaX: deltaX, deltaY: deltaY).encodeRawPayload()
+        
+        do {
+            let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
+            let payload = XDisplayPacketCodec.makeEncryptedInputEvent(encryptedEvent)
+            
+            sendPacket(payload)
+        } catch {
+            print("[-] Encryption failed for scroll event: \(error.localizedDescription)")
+        }
+    }
+
+    func sendRightClickEvent(x: Float, y: Float) {
+        guard isRunning, isPaired, let key = sessionKey else { return }
+        
+        let rawEvent = XDisplayRightClickEvent(x: x, y: y).encodeRawPayload()
+        
+        do {
+            let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
+            let payload = XDisplayPacketCodec.makeEncryptedInputEvent(encryptedEvent)
+            
+            sendPacket(payload)
+        } catch {
+            print("[-] Encryption failed for right-click event: \(error.localizedDescription)")
+        }
+    }
+
     
     private func sendPacket(_ payload: Data) {
         guard let connection = connection else { return }

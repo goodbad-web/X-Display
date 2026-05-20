@@ -271,6 +271,55 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         guard let event = CGEvent(mouseEventSource: nil, mouseType: mouseType, mouseCursorPosition: point, mouseButton: mouseButton) else { return }
         event.post(tap: .cghidEventTap)
     }
+
+    func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float) {
+        // Natural scrolling feeling: scale scroll translations and post wheel events.
+        // CGEvent scroll delta has vertical in wheel1, horizontal in wheel2.
+        let scrollMultiplier: Float = 0.5
+        let vScroll = Int32(deltaY * scrollMultiplier)
+        let hScroll = Int32(deltaX * scrollMultiplier)
+        
+        guard let event = CGEvent(
+            scrollWheelEvent2Source: nil,
+            units: .pixel,
+            wheelCount: 2,
+            wheel1: vScroll,
+            wheel2: hScroll,
+            wheel3: 0
+        ) else { return }
+        
+        event.post(tap: CGEventTapLocation.cghidEventTap)
+    }
+
+
+    func streamServer(_ server: StreamServer, didReceiveRightClickEvent x: Float, y: Float) {
+        guard let displayID = self.displayID else { return }
+
+        let bounds = CGDisplayBounds(displayID)
+        guard bounds.width > 0 && bounds.height > 0 else { return }
+
+        let absoluteX = bounds.origin.x + CGFloat(x) * bounds.size.width
+        let absoluteY = bounds.origin.y + CGFloat(y) * bounds.size.height
+        let point = CGPoint(x: absoluteX, y: absoluteY)
+        
+        guard let downEvent = CGEvent(
+            mouseEventSource: nil,
+            mouseType: .rightMouseDown,
+            mouseCursorPosition: point,
+            mouseButton: .right
+        ) else { return }
+        
+        guard let upEvent = CGEvent(
+            mouseEventSource: nil,
+            mouseType: .rightMouseUp,
+            mouseCursorPosition: point,
+            mouseButton: .right
+        ) else { return }
+        
+        downEvent.post(tap: .cghidEventTap)
+        upEvent.post(tap: .cghidEventTap)
+    }
+
 }
 
 @MainActor

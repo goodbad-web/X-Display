@@ -85,6 +85,15 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         streamClient.sendInputEvent(phase: event.phase, x: event.x, y: event.y, pressure: event.pressure)
     }
 
+    func sendScrollEvent(deltaX: Float, deltaY: Float) {
+        streamClient.sendScrollEvent(deltaX: deltaX, deltaY: deltaY)
+    }
+
+    func sendRightClickEvent(x: Float, y: Float) {
+        streamClient.sendRightClickEvent(x: x, y: y)
+    }
+
+
     // StreamClientDelegate
     func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data) {
         videoDecoder.decode(data: data)
@@ -154,9 +163,18 @@ struct ContentView: View {
                 ZStack {
                     StreamViewport(frameHolder: viewModel.frameHolder)
 
-                    TouchOverlayView { event in
-                        viewModel.sendTouchEvent(event)
-                    }
+                    TouchOverlayView(
+                        onTouchEvent: { event in
+                            viewModel.sendTouchEvent(event)
+                        },
+                        onScrollEvent: { deltaX, deltaY in
+                            viewModel.sendScrollEvent(deltaX: deltaX, deltaY: deltaY)
+                        },
+                        onRightClickEvent: { x, y in
+                            viewModel.sendRightClickEvent(x: x, y: y)
+                        }
+                    )
+
                 }
                 .edgesIgnoringSafeArea(.all)
 

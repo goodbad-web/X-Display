@@ -6,6 +6,8 @@ import XDisplayShared
 #if os(macOS)
 protocol StreamServerDelegate: AnyObject {
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float)
+    func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float)
+    func streamServer(_ server: StreamServer, didReceiveRightClickEvent x: Float, y: Float)
     func streamServerDidCompletePairing(_ server: StreamServer)
     func streamServer(_ server: StreamServer, didGeneratePIN pin: String)
 }
@@ -270,13 +272,27 @@ final class StreamServer: @unchecked Sendable {
     }
     
     private func parseAndDispatchInput(_ data: Data) {
+        guard data.count > 0 else { return }
+        let identifier = data[0]
+        
         do {
-            let event = try XDisplayTouchEvent.decodeRawPayload(data)
-            delegate?.streamServer(self, didReceiveInputEvent: event.phase.rawValue, x: event.x, y: event.y, pressure: event.pressure)
+            if identifier == 0x01 {
+                let event = try XDisplayTouchEvent.decodeRawPayload(data)
+                delegate?.streamServer(self, didReceiveInputEvent: event.phase.rawValue, x: event.x, y: event.y, pressure: event.pressure)
+            } else if identifier == 0x02 {
+                let event = try XDisplayScrollEvent.decodeRawPayload(data)
+                delegate?.streamServer(self, didReceiveScrollEvent: event.deltaX, deltaY: event.deltaY)
+            } else if identifier == 0x03 {
+                let event = try XDisplayRightClickEvent.decodeRawPayload(data)
+                delegate?.streamServer(self, didReceiveRightClickEvent: event.x, y: event.y)
+            } else {
+                print("[-] Unknown input event identifier: \(identifier)")
+            }
         } catch {
-            print("[-] Invalid touch input event: \(error)")
+            print("[-] Invalid input event (id: \(identifier)): \(error)")
         }
     }
+
     
     private func removeConnection(id: UUID) {
         connectionQueue.async { [weak self] in
