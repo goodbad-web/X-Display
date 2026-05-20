@@ -14,12 +14,12 @@
   - [x] キャプチャした `CVPixelBuffer` のサイズ、解像度、タイムスタンプのログ出力検証
 
 
-- [/] **Phase 3: 有線/無線通信 & ストリーミング配信 PoC**
-  - [/] iPadOSクライアントアプリのプロジェクト作成
-  - [/] **無線**: `Network.framework` (Bonjour) を用いたローカルTCPソケット通信の構築
-  - [ ] **有線**: `USBMuxd` を利用したTCPポート転送経由 of 有線通信の検証
-  - [/] Mac側での `VideoToolbox` H.264 ハードウェア圧縮（Bフレーム無効）パケット化処理の実装
-  - [/] iPad側でのデコードと `Metal` (MTKView) へのダイレクトレンダリング実装
+- [x] **Phase 3: 有線/無線通信 & ストリーミング配信 PoC**
+  - [x] iPadOSクライアントアプリのプロジェクト作成
+  - [x] **無線**: `Network.framework` (Bonjour) を用いたローカルTCPソケット通信 of 構築
+  - [x] **有線**: `USBMuxd` を利用したTCPポート転送経由 of 有線通信の検証（透過的なTCPで実現）
+  - [x] Mac側での `VideoToolbox` H.264 ハードウェア圧縮（Bフレーム無効）パケット化処理の実装
+  - [x] iPad側でのデコードと `Metal` (MTKView) へのダイレクトレンダリング実装
 
 - [ ] **Phase 4: 入力フィードバック PoC**
   - [ ] iPad上でのタッチ位置、Pencil（筆圧・傾き）のイベントハンドリング

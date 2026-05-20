@@ -1,33 +1,24 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.9
 import PackageDescription
 
 let package = Package(
     name: "X-Display-Client",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v17)
     ],
     products: [
-        .iOSApplication(
+        .library(
             name: "X-Display-Client",
-            targets: ["App"],
-            bundleIdentifier: "com.xdisplay.client",
-            teamIdentifier: "",
-            displayVersion: "1.0",
-            bundleVersion: "1",
-            supportedInterfaceOrientations: [
-                .landscapeRight,
-                .landscapeLeft
-            ],
-            capabilities: [
-                .incomingConnections(),
-                .outgoingConnections()
-            ]
+            targets: ["App"]
         )
     ],
     targets: [
-        .executableTarget(
+        .target(
             name: "App",
-            path: "Sources"
+            path: "Sources",
+            resources: [
+                .process("Shaders.metal")
+            ]
         )
     ]
 )

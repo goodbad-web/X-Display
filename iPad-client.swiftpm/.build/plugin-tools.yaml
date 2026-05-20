@@ -1,0 +1,47 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "App-arm64-apple-ios16.0-simulator-debug.module": ["<App-arm64-apple-ios16.0-simulator-debug.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<App-arm64-apple-ios16.0-simulator-debug.module>"]
+  "test": ["<App-arm64-apple-ios16.0-simulator-debug.module>"]
+default: "main"
+nodes:
+  "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/VideoDecoder.swift"]
+    outputs: ["/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources"]
+    description: "Write auxiliary file /Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources"
+
+  "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<App-arm64-apple-ios16.0-simulator-debug.module>":
+    tool: phony
+    inputs: ["/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/App.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/MetalRendererView.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/StreamClient.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/VideoDecoder.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules/App.swiftmodule"]
+    outputs: ["<App-arm64-apple-ios16.0-simulator-debug.module>"]
+
+  "C.App-arm64-apple-ios16.0-simulator-debug.module":
+    tool: shell
+    inputs: ["/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/VideoDecoder.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources"]
+    outputs: ["/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/App.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/MetalRendererView.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/StreamClient.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/VideoDecoder.swift.o","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules/App.swiftmodule"]
+    description: "Compiling Swift Module 'App' (4 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","App","-emit-dependencies","-emit-module","-emit-module-path","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules/App.swiftmodule","-output-file-map","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/output-file-map.json","-parse-as-library","-incremental","-c","@/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources","-I","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules","-target","arm64-apple-ios16.0-simulator","-incremental","-enable-batch-mode","-serialize-diagnostics","-index-store-path","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/index/store","-Onone","-enable-testing","-j16","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/include/App-Swift.h","-swift-version","5","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib","-g","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks","-Xcc","-fPIC","-Xcc","-g"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Package.swift","/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+

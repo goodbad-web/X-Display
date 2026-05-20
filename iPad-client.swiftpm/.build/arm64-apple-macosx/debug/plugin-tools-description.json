@@ -1,0 +1,266 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.App-arm64-apple-ios16.0-simulator-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources",
+      "importPath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/VideoDecoder.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "App",
+      "moduleOutputPath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules/App.swiftmodule",
+      "objects" : [
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/App.swift.o",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/MetalRendererView.swift.o",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/StreamClient.swift.o",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/VideoDecoder.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-ios16.0-simulator",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j16",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/include/App-Swift.h",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib",
+        "-g",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g"
+      ],
+      "outputFileMapPath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/App.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/MetalRendererView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/StreamClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/VideoDecoder.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules/App.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift",
+        "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/VideoDecoder.swift"
+      ],
+      "tempsPath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "App" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "App",
+      "-c",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/VideoDecoder.swift",
+      "-I",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/Modules",
+      "-target",
+      "arm64-apple-ios16.0-simulator",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j16",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/include/App-Swift.h",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib",
+      "-g",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "App" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/App.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/MetalRendererView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/StreamClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/Sources/VideoDecoder.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/App.build/sources"
+    },
+    "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/hiroshi/Developer/X-display/iPad-client.swiftpm/.build/arm64-apple-ios-simulator/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}
