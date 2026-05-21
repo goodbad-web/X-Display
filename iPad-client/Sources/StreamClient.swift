@@ -179,6 +179,21 @@ class StreamClient {
 
 
     
+    func sendClientInfo(isPortrait: Bool) {
+        guard isRunning, isPaired, let key = sessionKey else { return }
+        
+        let rawEvent = XDisplayClientInfoEvent(isPortrait: isPortrait).encodeRawPayload()
+        
+        do {
+            let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
+            let payload = XDisplayPacketCodec.makeEncryptedClientInfo(encryptedEvent)
+            
+            sendPacket(payload)
+        } catch {
+            print("[-] Encryption failed for client info event: \(error.localizedDescription)")
+        }
+    }
+
     private func sendPacket(_ payload: Data) {
         guard let connection = connection else { return }
         
@@ -327,7 +342,7 @@ class StreamClient {
                 print("[-] Failed to decrypt video frame: \(error.localizedDescription)")
             }
             
-        case .pairingVerify, .inputEvent:
+        case .pairingVerify, .inputEvent, .clientInfo:
             print("[-] Unexpected magic received from server: \(magic.rawValue)")
         }
     }

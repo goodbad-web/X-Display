@@ -40,6 +40,8 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var lastStreamRestartTime = Date.distantPast
     private var captureConfiguration: XDisplayDisplayConfiguration?
     private var preferredVirtualDisplayID: CGDirectDisplayID?
+    
+    var onClientOrientationChanged: ((Bool) -> Void)?
 
     // Keep only the newest pending frame so latency does not grow under load.
     private let encodeQueue = DispatchQueue(label: "com.xdisplay.encode-queue", qos: .userInteractive)
@@ -627,6 +629,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         submitLatestFrameAsKeyFrame()
     }
 
+    func streamServer(_ server: StreamServer, didReceiveClientInfo isPortrait: Bool) {
+        onClientOrientationChanged?(isPortrait)
+    }
+
     private func pointInDisplay(x: Float, y: Float) -> CGPoint? {
         guard let displayID = self.displayID,
               let configuration = captureConfiguration else {
@@ -789,6 +795,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     #endif
 
     private var isDisplayActive = false
+    private var isClientPortrait = false
     private var selectedConfiguration = XDisplayAppManager.makeConfiguration(
         logicalWidth: 1920,
         logicalHeight: 1080,
@@ -807,19 +814,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         DisplayResolutionPreset(title: "1210 x 834 @2x (2420 x 1668, 264 ppi)", configuration: makeConfiguration(logicalWidth: 1210, logicalHeight: 834, scale: .retina2x, pixelsPerInch: 264)),
         DisplayResolutionPreset(title: "1366 x 1024 @2x (iPad Pro 12.9\")", configuration: makeConfiguration(logicalWidth: 1366, logicalHeight: 1024, scale: .retina2x)),
         DisplayResolutionPreset(title: "1376 x 1032 @2x (2752 x 2064, iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 1376, logicalHeight: 1032, scale: .retina2x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "2752 x 2064 @1x (iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 2752, logicalHeight: 2064, scale: .standard1x, pixelsPerInch: 264)),
-
-        // Portrait
-        DisplayResolutionPreset(title: "1080 x 1920 @1x (16:9 Portrait)", configuration: makeConfiguration(logicalWidth: 1080, logicalHeight: 1920, scale: .standard1x)),
-        DisplayResolutionPreset(title: "1536 x 2048 @1x (4:3 Portrait)", configuration: makeConfiguration(logicalWidth: 1536, logicalHeight: 2048, scale: .standard1x)),
-        DisplayResolutionPreset(title: "1488 x 2266 @1x (iPad mini Portrait, 326 ppi)", configuration: makeConfiguration(logicalWidth: 1488, logicalHeight: 2266, scale: .standard1x, pixelsPerInch: 326)),
-        DisplayResolutionPreset(title: "1668 x 2420 @1x (264 ppi Portrait)", configuration: makeConfiguration(logicalWidth: 1668, logicalHeight: 2420, scale: .standard1x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "744 x 1133 @2x (1488 x 2266, iPad mini Portrait)", configuration: makeConfiguration(logicalWidth: 744, logicalHeight: 1133, scale: .retina2x, pixelsPerInch: 326)),
-        DisplayResolutionPreset(title: "834 x 1194 @2x (iPad Pro 11\" Portrait)", configuration: makeConfiguration(logicalWidth: 834, logicalHeight: 1194, scale: .retina2x)),
-        DisplayResolutionPreset(title: "834 x 1210 @2x (1668 x 2420, 264 ppi)", configuration: makeConfiguration(logicalWidth: 834, logicalHeight: 1210, scale: .retina2x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "1024 x 1366 @2x (iPad Pro 12.9\" Portrait)", configuration: makeConfiguration(logicalWidth: 1024, logicalHeight: 1366, scale: .retina2x)),
-        DisplayResolutionPreset(title: "1032 x 1376 @2x (2064 x 2752, iPad Pro 13\" Portrait)", configuration: makeConfiguration(logicalWidth: 1032, logicalHeight: 1376, scale: .retina2x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "2064 x 2752 @1x (iPad Pro 13\" Portrait)", configuration: makeConfiguration(logicalWidth: 2064, logicalHeight: 2752, scale: .standard1x, pixelsPerInch: 264))
+        DisplayResolutionPreset(title: "2752 x 2064 @1x (iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 2752, logicalHeight: 2064, scale: .standard1x, pixelsPerInch: 264))
     ]
 
     private static func makeConfiguration(logicalWidth: Int, logicalHeight: Int, scale: XDisplayScale, pixelsPerInch: Double = 110.0) -> XDisplayDisplayConfiguration {
@@ -847,6 +842,13 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 
         requestAccessibilityPermissionIfNeeded()
         setupMenuBar()
+        
+        captureManager.onClientOrientationChanged = { [weak self] isPortrait in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.handleOrientationChange(isPortrait: isPortrait)
+            }
+        }
 
         if ProcessInfo.processInfo.environment["XDISPLAY_AUTO_START"] == "1" {
             print("[*] Test Mode: Auto-starting virtual display...")
@@ -945,8 +947,19 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     }
 
     private func performStartDisplay() async throws {
-        let configuration = selectedConfiguration
+        var configuration = selectedConfiguration
         let codec = selectedCodec
+        
+        // Swap dimensions if client is in portrait mode
+        if isClientPortrait {
+            configuration = XDisplayAppManager.makeConfiguration(
+                logicalWidth: configuration.logicalSize.height,
+                logicalHeight: configuration.logicalSize.width,
+                scale: configuration.scale,
+                pixelsPerInch: configuration.pixelsPerInch
+            )
+        }
+        
         let logicalSize = configuration.logicalSize
         let pixelSize = configuration.pixelSize
         print("[*] Creating virtual display logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(configuration.scale.multiplier)x, ppi=\(configuration.pixelsPerInch), codec=\(codec.displayName)...")
@@ -1017,12 +1030,19 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             return
         }
         selectedConfiguration = Self.resolutionPresets[index].configuration
-
-        let logicalSize = selectedConfiguration.logicalSize
-        let pixelSize = selectedConfiguration.pixelSize
-        print("[*] Resolution changed to logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(selectedConfiguration.scale.multiplier)x, ppi=\(selectedConfiguration.pixelsPerInch)")
+        restartDisplayIfNeeded(reason: "resolution change")
+    }
+    
+    private func handleOrientationChange(isPortrait: Bool) {
+        if self.isClientPortrait != isPortrait {
+            self.isClientPortrait = isPortrait
+            print("[*] Client orientation changed to \(isPortrait ? "Portrait" : "Landscape")")
+            restartDisplayIfNeeded(reason: "client rotation")
+        }
+    }
+    
+    private func restartDisplayIfNeeded(reason: String) {
         updateMenu()
-
         if isDisplayActive {
             Task {
                 await performStopDisplay(keepServer: true)
@@ -1030,7 +1050,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
                 do {
                     try await performStartDisplay()
                 } catch {
-                    print("[-] Failed to restart display after resolution change: \(error.localizedDescription)")
+                    print("[-] Failed to restart display after \(reason): \(error.localizedDescription)")
                     await performStopDisplay()
                     isDisplayActive = false
                     updateMenu()

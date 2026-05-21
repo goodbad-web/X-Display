@@ -21,6 +21,7 @@ public enum XDisplayPayloadMagic: UInt8, Equatable {
     case pairingResult = 0x04
     case videoFrame = 0x10
     case inputEvent = 0x11
+    case clientInfo = 0x12
 }
 
 public enum XDisplayVideoCodec: UInt8, Equatable, Sendable {
@@ -59,6 +60,25 @@ public struct XDisplayVideoFramePayload: Equatable, Sendable {
         }
 
         return XDisplayVideoFramePayload(codec: codec, data: frameData)
+    }
+}
+
+public struct XDisplayClientInfoEvent: Equatable, Sendable {
+    public let isPortrait: Bool
+
+    public init(isPortrait: Bool) {
+        self.isPortrait = isPortrait
+    }
+
+    public func encodeRawPayload() -> Data {
+        Data([isPortrait ? 1 : 0])
+    }
+
+    public static func decodeRawPayload(_ payload: Data) throws -> XDisplayClientInfoEvent {
+        guard let value = payload.first else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        return XDisplayClientInfoEvent(isPortrait: value == 1)
     }
 }
 
@@ -155,5 +175,13 @@ public enum XDisplayPacketCodec {
 
     public static func decodeEncryptedInputEvent(_ payload: Data) throws -> Data {
         try payloadBody(in: payload, expectedMagic: .inputEvent)
+    }
+
+    public static func makeEncryptedClientInfo(_ encryptedData: Data) -> Data {
+        makePayload(magic: .clientInfo, body: encryptedData)
+    }
+
+    public static func decodeEncryptedClientInfo(_ payload: Data) throws -> Data {
+        try payloadBody(in: payload, expectedMagic: .clientInfo)
     }
 }

@@ -40,6 +40,9 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     @Published var isConnected = false
     @Published var isPairingRequired = false
     @Published var enteredPIN: String = ""
+    @Published var frameSize: CGSize = .init(width: 1920, height: 1080)
+    @Published var isTransitioning: Bool = false
+    @Published var isClientPortrait: Bool = false
     let frameHolder = FrameHolder()
     @Published var discoveredDevices: [DiscoveredDevice] = []
 
@@ -109,6 +112,14 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         streamClient.sendPencilInteractionEvent(event)
     }
 
+    func updateOrientation(isPortrait: Bool) {
+        if self.isClientPortrait != isPortrait {
+            self.isClientPortrait = isPortrait
+            self.isTransitioning = true
+            streamClient.sendClientInfo(isPortrait: isPortrait)
+        }
+    }
+
 
 
     // StreamClientDelegate
@@ -156,7 +167,9 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             self.isPairingRequired = false
             self.connectionStatus = success ? "Connected" : "Pairing failed"
             self.isConnected = success
-            if !success {
+            if success {
+                self.streamClient.sendClientInfo(isPortrait: self.isClientPortrait)
+            } else {
                 self.disconnect()
             }
         }
@@ -164,6 +177,24 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     // VideoDecoderDelegate
     func videoDecoder(_ decoder: VideoDecoder, didDecodeImageBuffer pixelBuffer: CVPixelBuffer) {
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        let newSize = CGSize(width: width, height: height)
+        
+        DispatchQueue.main.async {
+            if self.frameSize != newSize {
+                self.frameSize = newSize
+            }
+            
+            // If the incoming frame aspect ratio matches the client's current portrait state, we finish the transition
+            let frameIsPortrait = height > width
+            if self.isTransitioning && frameIsPortrait == self.isClientPortrait {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.isTransitioning = false
+                }
+            }
+        }
+        
         frameHolder.display(pixelBuffer)
     }
 
@@ -179,11 +210,17 @@ struct ContentView: View {
     @State private var showManualConnection = false
 
     var body: some View {
-        ZStack {
-            if viewModel.isConnected {
-                // Zero-Latency Video streaming viewport with touch overlay
-                ZStack {
-                    StreamViewport(frameHolder: viewModel.frameHolder)
+        GeometryReader { geometry in
+            let isPortrait = geometry.size.height > geometry.size.width
+            
+            ZStack {
+                if viewModel.isConnected {
+                    // Zero-Latency Video streaming viewport with touch overlay
+                    ZStack {
+                        StreamViewport(frameHolder: viewModel.frameHolder)
+                            .aspectRatio(viewModel.frameSize, contentMode: .fit)
+                            .blur(radius: viewModel.isTransitioning ? 30 : 0)
+                            .opacity(viewModel.isTransitioning ? 0.6 : 1.0)
 
                     TouchOverlayView(
                         onTouchEvent: { event in
@@ -455,6 +492,13 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+        .onChange(of: isPortrait) { newValue in
+            viewModel.updateOrientation(isPortrait: newValue)
+        }
+        .onAppear {
+            viewModel.updateOrientation(isPortrait: isPortrait)
+        }
         }
         .sheet(isPresented: $viewModel.isPairingRequired) {
             PINEntryView(pin: $viewModel.enteredPIN) {
