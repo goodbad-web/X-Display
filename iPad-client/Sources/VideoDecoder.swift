@@ -169,10 +169,10 @@ class VideoDecoder {
         let startCode = Data([0x00, 0x00, 0x00, 0x01])
         var offsets: [Int] = []
 
-        var searchRange = 0..<data.count
+        var searchRange = data.startIndex..<data.endIndex
         while let range = data.range(of: startCode, options: [], in: searchRange) {
             offsets.append(range.lowerBound)
-            searchRange = range.upperBound..<data.count
+            searchRange = range.upperBound..<data.endIndex
         }
 
         guard !offsets.isEmpty else { return }
@@ -182,7 +182,7 @@ class VideoDecoder {
 
         for index in offsets.indices {
             let nalStart = offsets[index] + startCode.count
-            let nalEnd = index + 1 < offsets.count ? offsets[index + 1] : data.count
+            let nalEnd = index + 1 < offsets.count ? offsets[index + 1] : data.endIndex
             guard nalStart < nalEnd else { continue }
 
             let nal = data.subdata(in: nalStart..<nalEnd)
