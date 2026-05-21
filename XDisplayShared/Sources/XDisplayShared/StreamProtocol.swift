@@ -153,32 +153,61 @@ public enum XDisplayPacketCodec {
         return payload
     }
 
-    public static func makePairingRequest(salt: Data) -> Data {
-        makePayload(magic: .pairingRequest, body: salt)
+    public static func makePairingRequest(salt: Data, serverID: UUID) -> Data {
+        var body = salt
+        let uuidBytes = withUnsafeBytes(of: serverID.uuid) { Data($0) }
+        body.append(uuidBytes)
+        return makePayload(magic: .pairingRequest, body: body)
     }
 
-    public static func decodePairingRequestSalt(_ payload: Data) throws -> Data {
+    public static func decodePairingRequest(_ payload: Data) throws -> (salt: Data, serverID: UUID) {
         let body = try payloadBody(in: payload, expectedMagic: .pairingRequest)
-        guard body.count >= XDisplayProtocol.saltLength else {
+        guard body.count >= XDisplayProtocol.saltLength + 16 else {
             throw XDisplayProtocolError.invalidLength
         }
-        return body.prefix(XDisplayProtocol.saltLength)
+        let salt = body.prefix(XDisplayProtocol.saltLength)
+        let uuidData = body.dropFirst(XDisplayProtocol.saltLength).prefix(16)
+        let uuid = uuidData.withUnsafeBytes { $0.load(as: uuid_t.self) }
+        return (salt, UUID(uuid: uuid))
     }
 
-    public static func makePairingVerification(encryptedToken: Data) -> Data {
-        makePayload(magic: .pairingVerify, body: encryptedToken)
+    public static func makePairingVerification(clientID: UUID, isTokenAuth: Bool, encryptedToken: Data) -> Data {
+        var body = Data()
+        let uuidBytes = withUnsafeBytes(of: clientID.uuid) { Data($0) }
+        body.append(uuidBytes)
+        body.append(isTokenAuth ? 1 : 0)
+        body.append(encryptedToken)
+        return makePayload(magic: .pairingVerify, body: body)
     }
 
-    public static func makePairingResult(success: Bool) -> Data {
-        makePayload(magic: .pairingResult, body: Data([success ? 1 : 0]))
+    public static func decodePairingVerification(_ payload: Data) throws -> (clientID: UUID, isTokenAuth: Bool, encryptedToken: Data) {
+        let body = try payloadBody(in: payload, expectedMagic: .pairingVerify)
+        guard body.count >= 17 else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        let uuidData = body.prefix(16)
+        let uuid = uuidData.withUnsafeBytes { $0.load(as: uuid_t.self) }
+        let isTokenAuth = body[16] == 1
+        let encryptedToken = body.dropFirst(17)
+        return (UUID(uuid: uuid), isTokenAuth, encryptedToken)
     }
 
-    public static func decodePairingResult(_ payload: Data) throws -> Bool {
+    public static func makePairingResult(success: Bool, encryptedToken: Data? = nil) -> Data {
+        var body = Data([success ? 1 : 0])
+        if let encryptedToken = encryptedToken {
+            body.append(encryptedToken)
+        }
+        return makePayload(magic: .pairingResult, body: body)
+    }
+
+    public static func decodePairingResult(_ payload: Data) throws -> (success: Bool, encryptedToken: Data?) {
         let body = try payloadBody(in: payload, expectedMagic: .pairingResult)
         guard let status = body.first else {
             throw XDisplayProtocolError.invalidLength
         }
-        return status == 1
+        let success = status == 1
+        let encryptedToken = body.count > 1 ? body.dropFirst() : nil
+        return (success, encryptedToken)
     }
 
     public static func makeEncryptedVideoFrame(_ encryptedData: Data) -> Data {

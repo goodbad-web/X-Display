@@ -70,7 +70,6 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     private var activeEndpoint: NWEndpoint?
     private var activeConnectionType: ConnectionType?
     private var lastWirelessEndpoint: NWEndpoint?
-    private var lastSuccessfulPIN: String?
     private var isAutoSwitching = false
 
     init() {
@@ -130,7 +129,6 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     }
 
     func submitPIN() {
-        self.lastSuccessfulPIN = enteredPIN
         streamClient.submitPIN(enteredPIN)
         enteredPIN = ""
     }
@@ -258,14 +256,8 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data) {
         DispatchQueue.main.async {
-            if let lastPIN = self.lastSuccessfulPIN {
-                print("[+] Auto-Pairing using cached PIN...")
-                self.connectionStatus = "Auto-Authenticating..."
-                self.streamClient.submitPIN(lastPIN)
-            } else {
-                self.connectionStatus = "PIN required"
-                self.isPairingRequired = true
-            }
+            self.connectionStatus = "PIN required"
+            self.isPairingRequired = true
         }
     }
 
@@ -277,7 +269,6 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             if success {
                 self.sendClientInfo()
             } else {
-                self.lastSuccessfulPIN = nil
                 self.disconnect()
             }
         }

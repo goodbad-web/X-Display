@@ -4,7 +4,11 @@ import Foundation
 public enum CryptoHelper {
     public static func deriveKey(pin: String, salt: Data) -> SymmetricKey {
         let pinData = pin.data(using: .utf8) ?? Data()
-        let combined = pinData + salt
+        return deriveKey(keyData: pinData, salt: salt)
+    }
+
+    public static func deriveKey(keyData: Data, salt: Data) -> SymmetricKey {
+        let combined = keyData + salt
         let hash = SHA256.hash(data: combined)
         return SymmetricKey(data: hash)
     }

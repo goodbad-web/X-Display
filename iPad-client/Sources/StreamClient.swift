@@ -20,6 +20,17 @@ class StreamClient {
     private var isPaired = false
     private var sessionKey: SymmetricKey?
     private var salt: Data?
+    private var serverID: UUID?
+    
+    private let clientID: UUID = {
+        if let uuidString = UserDefaults.standard.string(forKey: "XDisplayClientID"),
+           let uuid = UUID(uuidString: uuidString) {
+            return uuid
+        }
+        let newUUID = UUID()
+        UserDefaults.standard.set(newUUID.uuidString, forKey: "XDisplayClientID")
+        return newUUID
+    }()
     
     func connect(endpoint: NWEndpoint) {
         let parameters = NWParameters.tcp
@@ -41,6 +52,7 @@ class StreamClient {
                 self.isPaired = false
                 self.sessionKey = nil
                 self.salt = nil
+                self.serverID = nil
                 self.startReceiving()
             case .failed(let error):
                 print("[-] Connection error: \(error.localizedDescription)")
@@ -69,6 +81,7 @@ class StreamClient {
         isPaired = false
         sessionKey = nil
         salt = nil
+        serverID = nil
         connection?.cancel()
         connection = nil
         print("[*] StreamClient disconnected. Reason: \(reason)")
@@ -92,7 +105,7 @@ class StreamClient {
                 let token = Data(XDisplayProtocol.pairingVerificationToken.utf8)
                 let encryptedToken = try CryptoHelper.encrypt(data: token, key: key)
                 
-                let payload = XDisplayPacketCodec.makePairingVerification(encryptedToken: encryptedToken)
+                let payload = XDisplayPacketCodec.makePairingVerification(clientID: self.clientID, isTokenAuth: false, encryptedToken: encryptedToken)
                 
                 self.sendPacket(payload)
             } catch {
@@ -289,24 +302,44 @@ class StreamClient {
         switch magic {
         case .pairingRequest:
             let saltData: Data
+            let serverUUID: UUID
             do {
-                saltData = try XDisplayPacketCodec.decodePairingRequestSalt(data)
+                (saltData, serverUUID) = try XDisplayPacketCodec.decodePairingRequest(data)
             } catch {
                 print("[-] Invalid pairing request payload: \(error)")
                 return
             }
             self.salt = saltData
+            self.serverID = serverUUID
             
-            print("[+] Received pairing salt. Requesting PIN from UI...")
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                self.delegate?.streamClient(self, didRequestPINWithSalt: saltData)
+            if let token = KeychainManager.getToken(for: serverUUID.uuidString) {
+                print("[+] Found persistent token for server. Attempting automatic connection...")
+                clientQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    let key = CryptoHelper.deriveKey(keyData: token, salt: saltData)
+                    self.sessionKey = key
+                    do {
+                        let tokenData = Data(XDisplayProtocol.pairingVerificationToken.utf8)
+                        let encryptedToken = try CryptoHelper.encrypt(data: tokenData, key: key)
+                        let payload = XDisplayPacketCodec.makePairingVerification(clientID: self.clientID, isTokenAuth: true, encryptedToken: encryptedToken)
+                        self.sendPacket(payload)
+                    } catch {
+                        print("[-] Encryption error during auto-connect: \(error)")
+                    }
+                }
+            } else {
+                print("[+] Received pairing salt. Requesting PIN from UI...")
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.streamClient(self, didRequestPINWithSalt: saltData)
+                }
             }
             
         case .pairingResult:
             let success: Bool
+            let encryptedPersistentToken: Data?
             do {
-                success = try XDisplayPacketCodec.decodePairingResult(data)
+                (success, encryptedPersistentToken) = try XDisplayPacketCodec.decodePairingResult(data)
             } catch {
                 print("[-] Invalid pairing result payload: \(error)")
                 return
@@ -315,8 +348,25 @@ class StreamClient {
             if success {
                 print("[+] Pairing verified by host! Communication is now secure.")
                 self.isPaired = true
+                
+                if let encryptedPersistentToken = encryptedPersistentToken,
+                   let key = self.sessionKey,
+                   let serverID = self.serverID {
+                    do {
+                        let decryptedToken = try CryptoHelper.decrypt(combinedData: encryptedPersistentToken, key: key)
+                        if KeychainManager.saveToken(decryptedToken, for: serverID.uuidString) {
+                            print("[+] Saved persistent token to Keychain.")
+                        }
+                    } catch {
+                        print("[-] Failed to decrypt persistent token: \(error)")
+                    }
+                }
             } else {
                 print("[-] Pairing rejected by host.")
+                if let serverID = self.serverID {
+                    _ = KeychainManager.deleteToken(for: serverID.uuidString)
+                    print("[*] Deleted invalid persistent token for server: \(serverID.uuidString)")
+                }
                 self.disconnect(reason: "Pairing rejected by host")
             }
             

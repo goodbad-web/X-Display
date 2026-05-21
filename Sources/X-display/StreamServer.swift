@@ -52,6 +52,16 @@ final class StreamServer: @unchecked Sendable {
     private let statusLock = NSLock()
     private var _hasActivePairedConnections = false
     
+    private let serverID: UUID = {
+        if let uuidString = UserDefaults.standard.string(forKey: "XDisplayServerID"),
+           let uuid = UUID(uuidString: uuidString) {
+            return uuid
+        }
+        let newUUID = UUID()
+        UserDefaults.standard.set(newUUID.uuidString, forKey: "XDisplayServerID")
+        return newUUID
+    }()
+    
     var hasActivePairedConnections: Bool {
         statusLock.lock()
         defer { statusLock.unlock() }
@@ -140,7 +150,7 @@ final class StreamServer: @unchecked Sendable {
             }
             connection.start(queue: self.connectionQueue)
             
-            let authRequest = XDisplayPacketCodec.makePairingRequest(salt: session.salt)
+            let authRequest = XDisplayPacketCodec.makePairingRequest(salt: session.salt, serverID: self.serverID)
             self.sendPacket(authRequest, to: connection)
             
             // Start receiving packets
@@ -231,32 +241,62 @@ final class StreamServer: @unchecked Sendable {
         
         switch magic {
         case .pairingVerify:
+            let clientID: UUID
+            let isTokenAuth: Bool
             let encryptedToken: Data
             do {
-                encryptedToken = try XDisplayPacketCodec.payloadBody(in: data, expectedMagic: .pairingVerify)
+                (clientID, isTokenAuth, encryptedToken) = try XDisplayPacketCodec.decodePairingVerification(data)
             } catch {
                 print("[-] Invalid pairing verification payload: \(error)")
                 return
             }
-            let derivedKey = CryptoHelper.deriveKey(pin: session.pin, salt: session.salt)
+            
+            var derivedKey: SymmetricKey?
+            var usedTokenAuth = false
+            
+            if isTokenAuth {
+                if let persistentToken = KeychainManager.getToken(for: clientID.uuidString) {
+                    derivedKey = CryptoHelper.deriveKey(keyData: persistentToken, salt: session.salt)
+                    usedTokenAuth = true
+                } else {
+                    print("[-] Token auth requested but no token found for client: \(clientID.uuidString)")
+                }
+            }
+            
+            if derivedKey == nil {
+                derivedKey = CryptoHelper.deriveKey(pin: session.pin, salt: session.salt)
+                usedTokenAuth = false
+            }
+            
+            guard let key = derivedKey else { return }
             
             do {
-                let decryptedData = try CryptoHelper.decrypt(combinedData: encryptedToken, key: derivedKey)
+                let decryptedData = try CryptoHelper.decrypt(combinedData: encryptedToken, key: key)
                 if let decryptedString = String(data: decryptedData, encoding: .utf8), decryptedString == XDisplayProtocol.pairingVerificationToken {
-                    print("[+] PIN Pairing Successful! Session is now encrypted.")
+                    print("[+] PIN/Token Pairing Successful! Session is now encrypted.")
                     session.isPaired = true
-                    session.sessionKey = derivedKey
+                    session.sessionKey = key
                     self.updateActiveConnectionsStatus()
                     
-                    let reply = XDisplayPacketCodec.makePairingResult(success: true)
+                    var newEncryptedToken: Data? = nil
+                    if !usedTokenAuth {
+                        var tokenBytes = [UInt8](repeating: 0, count: 32)
+                        _ = SecRandomCopyBytes(kSecRandomDefault, 32, &tokenBytes)
+                        let persistentToken = Data(tokenBytes)
+                        
+                        _ = KeychainManager.saveToken(persistentToken, for: clientID.uuidString)
+                        newEncryptedToken = try? CryptoHelper.encrypt(data: persistentToken, key: key)
+                    }
+                    
+                    let reply = XDisplayPacketCodec.makePairingResult(success: true, encryptedToken: newEncryptedToken)
                     self.sendPacket(reply, to: session.connection)
                     self.delegate?.streamServerDidCompletePairing(self)
                 } else {
                     throw NSError(domain: "AuthError", code: -1, userInfo: nil)
                 }
             } catch {
-                print("[-] PIN Pairing Failed. Invalid PIN submitted by client.")
-                let reply = XDisplayPacketCodec.makePairingResult(success: false)
+                print("[-] Pairing Failed. Invalid PIN or Token submitted by client.")
+                let reply = XDisplayPacketCodec.makePairingResult(success: false, encryptedToken: nil)
                 self.sendPacket(reply, to: session.connection)
                 self.removeConnection(id: session.id)
             }
