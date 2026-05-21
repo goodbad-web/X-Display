@@ -21,7 +21,7 @@ private struct PendingVideoFrame {
     let presentationTime: CMTime
 }
 
-final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, VideoEncoderDelegate, StreamServerDelegate {
+final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, SCStreamDelegate, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
     private let encoder = VideoEncoder()
     private let server = StreamServer()
@@ -30,6 +30,17 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var fallbackCaptureTimer: DispatchSourceTimer?
     private var displayID: CGDirectDisplayID?
     private var didRequestScreenCaptureAccess = false
+    private var isCaptureActive = false
+    private var isRestartingStream = false
+    private var lastSCStreamSampleTime = Date.distantPast
+    private var lastUsableFrameTime = Date.distantPast
+    private var lastFrameStatus: SCFrameStatus?
+    private var streamRestartCount = 0
+    private var streamHealthTimer: DispatchSourceTimer?
+    private var lastStreamRestartTime = Date.distantPast
+    private var captureWidth: Int?
+    private var captureHeight: Int?
+    private var preferredVirtualDisplayID: CGDirectDisplayID?
 
     // Keep only the newest pending frame so latency does not grow under load.
     private let encodeQueue = DispatchQueue(label: "com.xdisplay.encode-queue", qos: .userInteractive)
@@ -46,7 +57,6 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var lastReplacedFrameCount = 0
     private var receivedSampleBufferCount = 0
     private var broadcastFrameCount = 0
-    private var lastSCStreamFrameTime = Date.distantPast
     private var fallbackFrameCount = 0
 
     private func requestScreenCaptureAccessIfNeeded() async {
@@ -75,50 +85,14 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             encoder.delegate = self
             encoder.initialize(width: width, height: height)
 
-            print("[*] Retrieving shareable content...")
-            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-
-            // Prefer the exact virtual display ID; fall back to resolution for older/private API failures.
-            let targetDisplay = content.displays.first(where: { display in
-                if let virtualDisplayID, virtualDisplayID != kCGNullDirectDisplay {
-                    return display.displayID == virtualDisplayID
-                }
-                return false
-            }) ?? content.displays.first(where: { Int($0.width) == width && Int($0.height) == height })
-
-            guard let targetDisplay else {
-                print("[-] Target virtual display not found. Please ensure it is created.")
-                server.stop()
-                throw NSError(domain: "ScreenCaptureManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Target virtual display not found."])
-            }
-
-            self.displayID = targetDisplay.displayID
-            print("[+] Target display found! ID: \(targetDisplay.displayID) Resolution: \(Int(targetDisplay.width))x\(Int(targetDisplay.height))")
-
-            // Create a content filter targeting the virtual display.
-            let filter = SCContentFilter(display: targetDisplay, excludingWindows: [])
-
-            // Configure zero-latency stream settings.
-            let config = SCStreamConfiguration()
-            config.width = width
-            config.height = height
-            config.pixelFormat = kCVPixelFormatType_32BGRA // GPU-friendly format
-            config.queueDepth = 1
-            config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
-            config.showsCursor = true
-            config.capturesAudio = false
-
-            print("[*] Initializing SCStream...")
-            stream = SCStream(filter: filter, configuration: config, delegate: nil)
-
-            // Set output callback on a dedicated user-interactive serial queue.
-            try stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
-
-            print("[*] Starting SCStream capture...")
-            try await stream?.startCapture()
-            print("[+] SCStream started successfully! Capturing frames...")
             resetCaptureStats()
-            startFallbackCaptureIfNeeded(width: width, height: height)
+            isCaptureActive = true
+            captureWidth = width
+            captureHeight = height
+            preferredVirtualDisplayID = virtualDisplayID
+
+            try await startSCStream(width: width, height: height, virtualDisplayID: virtualDisplayID)
+            startStreamHealthMonitor()
         } catch {
             print("[-] SCStream start failed: \(error.localizedDescription)")
             stream = nil
@@ -128,6 +102,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     }
 
     func stopCapture() async {
+        isCaptureActive = false
+        stopStreamHealthMonitor()
+        stopFallbackCapture()
+
         if let stream {
             do {
                 try await stream.stopCapture()
@@ -143,8 +121,14 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private func cleanupStreamingResources() {
         server.stop()
         encoder.invalidate()
+        isCaptureActive = false
+        isRestartingStream = false
+        stopStreamHealthMonitor()
         stopFallbackCapture()
         clearBufferedFrames()
+        captureWidth = nil
+        captureHeight = nil
+        preferredVirtualDisplayID = nil
         displayID = nil
     }
 
@@ -152,11 +136,24 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen else { return }
 
+        let now = Date()
+        let status = frameStatus(from: sampleBuffer)
+        lastSCStreamSampleTime = now
+        lastFrameStatus = status
+
+        guard status == nil || status == .complete || status == .started else {
+            if status == .blank || status == .suspended || status == .stopped {
+                print("[-] SCStream unhealthy frame status: \(statusDescription(status))")
+                scheduleSCStreamRestart(reason: "frame status \(statusDescription(status))")
+            }
+            return
+        }
+
         if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
             receivedSampleBufferCount += 1
-            lastSCStreamFrameTime = Date()
+            lastUsableFrameTime = now
             if receivedSampleBufferCount <= 5 {
-                print("[Capture] sample #\(receivedSampleBufferCount), paired=\(server.hasActivePairedConnections), size=\(CVPixelBufferGetWidth(pixelBuffer))x\(CVPixelBufferGetHeight(pixelBuffer))")
+                print("[Capture] sample #\(receivedSampleBufferCount), status=\(statusDescription(status)), paired=\(server.hasActivePairedConnections), size=\(CVPixelBufferGetWidth(pixelBuffer))x\(CVPixelBufferGetHeight(pixelBuffer))")
             }
 
             let frame = PendingVideoFrame(
@@ -175,8 +172,173 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         logCaptureStatsIfNeeded()
     }
 
+    func stream(_ stream: SCStream, didStopWithError error: Error) {
+        print("[-] SCStream stopped with error: \(error.localizedDescription)")
+        captureQueue.async { [weak self] in
+            self?.scheduleSCStreamRestart(reason: "delegate error: \(error.localizedDescription)")
+        }
+    }
+
+    private func resolveTargetDisplay(width: Int, height: Int, virtualDisplayID: CGDirectDisplayID?) async throws -> SCDisplay {
+        print("[*] Retrieving shareable content...")
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+
+        // Prefer the exact virtual display ID; fall back to resolution for older/private API failures.
+        let targetDisplay = content.displays.first(where: { display in
+            if let virtualDisplayID, virtualDisplayID != kCGNullDirectDisplay {
+                return display.displayID == virtualDisplayID
+            }
+            return false
+        }) ?? content.displays.first(where: { Int($0.width) == width && Int($0.height) == height })
+
+        guard let targetDisplay else {
+            print("[-] Target virtual display not found. Please ensure it is created.")
+            throw NSError(domain: "ScreenCaptureManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Target virtual display not found."])
+        }
+
+        displayID = targetDisplay.displayID
+        print("[+] Target display found! ID: \(targetDisplay.displayID) Resolution: \(Int(targetDisplay.width))x\(Int(targetDisplay.height))")
+        return targetDisplay
+    }
+
+    private func makeStreamConfiguration(width: Int, height: Int) -> SCStreamConfiguration {
+        let config = SCStreamConfiguration()
+        config.width = width
+        config.height = height
+        config.pixelFormat = kCVPixelFormatType_32BGRA
+        config.queueDepth = 3
+        config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
+        config.showsCursor = true
+        config.capturesAudio = false
+        return config
+    }
+
+    private func startSCStream(width: Int, height: Int, virtualDisplayID: CGDirectDisplayID?) async throws {
+        let targetDisplay = try await resolveTargetDisplay(width: width, height: height, virtualDisplayID: virtualDisplayID)
+        let filter = SCContentFilter(display: targetDisplay, excludingWindows: [])
+        let config = makeStreamConfiguration(width: width, height: height)
+
+        print("[*] Initializing SCStream...")
+        let newStream = SCStream(filter: filter, configuration: config, delegate: self)
+        try newStream.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
+
+        print("[*] Starting SCStream capture...")
+        try await newStream.startCapture()
+
+        stream = newStream
+        lastSCStreamSampleTime = Date()
+        lastUsableFrameTime = Date.distantPast
+        lastFrameStatus = nil
+        print("[+] SCStream started successfully! Capturing frames...")
+    }
+
+    private func stopCurrentSCStream() async {
+        guard let stream else { return }
+        do {
+            try await stream.stopCapture()
+            print("[+] SCStream stopped for restart.")
+        } catch {
+            print("[-] SCStream restart stop failed: \(error.localizedDescription)")
+        }
+        self.stream = nil
+    }
+
+    private func startStreamHealthMonitor() {
+        stopStreamHealthMonitor()
+
+        let timer = DispatchSource.makeTimerSource(queue: captureQueue)
+        timer.schedule(deadline: .now() + .milliseconds(500), repeating: .milliseconds(500))
+        timer.setEventHandler { [weak self] in
+            self?.checkStreamHealth()
+        }
+        streamHealthTimer = timer
+        timer.resume()
+    }
+
+    private func stopStreamHealthMonitor() {
+        streamHealthTimer?.cancel()
+        streamHealthTimer = nil
+    }
+
+    private func checkStreamHealth() {
+        guard isCaptureActive, server.hasActivePairedConnections else { return }
+
+        if let lastFrameStatus, lastFrameStatus == .blank || lastFrameStatus == .suspended || lastFrameStatus == .stopped {
+            scheduleSCStreamRestart(reason: "health status \(statusDescription(lastFrameStatus))")
+            return
+        }
+
+        let secondsSinceSample = Date().timeIntervalSince(lastSCStreamSampleTime)
+        if secondsSinceSample > 2.0 {
+            scheduleSCStreamRestart(reason: String(format: "no SCStream callback for %.1fs", secondsSinceSample))
+        }
+    }
+
+    private func scheduleSCStreamRestart(reason: String) {
+        guard isCaptureActive, !isRestartingStream else { return }
+
+        let now = Date()
+        guard now.timeIntervalSince(lastStreamRestartTime) >= 1.0 else { return }
+        guard let width = captureWidth, let height = captureHeight else { return }
+
+        isRestartingStream = true
+        lastStreamRestartTime = now
+        streamRestartCount += 1
+        stopFallbackCapture()
+        print("[*] Restarting SCStream #\(streamRestartCount): \(reason)")
+
+        Task { [weak self] in
+            guard let self else { return }
+            await self.stopCurrentSCStream()
+
+            do {
+                try await self.startSCStream(width: width, height: height, virtualDisplayID: self.preferredVirtualDisplayID)
+                self.encoder.requestKeyFrame()
+                self.captureQueue.async {
+                    self.isRestartingStream = false
+                    print("[+] SCStream restart completed.")
+                }
+            } catch {
+                self.captureQueue.async {
+                    self.isRestartingStream = false
+                    print("[-] SCStream restart failed: \(error.localizedDescription)")
+                    self.startFallbackCaptureIfNeeded(width: width, height: height)
+                }
+            }
+        }
+    }
+
+    private func frameStatus(from sampleBuffer: CMSampleBuffer) -> SCFrameStatus? {
+        guard let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
+              let rawStatus = attachments.first?[.status] as? Int else {
+            return nil
+        }
+        return SCFrameStatus(rawValue: rawStatus)
+    }
+
+    private func statusDescription(_ status: SCFrameStatus?) -> String {
+        guard let status else { return "unknown" }
+        switch status {
+        case .complete:
+            return "complete"
+        case .idle:
+            return "idle"
+        case .blank:
+            return "blank"
+        case .suspended:
+            return "suspended"
+        case .started:
+            return "started"
+        case .stopped:
+            return "stopped"
+        @unknown default:
+            return "unknown(\(status.rawValue))"
+        }
+    }
+
     private func startFallbackCaptureIfNeeded(width: Int, height: Int) {
         stopFallbackCapture()
+        print("[FallbackCapture] enabled after SCStream restart failure; cursor is not included in fallback frames.")
 
         let timer = DispatchSource.makeTimerSource(queue: fallbackCaptureQueue)
         timer.schedule(deadline: .now() + .milliseconds(250), repeating: .milliseconds(33))
@@ -194,7 +356,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
     private func captureFallbackFrameIfNeeded(width: Int, height: Int) {
         guard server.hasActivePairedConnections,
-              Date().timeIntervalSince(lastSCStreamFrameTime) > 0.2,
+              !isRestartingStream,
               let displayID = displayID,
               displayID != kCGNullDirectDisplay,
               let image = CGDisplayCreateImage(displayID),
@@ -331,7 +493,11 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         receivedSampleBufferCount = 0
         broadcastFrameCount = 0
         fallbackFrameCount = 0
-        lastSCStreamFrameTime = Date.distantPast
+        lastSCStreamSampleTime = Date.distantPast
+        lastUsableFrameTime = Date.distantPast
+        lastFrameStatus = nil
+        streamRestartCount = 0
+        lastStreamRestartTime = Date.distantPast
         lastStatsTime = Date()
         encodingLock.unlock()
     }
