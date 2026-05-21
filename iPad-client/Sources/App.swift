@@ -633,7 +633,7 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: isPortrait) { newValue in
+        .onChange(of: isPortrait) { _, newValue in
             viewModel.updateOrientation(isPortrait: newValue)
         }
         .onAppear {
@@ -648,7 +648,7 @@ struct ContentView: View {
         }
         .statusBarHidden(isIdle)
         .persistentSystemOverlays(isIdle ? .hidden : .automatic)
-        .onChange(of: viewModel.isConnected) { isConnected in
+        .onChange(of: viewModel.isConnected) { _, isConnected in
             if isConnected {
                 resetIdleTimer()
             } else {
@@ -666,12 +666,12 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
-        .onChange(of: selectedCodec) { _ in
+        .onChange(of: selectedCodec) {
             if viewModel.isConnected {
                 viewModel.sendClientInfo()
             }
         }
-        .onChange(of: maxFrameRate) { _ in
+        .onChange(of: maxFrameRate) {
             if viewModel.isConnected {
                 viewModel.sendClientInfo()
             }
