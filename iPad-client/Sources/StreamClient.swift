@@ -117,10 +117,10 @@ class StreamClient {
         }
     }
 
-    func sendScrollEvent(deltaX: Float, deltaY: Float) {
+    func sendScrollEvent(deltaX: Float, deltaY: Float, x: Float, y: Float) {
         guard isRunning, isPaired, let key = sessionKey else { return }
         
-        let rawEvent = XDisplayScrollEvent(deltaX: deltaX, deltaY: deltaY).encodeRawPayload()
+        let rawEvent = XDisplayScrollEvent(deltaX: deltaX, deltaY: deltaY, x: x, y: y).encodeRawPayload()
         
         do {
             let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)

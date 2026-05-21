@@ -49,6 +49,14 @@ swift build
 
 ---
 
+## Current Status
+
+- Virtual Display: Working
+- ScreenCaptureKit: Working
+- H264 Streaming: Working
+- Reconnect Recovery: Partial
+- Production Hardening: In Progress
+
 ## 5. 実行時の注意点 (Troubleshooting)
 - **画面収録（Screen Recording）権限**:
   本アプリケーションは画面キャプチャを伴うため、初回実行時にmacOSより「画面収録」の権限が求められます。拒否した場合は「システム設定 -> プライバシーとセキュリティ -> 画面収録」にて、実行元のターミナルアプリまたはXcodeのチェックを有効にしてください。

@@ -6,7 +6,7 @@ import XDisplayShared
 #if os(macOS)
 protocol StreamServerDelegate: AnyObject {
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float)
-    func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float)
+    func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float, x: Float, y: Float)
     func streamServer(_ server: StreamServer, didReceiveRightClickEvent x: Float, y: Float)
     func streamServer(_ server: StreamServer, didReceivePencilEvent event: XDisplayPencilEvent)
     func streamServer(_ server: StreamServer, didReceivePencilInteractionEvent event: XDisplayPencilInteractionEvent)
@@ -295,7 +295,7 @@ final class StreamServer: @unchecked Sendable {
                 delegate?.streamServer(self, didReceiveInputEvent: event.phase.rawValue, x: event.x, y: event.y, pressure: event.pressure)
             } else if identifier == 0x02 {
                 let event = try XDisplayScrollEvent.decodeRawPayload(data)
-                delegate?.streamServer(self, didReceiveScrollEvent: event.deltaX, deltaY: event.deltaY)
+                delegate?.streamServer(self, didReceiveScrollEvent: event.deltaX, deltaY: event.deltaY, x: event.x, y: event.y)
             } else if identifier == 0x03 {
                 let event = try XDisplayRightClickEvent.decodeRawPayload(data)
                 delegate?.streamServer(self, didReceiveRightClickEvent: event.x, y: event.y)

@@ -67,23 +67,31 @@ public struct XDisplayTouchEvent: Equatable {
 public struct XDisplayScrollEvent: Equatable {
     public let deltaX: Float
     public let deltaY: Float
+    /// スクロール中心の正規化座標（0.0〜1.0）。Mac側でカーソルをこの位置に移動してからwheelを投げる。
+    public let x: Float
+    public let y: Float
 
-    public init(deltaX: Float, deltaY: Float) {
+    public init(deltaX: Float, deltaY: Float, x: Float, y: Float) {
         self.deltaX = deltaX
         self.deltaY = deltaY
+        self.x = x
+        self.y = y
     }
 
+    // Payload: 1 (id) + 4 (deltaX) + 4 (deltaY) + 4 (x) + 4 (y) = 17 bytes
     public func encodeRawPayload() -> Data {
         var payload = Data()
-        payload.reserveCapacity(9)
+        payload.reserveCapacity(17)
         payload.append(0x02) // scrollEventIdentifier
         appendFloat(deltaX, to: &payload)
         appendFloat(deltaY, to: &payload)
+        appendFloat(x, to: &payload)
+        appendFloat(y, to: &payload)
         return payload
     }
 
     public static func decodeRawPayload(_ data: Data) throws -> XDisplayScrollEvent {
-        guard data.count >= 9 else {
+        guard data.count >= 17 else {
             throw XDisplayProtocolError.invalidLength
         }
         let identifier = data[0]
@@ -92,7 +100,9 @@ public struct XDisplayScrollEvent: Equatable {
         }
         return XDisplayScrollEvent(
             deltaX: decodeFloat(in: data, range: 1..<5),
-            deltaY: decodeFloat(in: data, range: 5..<9)
+            deltaY: decodeFloat(in: data, range: 5..<9),
+            x: decodeFloat(in: data, range: 9..<13),
+            y: decodeFloat(in: data, range: 13..<17)
         )
     }
 

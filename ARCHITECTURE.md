@@ -43,11 +43,43 @@ stateDiagram-v2
 
 ---
 
+## 2.1 追加ステート
+
+- Degraded
+  - フレーム落ち、thermal、帯域不足、encoder遅延時
+  - bitrate / fps / resolution を下げて継続
+
+- Reconfiguring
+  - 解像度変更、iPad回転、仮想ディスプレイ再生成中
+  - 入力と描画を一時停止し、成功後Streamingへ戻る
+
+- Fatal
+  - 権限拒否、Private API不在、連続復旧失敗
+  - 自動復旧せず、ユーザーに原因と対処を表示
+
+
 ## 3. 通信データパケット仕様 (Packet Protocol)
 
 Wi-FiおよびUSB/Thunderbolt経由でのTCPソケット通信において、画面データと入力データを効率的かつ低オーバーヘッドで識別するためのカスタムバイナリプロトコルを定義します。
 
-### 3.1 パケット共通ヘッダー (Packet Header: 12 bytes)
+struct XDSPPacketHeader {
+    uint32_t magicNumber;
+    uint16_t protocolVersion;
+    uint16_t packetType;
+    uint16_t flags;
+    uint16_t headerLength;
+    uint32_t sequenceNumber;
+    uint32_t payloadLength;
+    uint32_t crc32;
+};
+
+### Version Compatibility Policy
+
+- major mismatch -> reject connection
+- minor mismatch -> feature downgrade allowed
+- unsupported flags -> ignore safely
+
+### 3.1 パケット共通ヘッダー (Packet Header: 24 bytes)
 すべてのパケットは、先頭に以下の12バイトの共通ヘッダーを持ちます。
 
 | バイト位置 (Offset) | データ型 (Type) | フィールド名 (Field Name) | 説明 (Description) |

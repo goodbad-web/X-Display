@@ -36,3 +36,10 @@
   - [x] Macアプリの Developer ID コード署名、公証（Notarization）プロセスの自動化
   - [x] `Sparkle.framework` による自動アップデート機構の組み込み
   - [x] PINコードによる初回接続ペアリングセキュリティの実装
+
+- [ ] **Phase 7: 製品品質・異常系検証**
+  - [ ] QUALITY_TASK.md のP0を全て完了
+  - [ ] NFR.md のlatency/stability/recovery/resourceを測定
+  - [ ] OBSERVABILITY.md の必須ログを実装
+  - [ ] Degraded / Reconfiguring / Fatal 状態を実装
+  - [ ] sleep/wake, USB抜き差し, Wi-Fi切断, iPad再接続を検証

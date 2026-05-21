@@ -11,7 +11,7 @@ struct TouchEvent {
 
 struct TouchOverlayView: UIViewRepresentable {
     var onTouchEvent: (TouchEvent) -> Void
-    var onScrollEvent: ((Float, Float) -> Void)? = nil
+    var onScrollEvent: ((Float, Float, Float, Float) -> Void)? = nil
     var onRightClickEvent: ((Float, Float) -> Void)? = nil
     var onPencilEvent: ((XDisplayPencilEvent) -> Void)? = nil
     var onPencilInteractionEvent: ((XDisplayPencilInteractionEvent) -> Void)? = nil
@@ -38,13 +38,15 @@ struct TouchOverlayView: UIViewRepresentable {
     
     class TouchCaptureUIView: UIView, UIGestureRecognizerDelegate, UIPencilInteractionDelegate {
         var onTouchEvent: ((TouchEvent) -> Void)?
-        var onScrollEvent: ((Float, Float) -> Void)?
+        var onScrollEvent: ((Float, Float, Float, Float) -> Void)?
         var onRightClickEvent: ((Float, Float) -> Void)?
         var onPencilEvent: ((XDisplayPencilEvent) -> Void)?
         var onPencilInteractionEvent: ((XDisplayPencilInteractionEvent) -> Void)?
         
         private var lastPanTranslation: CGPoint = .zero
         private var activePencilTouch: UITouch?
+        /// 1本指が最初に接地した正規化座標（pan .began 時の mouseDown 位置補正用）
+        private var fingerDownNormalized: CGPoint?
         
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -63,6 +65,23 @@ struct TouchOverlayView: UIViewRepresentable {
             if let touch = touches.first(where: { $0.type == .pencil }) {
                 activePencilTouch = touch
             }
+            // 既存の指を含めて複数本の指が接触している場合はクリア
+            let allTouches = event?.allTouches ?? []
+            let fingerTouches = allTouches.filter { $0.type != .pencil && ($0.phase == .began || $0.phase == .moved || $0.phase == .stationary) }
+            
+            if fingerTouches.count == 1,
+               let touch = fingerTouches.first {
+                let loc = touch.location(in: self)
+                let b = bounds
+                if b.width > 0 && b.height > 0 {
+                    fingerDownNormalized = CGPoint(
+                        x: max(0, min(1, loc.x / b.width)),
+                        y: max(0, min(1, loc.y / b.height))
+                    )
+                }
+            } else {
+                fingerDownNormalized = nil
+            }
         }
         
         override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -77,6 +96,7 @@ struct TouchOverlayView: UIViewRepresentable {
             if touches.contains(where: { $0.type == .pencil }) {
                 activePencilTouch = nil
             }
+            fingerDownNormalized = nil
         }
         
         override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -84,6 +104,7 @@ struct TouchOverlayView: UIViewRepresentable {
             if touches.contains(where: { $0.type == .pencil }) {
                 activePencilTouch = nil
             }
+            fingerDownNormalized = nil
         }
         
         private func setupGestures() {
@@ -135,6 +156,10 @@ struct TouchOverlayView: UIViewRepresentable {
         }
         
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+            // hoverGestureはPencilホバー専用。通常タッチ系ジェスチャとの同時認識は不要。
+            if gestureRecognizer is UIHoverGestureRecognizer || otherGestureRecognizer is UIHoverGestureRecognizer {
+                return false
+            }
             return true
         }
         
@@ -230,33 +255,43 @@ struct TouchOverlayView: UIViewRepresentable {
             case .cancelled, .failed: phase = .cancelled
             default: return
             }
-            
+
             if let onPencilEvent = onPencilEvent, let pencilEvent = getPencilEvent(from: gesture, phase: phase) {
                 onPencilEvent(pencilEvent)
                 return
             }
-            
+
             guard let onTouchEvent = onTouchEvent else { return }
-            let location = gesture.location(in: self)
-            let bounds = self.bounds
-            guard bounds.width > 0 && bounds.height > 0 else { return }
-            
-            let normX = Float(max(0, min(1, location.x / bounds.width)))
-            let normY = Float(max(0, min(1, location.y / bounds.height)))
-            
-            var pressure: Float = 1.0
-            if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
-                pressure = 0.0
+
+            let normX: Float
+            let normY: Float
+
+            if gesture.state == .began, let down = fingerDownNormalized {
+                // pan 判定完了前の真の接地点を mouseDown 位置として使う
+                normX = Float(down.x)
+                normY = Float(down.y)
+                fingerDownNormalized = nil
+            } else {
+                let location = gesture.location(in: self)
+                let b = bounds
+                guard b.width > 0 && b.height > 0 else { return }
+                normX = Float(max(0, min(1, location.x / b.width)))
+                normY = Float(max(0, min(1, location.y / b.height)))
             }
-            
+
+            let pressure: Float = (gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed) ? 0.0 : 1.0
             onTouchEvent(TouchEvent(phase: phase, x: normX, y: normY, pressure: pressure))
         }
         
         @objc private func handleTwoFingerPan(_ gesture: UIPanGestureRecognizer) {
+            fingerDownNormalized = nil
+            
             guard let onScrollEvent = onScrollEvent else { return }
-            
+
             let translation = gesture.translation(in: self)
-            
+            let location = gesture.location(in: self)
+            let b = bounds
+
             switch gesture.state {
             case .began:
                 lastPanTranslation = translation
@@ -264,7 +299,9 @@ struct TouchOverlayView: UIViewRepresentable {
                 let deltaX = Float(translation.x - lastPanTranslation.x)
                 let deltaY = Float(translation.y - lastPanTranslation.y)
                 if abs(deltaX) > 0.1 || abs(deltaY) > 0.1 {
-                    onScrollEvent(deltaX, deltaY)
+                    let normX = b.width  > 0 ? Float(max(0, min(1, location.x / b.width)))  : 0.5
+                    let normY = b.height > 0 ? Float(max(0, min(1, location.y / b.height))) : 0.5
+                    onScrollEvent(deltaX, deltaY, normX, normY)
                 }
                 lastPanTranslation = translation
             default:

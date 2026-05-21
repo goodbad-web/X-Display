@@ -93,8 +93,8 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         streamClient.sendInputEvent(phase: event.phase, x: event.x, y: event.y, pressure: event.pressure)
     }
 
-    func sendScrollEvent(deltaX: Float, deltaY: Float) {
-        streamClient.sendScrollEvent(deltaX: deltaX, deltaY: deltaY)
+    func sendScrollEvent(deltaX: Float, deltaY: Float, x: Float, y: Float) {
+        streamClient.sendScrollEvent(deltaX: deltaX, deltaY: deltaY, x: x, y: y)
     }
 
     func sendRightClickEvent(x: Float, y: Float) {
@@ -189,8 +189,8 @@ struct ContentView: View {
                         onTouchEvent: { event in
                             viewModel.sendTouchEvent(event)
                         },
-                        onScrollEvent: { deltaX, deltaY in
-                            viewModel.sendScrollEvent(deltaX: deltaX, deltaY: deltaY)
+                        onScrollEvent: { deltaX, deltaY, x, y in
+                            viewModel.sendScrollEvent(deltaX: deltaX, deltaY: deltaY, x: x, y: y)
                         },
                         onRightClickEvent: { x, y in
                             viewModel.sendRightClickEvent(x: x, y: y)

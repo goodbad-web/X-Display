@@ -666,13 +666,17 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         event.post(tap: .cghidEventTap)
     }
 
-    func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float) {
-        // Natural scrolling feeling: scale scroll translations and post wheel events.
-        // CGEvent scroll delta has vertical in wheel1, horizontal in wheel2.
+    func streamServer(_ server: StreamServer, didReceiveScrollEvent deltaX: Float, deltaY: Float, x: Float, y: Float) {
+        // スクロール前にカーソルをiPad上のスクロール位置へ移動し、正しいウィンドウへwheelを届ける
+        let point = pointInDisplay(x: x, y: y)
+        if let point = point {
+            CGWarpMouseCursorPosition(point)
+        }
+
         let scrollMultiplier: Float = 0.5
         let vScroll = Int32(deltaY * scrollMultiplier)
         let hScroll = Int32(deltaX * scrollMultiplier)
-        
+
         guard let event = CGEvent(
             scrollWheelEvent2Source: nil,
             units: .pixel,
@@ -681,7 +685,11 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             wheel2: hScroll,
             wheel3: 0
         ) else { return }
-        
+
+        if let point = point {
+            event.location = point
+        }
+
         event.post(tap: CGEventTapLocation.cghidEventTap)
     }
 
@@ -835,6 +843,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         #endif
         #endif
 
+        requestAccessibilityPermissionIfNeeded()
         setupMenuBar()
 
         if ProcessInfo.processInfo.environment["XDISPLAY_AUTO_START"] == "1" {
@@ -842,6 +851,18 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             startDisplay()
         } else {
             print("[*] Auto-start disabled. Use the menu to start virtual display.")
+        }
+    }
+
+    private func requestAccessibilityPermissionIfNeeded() {
+        // Use literal string instead of kAXTrustedCheckOptionPrompt to avoid concurrency warnings
+        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+        let trusted = AXIsProcessTrustedWithOptions(options)
+        if trusted {
+            print("[+] Accessibility: trusted – CGEvent.post will work.")
+        } else {
+            print("[!] Accessibility: NOT trusted. iPad input events will be silently dropped.")
+            print("[!] Grant access in: System Settings > Privacy & Security > Accessibility")
         }
     }
 
