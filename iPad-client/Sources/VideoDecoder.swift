@@ -186,7 +186,7 @@ class VideoDecoder {
             guard nalStart < nalEnd else { continue }
 
             let nal = data.subdata(in: nalStart..<nalEnd)
-            guard let firstByte = nal.first else { continue }
+            guard !nal.isEmpty else { continue }
 
             let nalType = nalType(for: nal, codec: codec)
             if parameterSetTypes(for: codec).contains(nalType) {
