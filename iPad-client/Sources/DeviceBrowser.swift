@@ -2,10 +2,16 @@ import Foundation
 import Network
 import XDisplayShared
 
+enum ConnectionType: String {
+    case wired = "Wired"
+    case wireless = "Wireless"
+}
+
 struct DiscoveredDevice: Identifiable, Hashable {
     let id: String // Device unique identifier
     let name: String
     let endpoint: NWEndpoint
+    let type: ConnectionType
 }
 
 class DeviceBrowser: ObservableObject {
@@ -36,8 +42,10 @@ class DeviceBrowser: ObservableObject {
             var devices: [DiscoveredDevice] = []
             for result in results {
                 if case let .service(name, type, domain, _) = result.endpoint {
-                    let deviceId = "\(name).\(type).\(domain)"
-                    devices.append(DiscoveredDevice(id: deviceId, name: name, endpoint: result.endpoint))
+                    let isWired = result.interfaces.contains { $0.type == .wiredEthernet }
+                    let connType: ConnectionType = isWired ? .wired : .wireless
+                    let deviceId = "\(name).\(type).\(domain).\(connType.rawValue)"
+                    devices.append(DiscoveredDevice(id: deviceId, name: name, endpoint: result.endpoint, type: connType))
                 }
             }
             

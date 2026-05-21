@@ -44,11 +44,21 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     @Published var isTransitioning: Bool = false
     @Published var isClientPortrait: Bool = false
     let frameHolder = FrameHolder()
-    @Published var discoveredDevices: [DiscoveredDevice] = []
+    @Published var discoveredDevices: [DiscoveredDevice] = [] {
+        didSet {
+            checkAndPerformAutoSwitch()
+        }
+    }
 
     private let streamClient = StreamClient()
     private let videoDecoder = VideoDecoder()
     private let deviceBrowser = DeviceBrowser()
+
+    private var activeEndpoint: NWEndpoint?
+    private var activeConnectionType: ConnectionType?
+    private var lastWirelessEndpoint: NWEndpoint?
+    private var lastSuccessfulPIN: String?
+    private var isAutoSwitching = false
 
     init() {
         streamClient.delegate = self
@@ -61,10 +71,17 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         deviceBrowser.startBrowsing()
     }
 
-    func connect(endpoint: NWEndpoint) {
+    func connect(endpoint: NWEndpoint, type: ConnectionType) {
         deviceBrowser.stopBrowsing()
         connectionStatus = "Connecting..."
         videoDecoder.reset()
+        
+        self.activeEndpoint = endpoint
+        self.activeConnectionType = type
+        if type == .wireless {
+            self.lastWirelessEndpoint = endpoint
+        }
+        
         streamClient.connect(endpoint: endpoint)
     }
 
@@ -72,6 +89,11 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         deviceBrowser.stopBrowsing()
         connectionStatus = "Connecting..."
         videoDecoder.reset()
+        
+        self.activeEndpoint = .hostPort(host: .init(host), port: .init(rawValue: port)!)
+        self.activeConnectionType = .wireless
+        self.lastWirelessEndpoint = self.activeEndpoint
+        
         streamClient.connect(host: host, port: port)
     }
 
@@ -84,10 +106,16 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         enteredPIN = ""
         connectionStatus = "Disconnected"
         frameHolder.display(nil)
+        
+        self.activeEndpoint = nil
+        self.activeConnectionType = nil
+        self.isAutoSwitching = false
+        
         deviceBrowser.startBrowsing()
     }
 
     func submitPIN() {
+        self.lastSuccessfulPIN = enteredPIN
         streamClient.submitPIN(enteredPIN)
         enteredPIN = ""
     }
@@ -133,7 +161,32 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         }
     }
 
-
+    private func checkAndPerformAutoSwitch() {
+        guard isConnected, activeConnectionType == .wireless else { return }
+        guard let currentEndpoint = activeEndpoint else { return }
+        
+        let currentName: String
+        if case let .service(name, _, _, _) = currentEndpoint {
+            currentName = name
+        } else {
+            return
+        }
+        
+        if let wiredDevice = discoveredDevices.first(where: { $0.name == currentName && $0.type == .wired }) {
+            print("[+] Auto-Switch: Wired connection detected for \(currentName). Migrating from Wi-Fi...")
+            
+            self.isAutoSwitching = true
+            self.connectionStatus = "Switching to Wired..."
+            
+            streamClient.disconnect(reason: "Auto-switching to wired connection")
+            videoDecoder.reset()
+            isConnected = false
+            isPairingRequired = false
+            enteredPIN = ""
+            
+            self.connect(endpoint: wiredDevice.endpoint, type: .wired)
+        }
+    }
 
     // StreamClientDelegate
     func streamClient(_ client: StreamClient, didReceiveVideoFrame data: Data, codec: XDisplayVideoCodec) {
@@ -153,11 +206,23 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
                 // TCP接続確立のみ。isConnected はペアリング完了後に設定する
                 self.connectionStatus = "Authenticating..."
             case .failed(let error):
-                self.connectionStatus = "Failed: \(error.localizedDescription)"
-                self.isConnected = false
-                self.isPairingRequired = false
-                self.deviceBrowser.startBrowsing()
+                if self.activeConnectionType == .wired, let fallbackEndpoint = self.lastWirelessEndpoint {
+                    print("[-] Wired connection lost. Falling back to Wireless...")
+                    self.connectionStatus = "Fallback to Wireless..."
+                    self.isConnected = false
+                    self.isPairingRequired = false
+                    self.connect(endpoint: fallbackEndpoint, type: .wireless)
+                } else {
+                    self.connectionStatus = "Failed: \(error.localizedDescription)"
+                    self.isConnected = false
+                    self.isPairingRequired = false
+                    self.deviceBrowser.startBrowsing()
+                }
             case .cancelled:
+                if self.isAutoSwitching {
+                    self.isAutoSwitching = false
+                    break
+                }
                 self.connectionStatus = "Disconnected"
                 self.isConnected = false
                 self.isPairingRequired = false
@@ -170,8 +235,14 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data) {
         DispatchQueue.main.async {
-            self.connectionStatus = "PIN required"
-            self.isPairingRequired = true
+            if let lastPIN = self.lastSuccessfulPIN {
+                print("[+] Auto-Pairing using cached PIN...")
+                self.connectionStatus = "Auto-Authenticating..."
+                self.streamClient.submitPIN(lastPIN)
+            } else {
+                self.connectionStatus = "PIN required"
+                self.isPairingRequired = true
+            }
         }
     }
 
@@ -183,6 +254,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             if success {
                 self.sendClientInfo()
             } else {
+                self.lastSuccessfulPIN = nil
                 self.disconnect()
             }
         }
@@ -433,7 +505,7 @@ struct ContentView: View {
                                     // Discovered Device Cards
                                     VStack(spacing: 12) {
                                         ForEach(viewModel.discoveredDevices) { device in
-                                            Button(action: { viewModel.connect(endpoint: device.endpoint) }) {
+                                            Button(action: { viewModel.connect(endpoint: device.endpoint, type: device.type) }) {
                                                 HStack {
                                                     Image(systemName: "macmini.fill")
                                                         .font(.title2)
