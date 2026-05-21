@@ -67,7 +67,9 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         // Bind Bonjour browser results
         deviceBrowser.$discoveredDevices
             .assign(to: &$discoveredDevices)
+    }
 
+    func startDiscovery() {
         deviceBrowser.startBrowsing()
     }
 
@@ -631,6 +633,15 @@ struct ContentView: View {
                         .padding(.horizontal, 24)
                     }
                 }
+
+                if viewModel.isPairingRequired {
+                    PINEntryView(pin: $viewModel.enteredPIN) {
+                        viewModel.submitPIN()
+                    } onCancel: {
+                        viewModel.disconnect()
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
             }
         }
         .onChange(of: isPortrait) { _, newValue in
@@ -641,6 +652,11 @@ struct ContentView: View {
             if viewModel.isConnected {
                 resetIdleTimer()
             }
+        }
+        .task {
+            // Wait briefly for UI to fully render before triggering Local Network privacy checks
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            viewModel.startDiscovery()
         }
         .onDisappear {
             idleTimerTask?.cancel()
@@ -654,13 +670,6 @@ struct ContentView: View {
             } else {
                 idleTimerTask?.cancel()
                 isIdle = false
-            }
-        }
-        .sheet(isPresented: $viewModel.isPairingRequired) {
-            PINEntryView(pin: $viewModel.enteredPIN) {
-                viewModel.submitPIN()
-            } onCancel: {
-                viewModel.disconnect()
             }
         }
         .sheet(isPresented: $showSettings) {

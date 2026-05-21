@@ -170,34 +170,38 @@ class VideoDecoder {
         var avccFrame = Data()
 
         var offsets: [(start: Int, size: Int)] = []
-        let startIndex = data.startIndex
-        let endIndex = data.endIndex
-        var i = startIndex
-
-        while i < endIndex - 2 {
-            if data[i] == 0 && data[i+1] == 0 {
-                if data[i+2] == 1 {
-                    offsets.append((start: i, size: 3))
-                    i += 3
-                    continue
-                } else if i < endIndex - 3 && data[i+2] == 0 && data[i+3] == 1 {
-                    offsets.append((start: i, size: 4))
-                    i += 4
-                    continue
+        let count = data.count
+        
+        data.withUnsafeBytes { buffer in
+            guard let ptr = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
+            var i = 0
+            while i < count - 2 {
+                if ptr[i] == 0 && ptr[i+1] == 0 {
+                    if ptr[i+2] == 1 {
+                        offsets.append((start: i, size: 3))
+                        i += 3
+                        continue
+                    } else if i < count - 3 && ptr[i+2] == 0 && ptr[i+3] == 1 {
+                        offsets.append((start: i, size: 4))
+                        i += 4
+                        continue
+                    }
                 }
+                i += 1
             }
-            i += 1
         }
 
         guard !offsets.isEmpty else { return }
 
+        let startIndex = data.startIndex
+
         for index in offsets.indices {
             let current = offsets[index]
             let nalStart = current.start + current.size
-            let nalEnd = index + 1 < offsets.count ? offsets[index + 1].start : endIndex
+            let nalEnd = index + 1 < offsets.count ? offsets[index + 1].start : count
             guard nalStart < nalEnd else { continue }
 
-            let nal = data.subdata(in: nalStart..<nalEnd)
+            let nal = data.subdata(in: (startIndex + nalStart)..<(startIndex + nalEnd))
             guard !nal.isEmpty else { continue }
 
             let nalType = self.nalType(for: nal, codec: codec)
