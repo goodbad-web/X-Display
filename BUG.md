@@ -43,11 +43,12 @@
   - 既存の stale TCC 登録は `tccutil reset ScreenCapture` で全消しし、現在の署名済み app で許可を取り直す。
 
 ### ⚠️ Issue 05: iPad再接続時の画面ブラックアウトおよび即時切断ループ
-- **ステータス**: 調査・対策中
+- **ステータス**: 黒画面・初回フリーズは対策済み。`SCStream` 継続更新停止は fallback capture で暫定回避中。
 - **現象**: 接続完了後、または再接続時にiPadの画面が黒いままになり、ペアリング成功（`Pairing verified by host!`）の直後に `StreamClient` が即時切断（`StreamClient disconnected`）され無限再接続ループに陥る。
 - **原因の仮説と対応策**:
   - **仮説1**: Mac側の `NSAlert.runModal()` がメインスレッドをブロックし、ペアリング成功後のストリーム配信やソケット通信にデッドロックやタイムアウトを引き起こしている。
     - **対応策**: `X_display.swift` 内の `alert.runModal()` を非ブロックのフローティングウィンドウ表示（`window.makeKeyAndOrderFront`）へ変更し、メインスレッドのブロッキングリスクを完全に排除。
   - **仮説2**: SwiftUIのシート破棄の副作用、またはソケット切断（EOF）による自動クローズ。
     - **対応策**: `StreamClient.swift` の切断ロジックおよび `AppViewModel.disconnect()` に詳細なスタックトレースと切断理由（Reason）ログを組み込み、実行時ログからトリガーを特定できるようにした。
-
+  - **確認済み原因**: ペアリング前の `SCStream` フレーム破棄により、接続直後に送る初回IDR/SPS/PPSが欠けるケースがあった。また仮想ディスプレイ環境では `SCStream` が初回1フレーム後に継続更新しないケースを確認。
+    - **対応策**: ペアリング前から最新 `CVPixelBuffer` を保持し、ペアリング完了時に即時keyframe送信する。`SCStream` 停止時は `CGDisplayCreateImage(displayID)` fallback capture で継続送信する。

@@ -17,6 +17,7 @@ class VideoEncoder {
     private var handleFrameCount = 0
     private var handleFrameTotalNs: UInt64 = 0
     private var handleFrameMaxNs: UInt64 = 0
+    private var frameIndex: Int64 = 0
 
     func requestKeyFrame() {
         keyFrameLock.lock()
@@ -26,6 +27,9 @@ class VideoEncoder {
     }
 
     func initialize(width: Int, height: Int) {
+        invalidate()
+        resetTiming()
+
         let err = VTCompressionSessionCreate(
             allocator: kCFAllocatorDefault,
             width: Int32(width),
@@ -68,6 +72,14 @@ class VideoEncoder {
         print("[+] VideoEncoder initialized with H.264 Zero-Latency configuration. bitrate=\(bitRate)bps")
     }
 
+    func invalidate() {
+        if let session = compressionSession {
+            VTCompressionSessionCompleteFrames(session, untilPresentationTimeStamp: .invalid)
+            VTCompressionSessionInvalidate(session)
+            compressionSession = nil
+        }
+    }
+
     func encode(pixelBuffer: CVPixelBuffer, presentationTime: CMTime) {
         guard let session = compressionSession else { return }
         keyFrameLock.lock()
@@ -81,15 +93,20 @@ class VideoEncoder {
         }
 
         let start = DispatchTime.now().uptimeNanoseconds
-        VTCompressionSessionEncodeFrame(
+        let framePresentationTime = nextPresentationTime()
+        let status = VTCompressionSessionEncodeFrame(
             session,
             imageBuffer: pixelBuffer,
-            presentationTimeStamp: presentationTime,
-            duration: .invalid,
+            presentationTimeStamp: framePresentationTime,
+            duration: CMTime(value: 1, timescale: 60),
             frameProperties: frameProperties,
             sourceFrameRefcon: nil,
             infoFlagsOut: nil
         )
+        if status != noErr {
+            print("[-] VTCompressionSessionEncodeFrame failed: \(status)")
+        }
+        VTCompressionSessionCompleteFrames(session, untilPresentationTimeStamp: framePresentationTime)
         let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
         timingLock.lock()
         encodeFrameCount += 1
@@ -103,6 +120,14 @@ class VideoEncoder {
             let elapsedMs = Double(elapsedNs) / 1_000_000.0
             print(String(format: "[Timing] encodeFrame: %.2f ms (avg %.2f ms, max %.2f ms)", elapsedMs, averageMs, maxMs))
         }
+    }
+
+    private func nextPresentationTime() -> CMTime {
+        timingLock.lock()
+        let index = frameIndex
+        frameIndex += 1
+        timingLock.unlock()
+        return CMTime(value: index, timescale: 60)
     }
 
     private func handleEncodedFrame(sampleBuffer: CMSampleBuffer) {
@@ -126,6 +151,8 @@ class VideoEncoder {
 
         if let pointer = bufferPointer {
             let rawData = Data(bytes: pointer, count: bufferLength)
+
+            let annexBFrameData = convertAVCCSampleToAnnexB(rawData)
 
             // Extract and prepend SPS/PPS on I-Frames for remote iOS hardware decoder compatibility
             if isKeyFrame {
@@ -166,10 +193,9 @@ class VideoEncoder {
                     headerData.append(pps, count: ppsSizesOut)
 
                     var payload = Data()
-                    payload.reserveCapacity(headerData.count + startCode.count + rawData.count)
+                    payload.reserveCapacity(headerData.count + annexBFrameData.count)
                     payload.append(headerData)
-                    payload.append(startCode)
-                    payload.append(rawData)
+                    payload.append(annexBFrameData)
 
                     let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
                     delegate?.videoEncoder(self, didEncodeNALUnit: payload, isKeyFrame: true)
@@ -179,9 +205,32 @@ class VideoEncoder {
             }
 
             let elapsedNs = DispatchTime.now().uptimeNanoseconds - start
-            delegate?.videoEncoder(self, didEncodeNALUnit: rawData, isKeyFrame: isKeyFrame)
+            delegate?.videoEncoder(self, didEncodeNALUnit: annexBFrameData, isKeyFrame: isKeyFrame)
             recordHandleTiming(elapsedNs)
         }
+    }
+
+    private func convertAVCCSampleToAnnexB(_ data: Data) -> Data {
+        let startCode = Data([0x00, 0x00, 0x00, 0x01])
+        var offset = 0
+        var output = Data()
+
+        while offset + 4 <= data.count {
+            let length = data[offset..<(offset + 4)].reduce(UInt32(0)) { partial, byte in
+                (partial << 8) | UInt32(byte)
+            }
+            offset += 4
+
+            guard length > 0, offset + Int(length) <= data.count else {
+                return data
+            }
+
+            output.append(startCode)
+            output.append(data[offset..<(offset + Int(length))])
+            offset += Int(length)
+        }
+
+        return output.isEmpty ? data : output
     }
 
     private func recordHandleTiming(_ elapsedNs: UInt64) {
@@ -204,9 +253,19 @@ class VideoEncoder {
         return min(max(scaledBitRate, 8_000_000), 50_000_000)
     }
 
+    private func resetTiming() {
+        timingLock.lock()
+        encodeFrameCount = 0
+        encodeFrameTotalNs = 0
+        encodeFrameMaxNs = 0
+        handleFrameCount = 0
+        handleFrameTotalNs = 0
+        handleFrameMaxNs = 0
+        frameIndex = 0
+        timingLock.unlock()
+    }
+
     deinit {
-        if let session = compressionSession {
-            VTCompressionSessionInvalidate(session)
-        }
+        invalidate()
     }
 }

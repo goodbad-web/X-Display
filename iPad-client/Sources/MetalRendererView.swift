@@ -48,6 +48,9 @@ struct MetalRendererView: UIViewRepresentable {
         private var renderFrameMaxNs: UInt64 = 0
         private var lastRenderLogTime = Date()
         private var lastRenderFrameCount = 0
+        private let renderLock = NSLock()
+        private var isRenderInFlight = false
+        private var hasPendingRender = false
 
         init(frameHolder: FrameHolder) {
             self.frameHolder = frameHolder
@@ -84,7 +87,7 @@ struct MetalRendererView: UIViewRepresentable {
             frameHolder.setRenderer { [weak self, weak view] pixelBuffer in
                 guard let self = self, let view = view else { return }
                 self.pixelBuffer = pixelBuffer
-                view.draw()
+                self.requestDraw(on: view)
             }
         }
 
@@ -92,12 +95,28 @@ struct MetalRendererView: UIViewRepresentable {
             frameHolder.setRenderer(nil)
         }
 
+        private func requestDraw(on view: MTKView) {
+            renderLock.lock()
+            if isRenderInFlight {
+                hasPendingRender = true
+                renderLock.unlock()
+                return
+            }
+            isRenderInFlight = true
+            renderLock.unlock()
+
+            view.draw()
+        }
+
         func draw(in view: MTKView) {
             let start = DispatchTime.now().uptimeNanoseconds
             guard let pixelBuffer = pixelBuffer,
                   let commandQueue = commandQueue,
                   let pipelineState = pipelineState,
-                  let textureCache = textureCache else { return }
+                  let textureCache = textureCache else {
+                finishRender(on: view)
+                return
+            }
 
             let width = CVPixelBufferGetWidth(pixelBuffer)
             let height = CVPixelBufferGetHeight(pixelBuffer)
@@ -119,24 +138,48 @@ struct MetalRendererView: UIViewRepresentable {
                   let metalTextureRef = cvMetalTexture,
                   let texture = CVMetalTextureGetTexture(metalTextureRef) else {
                 print("[-] Failed to convert CVPixelBuffer to MTLTexture")
+                finishRender(on: view)
                 return
             }
 
             guard let renderPassDescriptor = view.currentRenderPassDescriptor,
                   let commandBuffer = commandQueue.makeCommandBuffer(),
-                  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
+                  let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor),
+                  let drawable = view.currentDrawable else {
+                print("[-] Metal drawable unavailable; dropping frame.")
+                finishRender(on: view)
+                return
+            }
 
             renderEncoder.setRenderPipelineState(pipelineState)
             renderEncoder.setFragmentTexture(texture, index: 0)
             renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
             renderEncoder.endEncoding()
 
-            if let drawable = view.currentDrawable {
-                commandBuffer.present(drawable)
+            commandBuffer.present(drawable)
+            commandBuffer.addCompletedHandler { [weak self, weak view] _ in
+                guard let self = self, let view = view else { return }
+                DispatchQueue.main.async {
+                    self.finishRender(on: view)
+                }
             }
-
             commandBuffer.commit()
             recordRenderTiming(DispatchTime.now().uptimeNanoseconds - start)
+        }
+
+        private func finishRender(on view: MTKView) {
+            renderLock.lock()
+            let shouldDrawPending = hasPendingRender
+            hasPendingRender = false
+            isRenderInFlight = false
+            if shouldDrawPending {
+                isRenderInFlight = true
+            }
+            renderLock.unlock()
+
+            if shouldDrawPending {
+                view.draw()
+            }
         }
 
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}

@@ -158,6 +158,13 @@
     }
 }
 
+- (CGDirectDisplayID)currentDisplayID {
+    if (!_virtualDisplay) {
+        return kCGNullDirectDisplay;
+    }
+    return _virtualDisplay.displayID;
+}
+
 - (void)dealloc {
     [self destroyVirtualDisplay];
 }

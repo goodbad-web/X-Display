@@ -25,6 +25,9 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var stream: SCStream?
     private let encoder = VideoEncoder()
     private let server = StreamServer()
+    private let captureQueue = DispatchQueue(label: "com.xdisplay.capture-queue", qos: .userInteractive)
+    private let fallbackCaptureQueue = DispatchQueue(label: "com.xdisplay.fallback-capture-queue", qos: .userInteractive)
+    private var fallbackCaptureTimer: DispatchSourceTimer?
     private var displayID: CGDirectDisplayID?
     private var didRequestScreenCaptureAccess = false
 
@@ -32,6 +35,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private let encodeQueue = DispatchQueue(label: "com.xdisplay.encode-queue", qos: .userInteractive)
     private var isEncodeWorkerRunning = false
     private var pendingFrame: PendingVideoFrame?
+    private var latestFrame: PendingVideoFrame?
     private let encodingLock = NSLock()
     private var capturedFrameCount = 0
     private var submittedFrameCount = 0
@@ -40,6 +44,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var lastCapturedFrameCount = 0
     private var lastSubmittedFrameCount = 0
     private var lastReplacedFrameCount = 0
+    private var receivedSampleBufferCount = 0
+    private var broadcastFrameCount = 0
+    private var lastSCStreamFrameTime = Date.distantPast
+    private var fallbackFrameCount = 0
 
     private func requestScreenCaptureAccessIfNeeded() async {
         if CGPreflightScreenCaptureAccess() {
@@ -55,7 +63,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
 
-    func startCaptureOfVirtualDisplay(width: Int, height: Int) async throws {
+    func startCaptureOfVirtualDisplay(width: Int, height: Int, virtualDisplayID: CGDirectDisplayID?) async throws {
         do {
             await requestScreenCaptureAccessIfNeeded()
 
@@ -70,8 +78,15 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             print("[*] Retrieving shareable content...")
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
 
-            // Find the virtual display by width and height resolution.
-            guard let targetDisplay = content.displays.first(where: { Int($0.width) == width && Int($0.height) == height }) else {
+            // Prefer the exact virtual display ID; fall back to resolution for older/private API failures.
+            let targetDisplay = content.displays.first(where: { display in
+                if let virtualDisplayID, virtualDisplayID != kCGNullDirectDisplay {
+                    return display.displayID == virtualDisplayID
+                }
+                return false
+            }) ?? content.displays.first(where: { Int($0.width) == width && Int($0.height) == height })
+
+            guard let targetDisplay else {
                 print("[-] Target virtual display not found. Please ensure it is created.")
                 server.stop()
                 throw NSError(domain: "ScreenCaptureManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Target virtual display not found."])
@@ -97,50 +112,175 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             stream = SCStream(filter: filter, configuration: config, delegate: nil)
 
             // Set output callback on a dedicated user-interactive serial queue.
-            let captureQueue = DispatchQueue(label: "com.xdisplay.capture-queue", qos: .userInteractive)
             try stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: captureQueue)
 
             print("[*] Starting SCStream capture...")
             try await stream?.startCapture()
             print("[+] SCStream started successfully! Capturing frames...")
             resetCaptureStats()
+            startFallbackCaptureIfNeeded(width: width, height: height)
         } catch {
             print("[-] SCStream start failed: \(error.localizedDescription)")
-            server.stop()
+            stream = nil
+            cleanupStreamingResources()
             throw error
         }
     }
 
     func stopCapture() async {
-        guard let stream = stream else { return }
-        do {
-            try await stream.stopCapture()
-            print("[+] SCStream stopped.")
-        } catch {
-            print("[-] SCStream stop failed: \(error.localizedDescription)")
+        if let stream {
+            do {
+                try await stream.stopCapture()
+                print("[+] SCStream stopped.")
+            } catch {
+                print("[-] SCStream stop failed: \(error.localizedDescription)")
+            }
         }
         self.stream = nil
+        cleanupStreamingResources()
+    }
+
+    private func cleanupStreamingResources() {
         server.stop()
+        encoder.invalidate()
+        stopFallbackCapture()
+        clearBufferedFrames()
+        displayID = nil
     }
 
     // SCStreamOutput callback
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen else { return }
 
-        guard server.hasActivePairedConnections else {
-            return
-        }
-
         if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
-            enqueueLatestFrame(
-                PendingVideoFrame(
-                    pixelBuffer: SendablePixelBuffer(buffer: pixelBuffer),
-                    presentationTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-                )
+            receivedSampleBufferCount += 1
+            lastSCStreamFrameTime = Date()
+            if receivedSampleBufferCount <= 5 {
+                print("[Capture] sample #\(receivedSampleBufferCount), paired=\(server.hasActivePairedConnections), size=\(CVPixelBufferGetWidth(pixelBuffer))x\(CVPixelBufferGetHeight(pixelBuffer))")
+            }
+
+            let frame = PendingVideoFrame(
+                pixelBuffer: SendablePixelBuffer(buffer: pixelBuffer),
+                presentationTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
             )
+            storeLatestFrame(frame)
+
+            guard server.hasActivePairedConnections else {
+                return
+            }
+
+            enqueueLatestFrame(frame)
         }
 
         logCaptureStatsIfNeeded()
+    }
+
+    private func startFallbackCaptureIfNeeded(width: Int, height: Int) {
+        stopFallbackCapture()
+
+        let timer = DispatchSource.makeTimerSource(queue: fallbackCaptureQueue)
+        timer.schedule(deadline: .now() + .milliseconds(250), repeating: .milliseconds(33))
+        timer.setEventHandler { [weak self] in
+            self?.captureFallbackFrameIfNeeded(width: width, height: height)
+        }
+        fallbackCaptureTimer = timer
+        timer.resume()
+    }
+
+    private func stopFallbackCapture() {
+        fallbackCaptureTimer?.cancel()
+        fallbackCaptureTimer = nil
+    }
+
+    private func captureFallbackFrameIfNeeded(width: Int, height: Int) {
+        guard server.hasActivePairedConnections,
+              Date().timeIntervalSince(lastSCStreamFrameTime) > 0.2,
+              let displayID = displayID,
+              displayID != kCGNullDirectDisplay,
+              let image = CGDisplayCreateImage(displayID),
+              let pixelBuffer = makePixelBuffer(from: image, width: width, height: height) else {
+            return
+        }
+
+        fallbackFrameCount += 1
+        if fallbackFrameCount <= 5 {
+            print("[FallbackCapture] frame #\(fallbackFrameCount), size=\(width)x\(height)")
+        }
+
+        enqueueLatestFrame(
+            PendingVideoFrame(
+                pixelBuffer: SendablePixelBuffer(buffer: pixelBuffer),
+                presentationTime: CMClockGetTime(CMClockGetHostTimeClock())
+            )
+        )
+    }
+
+    private func makePixelBuffer(from image: CGImage, width: Int, height: Int) -> CVPixelBuffer? {
+        let attributes: [CFString: Any] = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: true,
+            kCVPixelBufferIOSurfacePropertiesKey: [:] as [String: Any]
+        ]
+
+        var pixelBuffer: CVPixelBuffer?
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_32BGRA,
+            attributes as CFDictionary,
+            &pixelBuffer
+        )
+
+        guard status == kCVReturnSuccess, let pixelBuffer else { return nil }
+
+        CVPixelBufferLockBaseAddress(pixelBuffer, [])
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
+
+        guard let context = CGContext(
+            data: CVPixelBufferGetBaseAddress(pixelBuffer),
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer),
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+        ) else {
+            return nil
+        }
+
+        context.interpolationQuality = .none
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return pixelBuffer
+    }
+
+    private func storeLatestFrame(_ frame: PendingVideoFrame) {
+        encodingLock.lock()
+        latestFrame = frame
+        encodingLock.unlock()
+    }
+
+    private func clearBufferedFrames() {
+        encodingLock.lock()
+        latestFrame = nil
+        pendingFrame = nil
+        isEncodeWorkerRunning = false
+        encodingLock.unlock()
+    }
+
+    private func submitLatestFrameAsKeyFrame() {
+        encoder.requestKeyFrame()
+
+        encodingLock.lock()
+        let frame = latestFrame
+        encodingLock.unlock()
+
+        guard let frame else {
+            print("[-] No captured frame available yet for immediate keyframe.")
+            return
+        }
+
+        enqueueLatestFrame(frame)
     }
 
     private func enqueueLatestFrame(_ frame: PendingVideoFrame) {
@@ -188,6 +328,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         lastCapturedFrameCount = 0
         lastSubmittedFrameCount = 0
         lastReplacedFrameCount = 0
+        receivedSampleBufferCount = 0
+        broadcastFrameCount = 0
+        fallbackFrameCount = 0
+        lastSCStreamFrameTime = Date.distantPast
         lastStatsTime = Date()
         encodingLock.unlock()
     }
@@ -224,6 +368,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
     // VideoEncoderDelegate callback
     func videoEncoder(_ encoder: VideoEncoder, didEncodeNALUnit data: Data, isKeyFrame: Bool) {
+        broadcastFrameCount += 1
+        if broadcastFrameCount <= 5 {
+            print("[Broadcast] frame #\(broadcastFrameCount), key=\(isKeyFrame), bytes=\(data.count)")
+        }
         // Broadcast the H.264 raw NAL unit to all connected clients
         server.broadcast(data: data)
     }
@@ -289,7 +437,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
     func streamServerDidCompletePairing(_ server: StreamServer) {
         print("[+] Client pairing complete – forcing immediate keyframe.")
-        encoder.requestKeyFrame()
+        submitLatestFrameAsKeyFrame()
     }
 
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
@@ -565,7 +713,13 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
                 try await Task.sleep(nanoseconds: 1_500_000_000)
 
                 print("[*] Launching capture & streaming pipeline...")
-                try await captureManager.startCaptureOfVirtualDisplay(width: selectedWidth, height: selectedHeight)
+                let createdDisplayID = helper.currentDisplayID()
+                let preferredDisplayID = createdDisplayID == kCGNullDirectDisplay ? nil : createdDisplayID
+                try await captureManager.startCaptureOfVirtualDisplay(
+                    width: selectedWidth,
+                    height: selectedHeight,
+                    virtualDisplayID: preferredDisplayID
+                )
 
                 print("[+] X-Display Streaming is now active.")
             } catch {

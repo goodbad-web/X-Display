@@ -18,6 +18,9 @@ class VideoDecoder {
     private var decodedFrameCount = 0
     private var lastDecodedLogTime = Date()
     private var lastDecodedFrameCount = 0
+    private var receivedFrameCount = 0
+    private var currentSPS: Data?
+    private var currentPPS: Data?
 
     func decode(data: Data) {
         let start = DispatchTime.now().uptimeNanoseconds
@@ -27,10 +30,14 @@ class VideoDecoder {
 
         sessionLock.lock()
         defer { sessionLock.unlock() }
+        receivedFrameCount += 1
+        if receivedFrameCount <= 5 {
+            print("[VideoDecoder] received frame #\(receivedFrameCount), bytes=\(data.count), annexB=\(data.starts(with: [0x00, 0x00, 0x00, 0x01]))")
+        }
 
         // Look for Annex-B start codes (0x00000001) to locate SPS and PPS on keyframes
         if data.starts(with: [0x00, 0x00, 0x00, 0x01]) {
-            parseAnnexBHeaderAndConfigure(data: data)
+            decodeAnnexB(data)
             return
         }
 
@@ -91,6 +98,111 @@ class VideoDecoder {
         decodeFrame(sampleBuffer: sBuffer)
     }
 
+    private func decodeAVCC(_ data: Data) {
+        guard let formatDescription = formatDescription else {
+            return
+        }
+
+        var blockBuffer: CMBlockBuffer?
+        let size = data.count
+
+        var status = CMBlockBufferCreateWithMemoryBlock(
+            allocator: kCFAllocatorDefault,
+            memoryBlock: nil,
+            blockLength: size,
+            blockAllocator: nil,
+            customBlockSource: nil,
+            offsetToData: 0,
+            dataLength: size,
+            flags: 0,
+            blockBufferOut: &blockBuffer
+        )
+
+        guard status == noErr, let buffer = blockBuffer else { return }
+
+        status = data.withUnsafeBytes { pointer in
+            guard let baseAddress = pointer.baseAddress else { return OSStatus(-1) }
+            return CMBlockBufferReplaceDataBytes(
+                with: baseAddress,
+                blockBuffer: buffer,
+                offsetIntoDestination: 0,
+                dataLength: size
+            )
+        }
+
+        guard status == noErr else { return }
+
+        var sampleBuffer: CMSampleBuffer?
+        var sampleSizeArray = [size]
+
+        status = CMSampleBufferCreateReady(
+            allocator: kCFAllocatorDefault,
+            dataBuffer: buffer,
+            formatDescription: formatDescription,
+            sampleCount: 1,
+            sampleTimingEntryCount: 0,
+            sampleTimingArray: nil,
+            sampleSizeEntryCount: 1,
+            sampleSizeArray: &sampleSizeArray,
+            sampleBufferOut: &sampleBuffer
+        )
+
+        guard status == noErr, let sBuffer = sampleBuffer else {
+            if receivedFrameCount <= 5 {
+                print("[-] CMSampleBufferCreateReady failed: \(status)")
+            }
+            return
+        }
+
+        decodeFrame(sampleBuffer: sBuffer)
+    }
+
+    private func decodeAnnexB(_ data: Data) {
+        let startCode = Data([0x00, 0x00, 0x00, 0x01])
+        var offsets: [Int] = []
+
+        var searchRange = 0..<data.count
+        while let range = data.range(of: startCode, options: [], in: searchRange) {
+            offsets.append(range.lowerBound)
+            searchRange = range.upperBound..<data.count
+        }
+
+        guard !offsets.isEmpty else { return }
+
+        var parameterSets: [(type: UInt8, data: Data)] = []
+        var avccFrame = Data()
+
+        for index in offsets.indices {
+            let nalStart = offsets[index] + startCode.count
+            let nalEnd = index + 1 < offsets.count ? offsets[index + 1] : data.count
+            guard nalStart < nalEnd else { continue }
+
+            let nal = data.subdata(in: nalStart..<nalEnd)
+            guard let firstByte = nal.first else { continue }
+
+            let nalType = firstByte & 0x1f
+            if nalType == 7 || nalType == 8 {
+                parameterSets.append((nalType, nal))
+            } else {
+                appendAVCCNAL(nal, to: &avccFrame)
+            }
+        }
+
+        if let sps = parameterSets.first(where: { $0.type == 7 })?.data,
+           let pps = parameterSets.first(where: { $0.type == 8 })?.data {
+            configureDecoder(sps: sps, pps: pps)
+        }
+
+        guard !avccFrame.isEmpty else { return }
+        decodeAVCC(avccFrame)
+    }
+
+    private func appendAVCCNAL(_ nal: Data, to output: inout Data) {
+        var length = UInt32(nal.count).bigEndian
+        withUnsafeBytes(of: &length) { output.append(contentsOf: $0) }
+        output.append(nal)
+    }
+
     private func decodeFrame(sampleBuffer: CMSampleBuffer) {
         guard let session = decompressionSession else { return }
 
@@ -111,35 +223,16 @@ class VideoDecoder {
         }
     }
 
-    private func parseAnnexBHeaderAndConfigure(data: Data) {
-        // Helper to locate Annex-B start codes [0x00, 0x00, 0x00, 0x01]
-        let startCode = Data([0x00, 0x00, 0x00, 0x01])
-        var offsets: [Int] = []
-
-        var searchRange = 0..<data.count
-        while let range = data.range(of: startCode, options: [], in: searchRange) {
-            offsets.append(range.lowerBound)
-            searchRange = range.upperBound..<data.count
+    private func configureDecoder(sps: Data, pps: Data) {
+        if decompressionSession != nil, currentSPS == sps, currentPPS == pps {
+            return
         }
 
-        guard offsets.count >= 2 else { return }
-
-        // Parse SPS and PPS
-        let spsStart = offsets[0] + 4
-        let spsEnd = offsets[1]
-        let sps = data.subdata(in: spsStart..<spsEnd)
-
-        // PPS starts after second start code. NAL unit frame follows the third start code.
-        let ppsStart = offsets[1] + 4
-        let ppsEnd = offsets.count > 2 ? offsets[2] : data.count
-        let pps = data.subdata(in: ppsStart..<ppsEnd)
-
-        // Build CMVideoFormatDescription from SPS/PPS parameters safely utilizing Swift scopes
         var newFormatDescription: CMVideoFormatDescription?
         let status = sps.withUnsafeBytes { spsBytes in
             pps.withUnsafeBytes { ppsBytes in
                 guard let spsPointer = spsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self),
-                       let ppsPointer = ppsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                      let ppsPointer = ppsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
                     return kCMFormatDescriptionError_InvalidParameter
                 }
 
@@ -162,16 +255,10 @@ class VideoDecoder {
             return
         }
 
-        self.formatDescription = format
+        currentSPS = sps
+        currentPPS = pps
+        formatDescription = format
         setupDecompressionSession(format: format)
-
-        // If there's an active frame trailing the SPS/PPS, decode it directly as AVCC
-        if offsets.count > 2 {
-            let frameStart = offsets[2] + 4
-            let frameData = data.subdata(in: frameStart..<data.count)
-
-            decode(data: frameData)
-        }
     }
 
     private func setupDecompressionSession(format: CMVideoFormatDescription) {
@@ -254,10 +341,13 @@ class VideoDecoder {
             decompressionSession = nil
         }
         formatDescription = nil
+        currentSPS = nil
+        currentPPS = nil
         decodeCallCount = 0
         decodeCallTotalNs = 0
         decodeCallMaxNs = 0
         decodedFrameCount = 0
+        receivedFrameCount = 0
         lastDecodedFrameCount = 0
         timingLock.unlock()
         print("[+] VideoDecoder reset successfully")
