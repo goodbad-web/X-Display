@@ -58,7 +58,26 @@
 }
 
 - (BOOL)createVirtualDisplayWithWidth:(uint32_t)width height:(uint32_t)height error:(NSError **)outError {
-    NSLog(@"[CVirtualDisplayHelper] Starting createVirtualDisplayWithWidth: %u x %u", width, height);
+    return [self createVirtualDisplayWithLogicalWidth:width
+                                        logicalHeight:height
+                                           pixelWidth:width
+                                          pixelHeight:height
+                                               hiDPI:NO
+                                               error:outError];
+}
+
+- (BOOL)createVirtualDisplayWithLogicalWidth:(uint32_t)logicalWidth
+                               logicalHeight:(uint32_t)logicalHeight
+                                  pixelWidth:(uint32_t)pixelWidth
+                                 pixelHeight:(uint32_t)pixelHeight
+                                      hiDPI:(BOOL)hiDPI
+                                      error:(NSError **)outError {
+    NSLog(@"[CVirtualDisplayHelper] Starting createVirtualDisplay: logical=%u x %u, pixel=%u x %u, hiDPI=%@",
+          logicalWidth,
+          logicalHeight,
+          pixelWidth,
+          pixelHeight,
+          hiDPI ? @"YES" : @"NO");
     if (_virtualDisplay) {
         NSLog(@"[CVirtualDisplayHelper] Virtual display already exists.");
         return YES; // Already created
@@ -96,32 +115,26 @@
     NSLog(@"[CVirtualDisplayHelper] Initializing CGVirtualDisplayDescriptor...");
     CGVirtualDisplayDescriptor *descriptor = [[descriptorClass alloc] init];
     descriptor.name = @"X-Display Virtual Display";
-    descriptor.maxPixelsWide = width;
-    descriptor.maxPixelsHigh = height;
+    descriptor.maxPixelsWide = pixelWidth;
+    descriptor.maxPixelsHigh = pixelHeight;
     descriptor.redPrimary = CGPointMake(0.6797, 0.3203);
     descriptor.greenPrimary = CGPointMake(0.2559, 0.6983);
     descriptor.bluePrimary = CGPointMake(0.1494, 0.0557);
     descriptor.whitePoint = CGPointMake(0.3125, 0.3291);
     descriptor.queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
     
-    // Standard screen density calculation (110 PPI is typical for virtual displays)
-    descriptor.sizeInMillimeters = CGSizeMake(25.4 * width / 110.0, 25.4 * height / 110.0);
+    // Use logical size for physical dimensions so HiDPI modes keep a Retina-style backing scale.
+    descriptor.sizeInMillimeters = CGSizeMake(25.4 * logicalWidth / 110.0, 25.4 * logicalHeight / 110.0);
     descriptor.productID = 0x1234;
     descriptor.vendorID = 0x5678;
     descriptor.serialNum = 0x0001;
 
     NSLog(@"[CVirtualDisplayHelper] Initializing CGVirtualDisplaySettings...");
     CGVirtualDisplaySettings *settings = [[settingsClass alloc] init];
-    settings.hiDPI = 0;
+    settings.hiDPI = hiDPI ? 1 : 0;
 
     NSLog(@"[CVirtualDisplayHelper] Initializing CGVirtualDisplayMode...");
-    uint32_t modeWidth = width;
-    uint32_t modeHeight = height;
-    if (settings.hiDPI) {
-        modeWidth /= 2;
-        modeHeight /= 2;
-    }
-    CGVirtualDisplayMode *mode = [[modeClass alloc] initWithWidth:modeWidth height:modeHeight refreshRate:60.0];
+    CGVirtualDisplayMode *mode = [[modeClass alloc] initWithWidth:logicalWidth height:logicalHeight refreshRate:60.0];
     NSLog(@"[CVirtualDisplayHelper] Allocated mode: %@", mode);
     settings.modes = @[mode];
 

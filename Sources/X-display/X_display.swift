@@ -38,8 +38,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var streamRestartCount = 0
     private var streamHealthTimer: DispatchSourceTimer?
     private var lastStreamRestartTime = Date.distantPast
-    private var captureWidth: Int?
-    private var captureHeight: Int?
+    private var captureConfiguration: XDisplayDisplayConfiguration?
     private var preferredVirtualDisplayID: CGDirectDisplayID?
 
     // Keep only the newest pending frame so latency does not grow under load.
@@ -73,9 +72,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
 
-    func startCaptureOfVirtualDisplay(width: Int, height: Int, virtualDisplayID: CGDirectDisplayID?) async throws {
+    func startCaptureOfVirtualDisplay(configuration: XDisplayDisplayConfiguration, virtualDisplayID: CGDirectDisplayID?) async throws {
         do {
             await requestScreenCaptureAccessIfNeeded()
+            let pixelSize = configuration.pixelSize
 
             print("[*] Starting StreamServer...")
             server.delegate = self
@@ -83,15 +83,14 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
             print("[*] Initializing VideoEncoder...")
             encoder.delegate = self
-            encoder.initialize(width: width, height: height)
+            encoder.initialize(width: pixelSize.width, height: pixelSize.height)
 
             resetCaptureStats()
             isCaptureActive = true
-            captureWidth = width
-            captureHeight = height
+            captureConfiguration = configuration
             preferredVirtualDisplayID = virtualDisplayID
 
-            try await startSCStream(width: width, height: height, virtualDisplayID: virtualDisplayID)
+            try await startSCStream(configuration: configuration, virtualDisplayID: virtualDisplayID)
             startStreamHealthMonitor()
         } catch {
             print("[-] SCStream start failed: \(error.localizedDescription)")
@@ -145,8 +144,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         stopStreamHealthMonitor()
         stopFallbackCapture()
         clearBufferedFrames()
-        captureWidth = nil
-        captureHeight = nil
+        captureConfiguration = nil
         preferredVirtualDisplayID = nil
         displayID = nil
     }
@@ -198,9 +196,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         }
     }
 
-    private func resolveTargetDisplay(width: Int, height: Int, virtualDisplayID: CGDirectDisplayID?) async throws -> SCDisplay {
+    private func resolveTargetDisplay(configuration: XDisplayDisplayConfiguration, virtualDisplayID: CGDirectDisplayID?) async throws -> SCDisplay {
         print("[*] Retrieving shareable content...")
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        let pixelSize = configuration.pixelSize
 
         // Prefer the exact virtual display ID; fall back to resolution for older/private API failures.
         let targetDisplay = content.displays.first(where: { display in
@@ -208,7 +207,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
                 return display.displayID == virtualDisplayID
             }
             return false
-        }) ?? content.displays.first(where: { Int($0.width) == width && Int($0.height) == height })
+        }) ?? content.displays.first(where: { Int($0.width) == pixelSize.width && Int($0.height) == pixelSize.height })
 
         guard let targetDisplay else {
             print("[-] Target virtual display not found. Please ensure it is created.")
@@ -220,10 +219,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         return targetDisplay
     }
 
-    private func makeStreamConfiguration(width: Int, height: Int) -> SCStreamConfiguration {
+    private func makeStreamConfiguration(configuration: XDisplayDisplayConfiguration) -> SCStreamConfiguration {
         let config = SCStreamConfiguration()
-        config.width = width
-        config.height = height
+        config.width = configuration.pixelSize.width
+        config.height = configuration.pixelSize.height
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.queueDepth = 3
         config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
@@ -232,10 +231,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         return config
     }
 
-    private func startSCStream(width: Int, height: Int, virtualDisplayID: CGDirectDisplayID?) async throws {
-        let targetDisplay = try await resolveTargetDisplay(width: width, height: height, virtualDisplayID: virtualDisplayID)
+    private func startSCStream(configuration: XDisplayDisplayConfiguration, virtualDisplayID: CGDirectDisplayID?) async throws {
+        let targetDisplay = try await resolveTargetDisplay(configuration: configuration, virtualDisplayID: virtualDisplayID)
         let filter = SCContentFilter(display: targetDisplay, excludingWindows: [])
-        let config = makeStreamConfiguration(width: width, height: height)
+        let config = makeStreamConfiguration(configuration: configuration)
 
         print("[*] Initializing SCStream...")
         let newStream = SCStream(filter: filter, configuration: config, delegate: self)
@@ -298,7 +297,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
         let now = Date()
         guard now.timeIntervalSince(lastStreamRestartTime) >= 1.0 else { return }
-        guard let width = captureWidth, let height = captureHeight else { return }
+        guard let configuration = captureConfiguration else { return }
 
         isRestartingStream = true
         lastStreamRestartTime = now
@@ -311,7 +310,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             await self.stopCurrentSCStream()
 
             do {
-                try await self.startSCStream(width: width, height: height, virtualDisplayID: self.preferredVirtualDisplayID)
+                try await self.startSCStream(configuration: configuration, virtualDisplayID: self.preferredVirtualDisplayID)
                 self.encoder.requestKeyFrame()
                 self.captureQueue.async {
                     self.isRestartingStream = false
@@ -321,7 +320,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
                 self.captureQueue.async {
                     self.isRestartingStream = false
                     print("[-] SCStream restart failed: \(error.localizedDescription)")
-                    self.startFallbackCaptureIfNeeded(width: width, height: height)
+                    self.startFallbackCaptureIfNeeded(configuration: configuration)
                 }
             }
         }
@@ -355,14 +354,15 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         }
     }
 
-    private func startFallbackCaptureIfNeeded(width: Int, height: Int) {
+    private func startFallbackCaptureIfNeeded(configuration: XDisplayDisplayConfiguration) {
         stopFallbackCapture()
+        let pixelSize = configuration.pixelSize
         print("[FallbackCapture] enabled after SCStream restart failure; cursor is not included in fallback frames.")
 
         let timer = DispatchSource.makeTimerSource(queue: fallbackCaptureQueue)
         timer.schedule(deadline: .now() + .milliseconds(250), repeating: .milliseconds(33))
         timer.setEventHandler { [weak self] in
-            self?.captureFallbackFrameIfNeeded(width: width, height: height)
+            self?.captureFallbackFrameIfNeeded(width: pixelSize.width, height: pixelSize.height)
         }
         fallbackCaptureTimer = timer
         timer.resume()
@@ -625,16 +625,25 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         submitLatestFrameAsKeyFrame()
     }
 
-    func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
-        guard let displayID = self.displayID else { return }
+    private func pointInDisplay(x: Float, y: Float) -> CGPoint? {
+        guard let displayID = self.displayID,
+              let configuration = captureConfiguration else {
+            return nil
+        }
 
         let bounds = CGDisplayBounds(displayID)
-        guard bounds.width > 0 && bounds.height > 0 else { return }
+        guard bounds.width > 0 && bounds.height > 0 else { return nil }
 
-        // Map normalized 0.0 ~ 1.0 coordinates to the target virtual display bounds
-        let absoluteX = bounds.origin.x + CGFloat(x) * bounds.size.width
-        let absoluteY = bounds.origin.y + CGFloat(y) * bounds.size.height
-        let point = CGPoint(x: absoluteX, y: absoluteY)
+        let clampedX = CGFloat(max(0, min(1, x)))
+        let clampedY = CGFloat(max(0, min(1, y)))
+        return CGPoint(
+            x: bounds.origin.x + clampedX * CGFloat(configuration.logicalSize.width),
+            y: bounds.origin.y + clampedY * CGFloat(configuration.logicalSize.height)
+        )
+    }
+
+    func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
+        guard let point = pointInDisplay(x: x, y: y) else { return }
 
         var mouseType: CGEventType
         let mouseButton: CGMouseButton = .left
@@ -678,14 +687,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
 
     func streamServer(_ server: StreamServer, didReceiveRightClickEvent x: Float, y: Float) {
-        guard let displayID = self.displayID else { return }
-
-        let bounds = CGDisplayBounds(displayID)
-        guard bounds.width > 0 && bounds.height > 0 else { return }
-
-        let absoluteX = bounds.origin.x + CGFloat(x) * bounds.size.width
-        let absoluteY = bounds.origin.y + CGFloat(y) * bounds.size.height
-        let point = CGPoint(x: absoluteX, y: absoluteY)
+        guard let point = pointInDisplay(x: x, y: y) else { return }
         
         guard let downEvent = CGEvent(
             mouseEventSource: nil,
@@ -706,14 +708,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     }
 
     func streamServer(_ server: StreamServer, didReceivePencilEvent event: XDisplayPencilEvent) {
-        guard let displayID = self.displayID else { return }
-
-        let bounds = CGDisplayBounds(displayID)
-        guard bounds.width > 0 && bounds.height > 0 else { return }
-
-        let absoluteX = bounds.origin.x + CGFloat(event.x) * bounds.size.width
-        let absoluteY = bounds.origin.y + CGFloat(event.y) * bounds.size.height
-        let point = CGPoint(x: absoluteX, y: absoluteY)
+        guard let point = pointInDisplay(x: event.x, y: event.y) else { return }
 
         let mouseType: CGEventType
         if event.isHover {
@@ -770,6 +765,11 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
 @MainActor
 class XDisplayAppManager: NSObject, NSApplicationDelegate {
+    private struct DisplayResolutionPreset {
+        let title: String
+        let configuration: XDisplayDisplayConfiguration
+    }
+
     private var statusItem: NSStatusItem?
     private let helper = CVirtualDisplayHelper.shared()
     private let captureManager = ScreenCaptureManager()
@@ -779,8 +779,38 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     #endif
 
     private var isDisplayActive = false
-    private var selectedWidth = 1920
-    private var selectedHeight = 1080
+    private var selectedConfiguration = XDisplayAppManager.makeConfiguration(
+        logicalWidth: 1920,
+        logicalHeight: 1080,
+        scale: .standard1x
+    )
+
+    private static let resolutionPresets: [DisplayResolutionPreset] = [
+        // Landscape
+        DisplayResolutionPreset(title: "1920 x 1080 @1x (16:9)", configuration: makeConfiguration(logicalWidth: 1920, logicalHeight: 1080, scale: .standard1x)),
+        DisplayResolutionPreset(title: "2048 x 1536 @1x (4:3)", configuration: makeConfiguration(logicalWidth: 2048, logicalHeight: 1536, scale: .standard1x)),
+        DisplayResolutionPreset(title: "1133 x 744 @2x (iPad mini 6)", configuration: makeConfiguration(logicalWidth: 1133, logicalHeight: 744, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1194 x 834 @2x (iPad Pro 11\")", configuration: makeConfiguration(logicalWidth: 1194, logicalHeight: 834, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1366 x 1024 @2x (iPad Pro 12.9\")", configuration: makeConfiguration(logicalWidth: 1366, logicalHeight: 1024, scale: .retina2x)),
+
+        // Portrait
+        DisplayResolutionPreset(title: "1080 x 1920 @1x (16:9 Portrait)", configuration: makeConfiguration(logicalWidth: 1080, logicalHeight: 1920, scale: .standard1x)),
+        DisplayResolutionPreset(title: "1536 x 2048 @1x (4:3 Portrait)", configuration: makeConfiguration(logicalWidth: 1536, logicalHeight: 2048, scale: .standard1x)),
+        DisplayResolutionPreset(title: "744 x 1133 @2x (iPad mini 6 Portrait)", configuration: makeConfiguration(logicalWidth: 744, logicalHeight: 1133, scale: .retina2x)),
+        DisplayResolutionPreset(title: "834 x 1194 @2x (iPad Pro 11\" Portrait)", configuration: makeConfiguration(logicalWidth: 834, logicalHeight: 1194, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1024 x 1366 @2x (iPad Pro 12.9\" Portrait)", configuration: makeConfiguration(logicalWidth: 1024, logicalHeight: 1366, scale: .retina2x))
+    ]
+
+    private static func makeConfiguration(logicalWidth: Int, logicalHeight: Int, scale: XDisplayScale) -> XDisplayDisplayConfiguration {
+        do {
+            return try XDisplayDisplayConfiguration(
+                logicalSize: XDisplaySize(width: logicalWidth, height: logicalHeight),
+                scale: scale
+            )
+        } catch {
+            preconditionFailure("Invalid bundled display configuration: \(error)")
+        }
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Configure as a background/accessory app (no Dock icon)
@@ -846,27 +876,11 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         let resItem = NSMenuItem(title: "Resolution", action: nil, keyEquivalent: "")
         let resMenu = NSMenu()
 
-        let resolutions = [
-            // --- Landscape ---
-            (1920, 1080, "1920 x 1080 (16:9)"),
-            (2048, 1536, "2048 x 1536 (4:3)"),
-            (2266, 1488, "2266 x 1488 (iPad mini 6)"),
-            (2388, 1668, "2388 x 1668 (iPad Pro 11\")"),
-            (2732, 2048, "2732 x 2048 (iPad Pro 12.9\")"),
-            
-            // --- Portrait ---
-            (1080, 1920, "1080 x 1920 (16:9 Portrait)"),
-            (1536, 2048, "1536 x 2048 (4:3 Portrait)"),
-            (1488, 2266, "1488 x 2266 (iPad mini 6 Portrait)"),
-            (1668, 2388, "1668 x 2388 (iPad Pro 11\" Portrait)"),
-            (2048, 2732, "2048 x 2732 (iPad Pro 12.9\" Portrait)")
-        ]
-
-        for (w, h, title) in resolutions {
-            let item = NSMenuItem(title: title, action: #selector(selectResolution(_:)), keyEquivalent: "")
+        for (index, preset) in Self.resolutionPresets.enumerated() {
+            let item = NSMenuItem(title: preset.title, action: #selector(selectResolution(_:)), keyEquivalent: "")
             item.target = self
-            item.representedObject = [w, h]
-            item.state = (w == selectedWidth && h == selectedHeight) ? .on : .off
+            item.representedObject = index
+            item.state = (preset.configuration == selectedConfiguration) ? .on : .off
             resMenu.addItem(item)
         }
 
@@ -888,8 +902,17 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 
         Task {
             do {
-                print("[*] Creating virtual display (\(selectedWidth)x\(selectedHeight))...")
-                try helper.createVirtualDisplay(withWidth: UInt32(selectedWidth), height: UInt32(selectedHeight))
+                let configuration = selectedConfiguration
+                let logicalSize = configuration.logicalSize
+                let pixelSize = configuration.pixelSize
+                print("[*] Creating virtual display logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(configuration.scale.multiplier)x...")
+                try helper.createVirtualDisplay(
+                    withLogicalWidth: UInt32(logicalSize.width),
+                    logicalHeight: UInt32(logicalSize.height),
+                    pixelWidth: UInt32(pixelSize.width),
+                    pixelHeight: UInt32(pixelSize.height),
+                    hiDPI: configuration.scale.isHiDPI
+                )
 
                 isDisplayActive = true
                 updateMenu()
@@ -901,8 +924,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
                 let createdDisplayID = helper.currentDisplayID()
                 let preferredDisplayID = createdDisplayID == kCGNullDirectDisplay ? nil : createdDisplayID
                 try await captureManager.startCaptureOfVirtualDisplay(
-                    width: selectedWidth,
-                    height: selectedHeight,
+                    configuration: configuration,
                     virtualDisplayID: preferredDisplayID
                 )
 
@@ -933,11 +955,15 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     }
 
     @objc private func selectResolution(_ sender: NSMenuItem) {
-        guard let size = sender.representedObject as? [Int], size.count == 2 else { return }
-        selectedWidth = size[0]
-        selectedHeight = size[1]
+        guard let index = sender.representedObject as? Int,
+              Self.resolutionPresets.indices.contains(index) else {
+            return
+        }
+        selectedConfiguration = Self.resolutionPresets[index].configuration
 
-        print("[*] Resolution changed to: \(selectedWidth)x\(selectedHeight)")
+        let logicalSize = selectedConfiguration.logicalSize
+        let pixelSize = selectedConfiguration.pixelSize
+        print("[*] Resolution changed to logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(selectedConfiguration.scale.multiplier)x")
         updateMenu()
 
         if isDisplayActive {

@@ -51,3 +51,43 @@ import Testing
 
     Issue.record("Expected invalid length failure")
 }
+
+@Test func retinaDisplayConfigurationDerivesPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 1366, height: 1024),
+        scale: .retina2x
+    )
+
+    #expect(configuration.logicalSize == XDisplaySize(width: 1366, height: 1024))
+    #expect(configuration.pixelSize == XDisplaySize(width: 2732, height: 2048))
+    #expect(configuration.scale == .retina2x)
+}
+
+@Test func standardDisplayConfigurationKeepsPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 1920, height: 1080),
+        scale: .standard1x
+    )
+
+    #expect(configuration.logicalSize == XDisplaySize(width: 1920, height: 1080))
+    #expect(configuration.pixelSize == XDisplaySize(width: 1920, height: 1080))
+    #expect(configuration.scale == .standard1x)
+}
+
+@Test func invalidDisplayConfigurationFails() throws {
+    do {
+        _ = try XDisplayDisplayConfiguration(
+            logicalSize: XDisplaySize(width: 1366, height: 1024),
+            pixelSize: XDisplaySize(width: 1366, height: 1024),
+            scale: .retina2x
+        )
+    } catch XDisplayDisplayConfigurationError.inconsistentPixelSize(
+        expected: XDisplaySize(width: 2732, height: 2048),
+        actual: XDisplaySize(width: 1366, height: 1024)
+    ) {
+        #expect(XDisplayScale(multiplier: 3) == nil)
+        return
+    }
+
+    Issue.record("Expected invalid display configuration failure")
+}
