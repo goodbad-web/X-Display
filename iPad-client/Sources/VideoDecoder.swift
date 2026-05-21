@@ -170,16 +170,17 @@ class VideoDecoder {
         var avccFrame = Data()
 
         var offsets: [(start: Int, size: Int)] = []
-        let limit = data.count
-        var i = 0
+        let startIndex = data.startIndex
+        let endIndex = data.endIndex
+        var i = startIndex
 
-        while i < limit - 2 {
+        while i < endIndex - 2 {
             if data[i] == 0 && data[i+1] == 0 {
                 if data[i+2] == 1 {
                     offsets.append((start: i, size: 3))
                     i += 3
                     continue
-                } else if i < limit - 3 && data[i+2] == 0 && data[i+3] == 1 {
+                } else if i < endIndex - 3 && data[i+2] == 0 && data[i+3] == 1 {
                     offsets.append((start: i, size: 4))
                     i += 4
                     continue
@@ -193,7 +194,7 @@ class VideoDecoder {
         for index in offsets.indices {
             let current = offsets[index]
             let nalStart = current.start + current.size
-            let nalEnd = index + 1 < offsets.count ? offsets[index + 1].start : limit
+            let nalEnd = index + 1 < offsets.count ? offsets[index + 1].start : endIndex
             guard nalStart < nalEnd else { continue }
 
             let nal = data.subdata(in: nalStart..<nalEnd)
