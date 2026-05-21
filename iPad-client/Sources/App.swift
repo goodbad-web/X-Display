@@ -933,13 +933,11 @@ struct PINEntryView: View {
         }
         .onChange(of: pin) { _, newValue in
             let filtered = newValue.filter { $0.isNumber }
-            if filtered != newValue {
-                pin = filtered
-            }
-            if pin.count > 4 {
-                pin = String(pin.prefix(4))
-            }
-            if pin.count == 4 {
+            let truncated = String(filtered.prefix(4))
+            
+            if newValue != truncated {
+                pin = truncated
+            } else if truncated.count == 4 {
                 isTextFieldFocused = false
                 onSubmit()
             }
