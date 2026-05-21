@@ -37,12 +37,17 @@ class VideoEncoder {
         resetTiming()
         self.codec = codec
 
+        let encoderSpecification: [NSString: Any] = [
+            kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder: true,
+            kVTVideoEncoderSpecification_RequireHardwareAcceleratedVideoEncoder: true
+        ]
+
         let err = VTCompressionSessionCreate(
             allocator: kCFAllocatorDefault,
             width: Int32(width),
             height: Int32(height),
             codecType: codec.videoToolboxCodecType,
-            encoderSpecification: nil,
+            encoderSpecification: encoderSpecification as CFDictionary,
             imageBufferAttributes: nil,
             compressedDataAllocator: nil,
             outputCallback: { (outputCallbackRefCon, sourceFrameRefCon, status, infoFlags, sampleBuffer) in
