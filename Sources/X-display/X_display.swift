@@ -119,7 +119,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         """)
     }
 
-    func stopCapture() async {
+    func stopCapture(keepServer: Bool = false) async {
         isCaptureActive = false
         stopStreamHealthMonitor()
         stopFallbackCapture()
@@ -133,11 +133,13 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             }
         }
         self.stream = nil
-        cleanupStreamingResources()
+        cleanupStreamingResources(keepServer: keepServer)
     }
 
-    private func cleanupStreamingResources() {
-        server.stop()
+    private func cleanupStreamingResources(keepServer: Bool = false) {
+        if !keepServer {
+            server.stop()
+        }
         encoder.invalidate()
         isCaptureActive = false
         isRestartingStream = false
@@ -942,45 +944,57 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         statusItem?.menu = menu
     }
 
+    private func performStartDisplay() async throws {
+        let configuration = selectedConfiguration
+        let codec = selectedCodec
+        let logicalSize = configuration.logicalSize
+        let pixelSize = configuration.pixelSize
+        print("[*] Creating virtual display logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(configuration.scale.multiplier)x, ppi=\(configuration.pixelsPerInch), codec=\(codec.displayName)...")
+        try helper.createVirtualDisplay(
+            withLogicalWidth: UInt32(logicalSize.width),
+            logicalHeight: UInt32(logicalSize.height),
+            pixelWidth: UInt32(pixelSize.width),
+            pixelHeight: UInt32(pixelSize.height),
+            hiDPI: configuration.scale.isHiDPI,
+            pixelsPerInch: configuration.pixelsPerInch
+        )
+
+        isDisplayActive = true
+        updateMenu()
+
+        print("[*] Waiting 1.5s for WindowServer display registration...")
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+
+        print("[*] Launching capture & streaming pipeline...")
+        let createdDisplayID = helper.currentDisplayID()
+        let preferredDisplayID = createdDisplayID == kCGNullDirectDisplay ? nil : createdDisplayID
+        try await captureManager.startCaptureOfVirtualDisplay(
+            configuration: configuration,
+            codec: codec,
+            virtualDisplayID: preferredDisplayID
+        )
+
+        print("[+] X-Display Streaming is now active.")
+    }
+
+    private func performStopDisplay(keepServer: Bool = false) async {
+        print("[*] Stopping screen capture stream...")
+        await captureManager.stopCapture(keepServer: keepServer)
+
+        print("[*] Destroying virtual display and releasing ports...")
+        helper.destroyVirtualDisplay()
+        print("[+] Streaming stopped & resources cleaned up.")
+    }
+
     @objc private func startDisplay() {
         guard !isDisplayActive else { return }
 
         Task {
             do {
-                let configuration = selectedConfiguration
-                let codec = selectedCodec
-                let logicalSize = configuration.logicalSize
-                let pixelSize = configuration.pixelSize
-                print("[*] Creating virtual display logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(configuration.scale.multiplier)x, ppi=\(configuration.pixelsPerInch), codec=\(codec.displayName)...")
-                try helper.createVirtualDisplay(
-                    withLogicalWidth: UInt32(logicalSize.width),
-                    logicalHeight: UInt32(logicalSize.height),
-                    pixelWidth: UInt32(pixelSize.width),
-                    pixelHeight: UInt32(pixelSize.height),
-                    hiDPI: configuration.scale.isHiDPI,
-                    pixelsPerInch: configuration.pixelsPerInch
-                )
-
-                isDisplayActive = true
-                updateMenu()
-
-                print("[*] Waiting 1.5s for WindowServer display registration...")
-                try await Task.sleep(nanoseconds: 1_500_000_000)
-
-                print("[*] Launching capture & streaming pipeline...")
-                let createdDisplayID = helper.currentDisplayID()
-                let preferredDisplayID = createdDisplayID == kCGNullDirectDisplay ? nil : createdDisplayID
-                try await captureManager.startCaptureOfVirtualDisplay(
-                    configuration: configuration,
-                    codec: codec,
-                    virtualDisplayID: preferredDisplayID
-                )
-
-                print("[+] X-Display Streaming is now active.")
+                try await performStartDisplay()
             } catch {
                 print("[-] Error while starting display: \(error.localizedDescription)")
-                await captureManager.stopCapture()
-                helper.destroyVirtualDisplay()
+                await performStopDisplay()
                 isDisplayActive = false
                 updateMenu()
             }
@@ -993,12 +1007,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         updateMenu()
 
         Task {
-            print("[*] Stopping screen capture stream...")
-            await captureManager.stopCapture()
-
-            print("[*] Destroying virtual display and releasing ports...")
-            helper.destroyVirtualDisplay()
-            print("[+] Streaming stopped & resources cleaned up.")
+            await performStopDisplay()
         }
     }
 
@@ -1015,10 +1024,17 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         updateMenu()
 
         if isDisplayActive {
-            stopDisplay()
-            // Grace period to let the old virtual display tear down cleanly
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.startDisplay()
+            Task {
+                await performStopDisplay(keepServer: true)
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                do {
+                    try await performStartDisplay()
+                } catch {
+                    print("[-] Failed to restart display after resolution change: \(error.localizedDescription)")
+                    await performStopDisplay()
+                    isDisplayActive = false
+                    updateMenu()
+                }
             }
         }
     }
@@ -1034,9 +1050,17 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         updateMenu()
 
         if isDisplayActive {
-            stopDisplay()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.startDisplay()
+            Task {
+                await performStopDisplay(keepServer: true)
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                do {
+                    try await performStartDisplay()
+                } catch {
+                    print("[-] Failed to restart display after codec change: \(error.localizedDescription)")
+                    await performStopDisplay()
+                    isDisplayActive = false
+                    updateMenu()
+                }
             }
         }
     }
