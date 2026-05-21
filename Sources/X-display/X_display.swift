@@ -95,10 +95,29 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
             startStreamHealthMonitor()
         } catch {
             print("[-] SCStream start failed: \(error.localizedDescription)")
+            logScreenCaptureAccessHintIfNeeded(for: error)
             stream = nil
             cleanupStreamingResources()
             throw error
         }
+    }
+
+    private func logScreenCaptureAccessHintIfNeeded(for error: Error) {
+        let description = error.localizedDescription
+        guard description.localizedCaseInsensitiveContains("TCC") ||
+              description.localizedCaseInsensitiveContains("declined") ||
+              description.localizedCaseInsensitiveContains("screen") && description.localizedCaseInsensitiveContains("capture") else {
+            return
+        }
+
+        print("""
+        [!] Screen Recording permission is required for X-Display capture.
+            1. Open System Settings > Privacy & Security > Screen & System Audio Recording.
+            2. Enable X-Display, then quit and reopen the app.
+            3. If it was already enabled but this error persists, reset stale TCC entries:
+               tccutil reset ScreenCapture com.goodbad-web.X-Display
+               Then grant permission again from System Settings.
+        """)
     }
 
     func stopCapture() async {
