@@ -919,6 +919,7 @@ struct PINEntryView: View {
             }
             .padding(40)
         }
+        .ignoresSafeArea(.keyboard)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 isTextFieldFocused = true

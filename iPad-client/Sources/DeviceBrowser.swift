@@ -23,6 +23,7 @@ class DeviceBrowser: ObservableObject {
         browserQueue.async { [weak self] in
             guard let self = self else { return }
             let parameters = NWParameters()
+            parameters.includePeerToPeer = true
             let serviceType = NWBrowser.Descriptor.bonjour(type: XDisplayProtocol.bonjourServiceType, domain: "local.")
             
             let newBrowser = NWBrowser(for: serviceType, using: parameters)

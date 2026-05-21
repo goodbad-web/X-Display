@@ -34,10 +34,7 @@ class StreamClient {
     
     func connect(endpoint: NWEndpoint, type: ConnectionType? = nil) {
         let parameters = NWParameters.tcp
-        
-        if type == .wired {
-            parameters.requiredInterfaceType = .wiredEthernet
-        }
+        parameters.includePeerToPeer = true
         
         // Disable Nagle's algorithm for ultra-low latency
         if let tcpOpt = parameters.defaultProtocolStack.applicationProtocols.first as? NWProtocolTCP.Options {

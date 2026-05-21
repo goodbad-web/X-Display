@@ -71,6 +71,7 @@ final class StreamServer: @unchecked Sendable {
     func start(port: UInt16) throws {
         let nwPort = NWEndpoint.Port(rawValue: port)!
         let parameters = NWParameters.tcp
+        parameters.includePeerToPeer = true
         
         // Disable Nagle's algorithm to enforce ultra-low latency
         if let tcpOpt = parameters.defaultProtocolStack.applicationProtocols.first as? NWProtocolTCP.Options {
