@@ -222,28 +222,39 @@ class VideoEncoder {
 
     private func hevcParameterSetHeaderData(from formatDescription: CMFormatDescription) -> Data? {
         var parameterSets: [(UnsafePointer<UInt8>, Int)] = []
+        var parameterSetCount = 0
 
-        for index in 0..<3 {
+        let countStatus = CMVideoFormatDescriptionGetHEVCParameterSetAtIndex(
+            formatDescription,
+            parameterSetIndex: 0,
+            parameterSetPointerOut: nil,
+            parameterSetSizeOut: nil,
+            parameterSetCountOut: &parameterSetCount,
+            nalUnitHeaderLengthOut: nil
+        )
+
+        guard countStatus == noErr, parameterSetCount > 0 else {
+            return nil
+        }
+
+        for index in 0..<parameterSetCount {
             var parameterSetSize = 0
-            var parameterSetCount = 0
-            var nalUnitHeaderLength = Int32(0)
             var parameterSetPointer: UnsafePointer<UInt8>?
             let status = CMVideoFormatDescriptionGetHEVCParameterSetAtIndex(
                 formatDescription,
                 parameterSetIndex: index,
                 parameterSetPointerOut: &parameterSetPointer,
                 parameterSetSizeOut: &parameterSetSize,
-                parameterSetCountOut: &parameterSetCount,
-                nalUnitHeaderLengthOut: &nalUnitHeaderLength
+                parameterSetCountOut: nil,
+                nalUnitHeaderLengthOut: nil
             )
 
-            guard status == noErr, let pointer = parameterSetPointer else {
-                return nil
+            if status == noErr, let pointer = parameterSetPointer {
+                parameterSets.append((pointer, parameterSetSize))
             }
-            parameterSets.append((pointer, parameterSetSize))
         }
 
-        return makeAnnexBHeader(parameterSets: parameterSets)
+        return parameterSets.isEmpty ? nil : makeAnnexBHeader(parameterSets: parameterSets)
     }
 
     private func makeAnnexBHeader(parameterSets: [(UnsafePointer<UInt8>, Int)]) -> Data {

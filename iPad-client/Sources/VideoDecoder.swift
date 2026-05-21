@@ -166,29 +166,40 @@ class VideoDecoder {
     }
 
     private func decodeAnnexB(_ data: Data, codec: XDisplayVideoCodec) {
-        let startCode = Data([0x00, 0x00, 0x00, 0x01])
-        var offsets: [Int] = []
+        var parameterSets: [(type: UInt8, data: Data)] = []
+        var avccFrame = Data()
 
-        var searchRange = data.startIndex..<data.endIndex
-        while let range = data.range(of: startCode, options: [], in: searchRange) {
-            offsets.append(range.lowerBound)
-            searchRange = range.upperBound..<data.endIndex
+        var offsets: [(start: Int, size: Int)] = []
+        let limit = data.count
+        var i = 0
+
+        while i < limit - 2 {
+            if data[i] == 0 && data[i+1] == 0 {
+                if data[i+2] == 1 {
+                    offsets.append((start: i, size: 3))
+                    i += 3
+                    continue
+                } else if i < limit - 3 && data[i+2] == 0 && data[i+3] == 1 {
+                    offsets.append((start: i, size: 4))
+                    i += 4
+                    continue
+                }
+            }
+            i += 1
         }
 
         guard !offsets.isEmpty else { return }
 
-        var parameterSets: [(type: UInt8, data: Data)] = []
-        var avccFrame = Data()
-
         for index in offsets.indices {
-            let nalStart = offsets[index] + startCode.count
-            let nalEnd = index + 1 < offsets.count ? offsets[index + 1] : data.endIndex
+            let current = offsets[index]
+            let nalStart = current.start + current.size
+            let nalEnd = index + 1 < offsets.count ? offsets[index + 1].start : limit
             guard nalStart < nalEnd else { continue }
 
             let nal = data.subdata(in: nalStart..<nalEnd)
             guard !nal.isEmpty else { continue }
 
-            let nalType = nalType(for: nal, codec: codec)
+            let nalType = self.nalType(for: nal, codec: codec)
             if parameterSetTypes(for: codec).contains(nalType) {
                 parameterSets.append((nalType, nal))
             } else {
