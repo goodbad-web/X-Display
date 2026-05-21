@@ -11,6 +11,7 @@ class VideoDecoder {
     private var decompressionSession: VTDecompressionSession?
     private var formatDescription: CMVideoFormatDescription?
     private let timingLock = NSLock()
+    private let sessionLock = NSRecursiveLock() // Lock to secure decompressionSession & formatDescription
     private var decodeCallCount = 0
     private var decodeCallTotalNs: UInt64 = 0
     private var decodeCallMaxNs: UInt64 = 0
@@ -23,6 +24,9 @@ class VideoDecoder {
         defer {
             recordDecodeTiming(DispatchTime.now().uptimeNanoseconds - start)
         }
+
+        sessionLock.lock()
+        defer { sessionLock.unlock() }
 
         // Look for Annex-B start codes (0x00000001) to locate SPS and PPS on keyframes
         if data.starts(with: [0x00, 0x00, 0x00, 0x01]) {
@@ -135,7 +139,7 @@ class VideoDecoder {
         let status = sps.withUnsafeBytes { spsBytes in
             pps.withUnsafeBytes { ppsBytes in
                 guard let spsPointer = spsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self),
-                      let ppsPointer = ppsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                       let ppsPointer = ppsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
                     return kCMFormatDescriptionError_InvalidParameter
                 }
 
@@ -240,9 +244,30 @@ class VideoDecoder {
         }
     }
 
+    func reset() {
+        sessionLock.lock()
+        defer { sessionLock.unlock() }
+
+        timingLock.lock()
+        if let session = decompressionSession {
+            VTDecompressionSessionInvalidate(session)
+            decompressionSession = nil
+        }
+        formatDescription = nil
+        decodeCallCount = 0
+        decodeCallTotalNs = 0
+        decodeCallMaxNs = 0
+        decodedFrameCount = 0
+        lastDecodedFrameCount = 0
+        timingLock.unlock()
+        print("[+] VideoDecoder reset successfully")
+    }
+
     deinit {
+        sessionLock.lock()
         if let session = decompressionSession {
             VTDecompressionSessionInvalidate(session)
         }
+        sessionLock.unlock()
     }
 }

@@ -42,9 +42,12 @@
   - 音声権限要求を混ぜないため、`SCStreamConfiguration.capturesAudio = false` を明示する。
   - 既存の stale TCC 登録は `tccutil reset ScreenCapture` で全消しし、現在の署名済み app で許可を取り直す。
 
-### ⚠️ Issue 04: macOSメジャーアップデート時のPrivate APIシグネチャ変更リスク
-- **ステータス**: 警戒中（将来のOSアップデート時に想定）
-- **現象**: 新しいmacOSバージョン（macOS 15/16など）で動的ロードが失敗する、または作成メソッド呼び出し時にアプリがクラッシュする。
-- **原因**: AppleがPrivate Framework（`AppleVirtualDisplay.framework`）の内部構造や引数を変更する可能性。
-- **対策方針**:
-  - `respondsToSelector:` の検証を徹底し、メソッドが存在しない場合は仮想ディスプレイの生成をスキップして安全に処理をフォールバックする。
+### ⚠️ Issue 05: iPad再接続時の画面ブラックアウトおよび即時切断ループ
+- **ステータス**: 調査・対策中
+- **現象**: 接続完了後、または再接続時にiPadの画面が黒いままになり、ペアリング成功（`Pairing verified by host!`）の直後に `StreamClient` が即時切断（`StreamClient disconnected`）され無限再接続ループに陥る。
+- **原因の仮説と対応策**:
+  - **仮説1**: Mac側の `NSAlert.runModal()` がメインスレッドをブロックし、ペアリング成功後のストリーム配信やソケット通信にデッドロックやタイムアウトを引き起こしている。
+    - **対応策**: `X_display.swift` 内の `alert.runModal()` を非ブロックのフローティングウィンドウ表示（`window.makeKeyAndOrderFront`）へ変更し、メインスレッドのブロッキングリスクを完全に排除。
+  - **仮説2**: SwiftUIのシート破棄の副作用、またはソケット切断（EOF）による自動クローズ。
+    - **対応策**: `StreamClient.swift` の切断ロジックおよび `AppViewModel.disconnect()` に詳細なスタックトレースと切断理由（Reason）ログを組み込み、実行時ログからトリガーを特定できるようにした。
+

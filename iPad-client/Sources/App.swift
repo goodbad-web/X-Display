@@ -60,16 +60,20 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     func connect(endpoint: NWEndpoint) {
         connectionStatus = "Connecting..."
+        videoDecoder.reset()
         streamClient.connect(endpoint: endpoint)
     }
 
     func connect(host: String, port: UInt16) {
         connectionStatus = "Connecting..."
+        videoDecoder.reset()
         streamClient.connect(host: host, port: port)
     }
 
     func disconnect() {
-        streamClient.disconnect()
+        print("[*] AppViewModel.disconnect() called from stack:\n\(Thread.callStackSymbols.prefix(5).joined(separator: "\n"))")
+        streamClient.disconnect(reason: "AppViewModel request")
+        videoDecoder.reset()
         isConnected = false
         isPairingRequired = false
         enteredPIN = ""

@@ -44,10 +44,10 @@ class StreamClient {
                 self.startReceiving()
             case .failed(let error):
                 print("[-] Connection error: \(error.localizedDescription)")
-                self.disconnect()
+                self.disconnect(reason: "Connection state failed: \(error.localizedDescription)")
             case .cancelled:
                 print("[*] Connection cancelled.")
-                self.disconnect()
+                self.disconnect(reason: "Connection state cancelled")
             default:
                 break
             }
@@ -63,7 +63,7 @@ class StreamClient {
         connect(endpoint: .hostPort(host: endpointHost, port: endpointPort))
     }
     
-    func disconnect() {
+    func disconnect(reason: String = "Unknown") {
         guard isRunning else { return }
         isRunning = false
         isPaired = false
@@ -71,7 +71,7 @@ class StreamClient {
         salt = nil
         connection?.cancel()
         connection = nil
-        print("[*] StreamClient disconnected.")
+        print("[*] StreamClient disconnected. Reason: \(reason)")
     }
     
     // Submit PIN from User Input View
@@ -201,13 +201,13 @@ class StreamClient {
             
             if let error = error {
                 print("[-] Receive length failed: \(error.localizedDescription)")
-                self.disconnect()
+                self.disconnect(reason: "Receive length error: \(error.localizedDescription)")
                 return
             }
             
             guard let data = data, data.count == 4 else {
                 if isComplete {
-                    self.disconnect()
+                    self.disconnect(reason: "Receive length EOF")
                 } else {
                     self.startReceiving()
                 }
@@ -219,7 +219,7 @@ class StreamClient {
                 payloadSize = try XDisplayPacketCodec.decodeLengthHeader(data)
             } catch {
                 print("[-] Invalid client packet length header: \(error)")
-                self.disconnect()
+                self.disconnect(reason: "Invalid length header: \(error)")
                 return
             }
             self.receivePayload(size: Int(payloadSize))
@@ -237,13 +237,13 @@ class StreamClient {
             
             if let error = error {
                 print("[-] Receive payload failed: \(error.localizedDescription)")
-                self.disconnect()
+                self.disconnect(reason: "Receive payload error: \(error.localizedDescription)")
                 return
             }
             
             guard let data = data, data.count == size else {
                 if isComplete {
-                    self.disconnect()
+                    self.disconnect(reason: "Receive payload EOF")
                 } else {
                     self.startReceiving()
                 }
@@ -298,7 +298,7 @@ class StreamClient {
                 self.isPaired = true
             } else {
                 print("[-] Pairing rejected by host.")
-                self.disconnect()
+                self.disconnect(reason: "Pairing rejected by host")
             }
             
             DispatchQueue.main.async { [weak self] in

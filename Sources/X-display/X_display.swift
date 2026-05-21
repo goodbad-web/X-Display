@@ -227,12 +227,59 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     // StreamServerDelegate callbacks
     func streamServer(_ server: StreamServer, didGeneratePIN pin: String) {
         Task { @MainActor in
-            let alert = NSAlert()
-            alert.messageText = "iPad Connection Request"
-            alert.informativeText = "Enter this PIN on your iPad:\n\n\(pin)"
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "OK")
-            alert.runModal()
+            // Close any existing X-Display PIN window first to prevent duplication
+            for window in NSApp.windows {
+                if window.title == "X-Display PIN" {
+                    window.close()
+                }
+            }
+            
+            let width: CGFloat = 320
+            let height: CGFloat = 180
+            
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: width, height: height),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.title = "X-Display PIN"
+            window.isReleasedWhenClosed = false
+            window.level = .floating
+            window.center()
+            
+            // Premium dark theme matching the app's style
+            window.backgroundColor = NSColor(red: 0.04, green: 0.06, blue: 0.10, alpha: 1.0)
+            
+            let container = NSView(frame: NSRect(x: 0, y: 0, width: width, height: height))
+            
+            // Title Label
+            let titleLabel = NSTextField(labelWithString: "iPad Connection Request")
+            titleLabel.textColor = .white
+            titleLabel.font = NSFont.boldSystemFont(ofSize: 16)
+            titleLabel.alignment = .center
+            titleLabel.frame = NSRect(x: 10, y: 130, width: width - 20, height: 24)
+            container.addSubview(titleLabel)
+            
+            // Instruction Label
+            let infoLabel = NSTextField(labelWithString: "Enter this PIN on your iPad:")
+            infoLabel.textColor = .lightGray
+            infoLabel.font = NSFont.systemFont(ofSize: 13)
+            infoLabel.alignment = .center
+            infoLabel.frame = NSRect(x: 10, y: 100, width: width - 20, height: 20)
+            container.addSubview(infoLabel)
+            
+            // Big Beautiful PIN Label (matching the app's indigo style)
+            let pinLabel = NSTextField(labelWithString: pin)
+            pinLabel.textColor = NSColor(red: 0.38, green: 0.44, blue: 0.96, alpha: 1.0)
+            pinLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 38, weight: .bold)
+            pinLabel.alignment = .center
+            pinLabel.frame = NSRect(x: 10, y: 35, width: width - 20, height: 46)
+            container.addSubview(pinLabel)
+            
+            window.contentView = container
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 
