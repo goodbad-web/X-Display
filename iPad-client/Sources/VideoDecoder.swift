@@ -1,6 +1,7 @@
 import Foundation
 import VideoToolbox
 import CoreMedia
+import XDisplayShared
 
 protocol VideoDecoderDelegate: AnyObject {
     func videoDecoder(_ decoder: VideoDecoder, didDecodeImageBuffer pixelBuffer: CVPixelBuffer)
@@ -19,10 +20,12 @@ class VideoDecoder {
     private var lastDecodedLogTime = Date()
     private var lastDecodedFrameCount = 0
     private var receivedFrameCount = 0
+    private var currentCodec: XDisplayVideoCodec?
+    private var currentVPS: Data?
     private var currentSPS: Data?
     private var currentPPS: Data?
 
-    func decode(data: Data) {
+    func decode(codec: XDisplayVideoCodec, data: Data) {
         let start = DispatchTime.now().uptimeNanoseconds
         defer {
             recordDecodeTiming(DispatchTime.now().uptimeNanoseconds - start)
@@ -30,14 +33,19 @@ class VideoDecoder {
 
         sessionLock.lock()
         defer { sessionLock.unlock() }
+
+        if currentCodec != nil, currentCodec != codec {
+            resetLocked()
+        }
+        currentCodec = codec
+
         receivedFrameCount += 1
         if receivedFrameCount <= 5 {
-            print("[VideoDecoder] received frame #\(receivedFrameCount), bytes=\(data.count), annexB=\(data.starts(with: [0x00, 0x00, 0x00, 0x01]))")
+            print("[VideoDecoder] received frame #\(receivedFrameCount), codec=\(codec.displayName), bytes=\(data.count), annexB=\(data.starts(with: [0x00, 0x00, 0x00, 0x01]))")
         }
 
-        // Look for Annex-B start codes (0x00000001) to locate SPS and PPS on keyframes
         if data.starts(with: [0x00, 0x00, 0x00, 0x01]) {
-            decodeAnnexB(data)
+            decodeAnnexB(data, codec: codec)
             return
         }
 
@@ -157,7 +165,7 @@ class VideoDecoder {
         decodeFrame(sampleBuffer: sBuffer)
     }
 
-    private func decodeAnnexB(_ data: Data) {
+    private func decodeAnnexB(_ data: Data, codec: XDisplayVideoCodec) {
         let startCode = Data([0x00, 0x00, 0x00, 0x01])
         var offsets: [Int] = []
 
@@ -180,17 +188,26 @@ class VideoDecoder {
             let nal = data.subdata(in: nalStart..<nalEnd)
             guard let firstByte = nal.first else { continue }
 
-            let nalType = firstByte & 0x1f
-            if nalType == 7 || nalType == 8 {
+            let nalType = nalType(for: nal, codec: codec)
+            if parameterSetTypes(for: codec).contains(nalType) {
                 parameterSets.append((nalType, nal))
             } else {
                 appendAVCCNAL(nal, to: &avccFrame)
             }
         }
 
-        if let sps = parameterSets.first(where: { $0.type == 7 })?.data,
-           let pps = parameterSets.first(where: { $0.type == 8 })?.data {
-            configureDecoder(sps: sps, pps: pps)
+        switch codec {
+        case .h264:
+            if let sps = parameterSets.first(where: { $0.type == 7 })?.data,
+               let pps = parameterSets.first(where: { $0.type == 8 })?.data {
+                configureH264Decoder(sps: sps, pps: pps)
+            }
+        case .hevc:
+            if let vps = parameterSets.first(where: { $0.type == 32 })?.data,
+               let sps = parameterSets.first(where: { $0.type == 33 })?.data,
+               let pps = parameterSets.first(where: { $0.type == 34 })?.data {
+                configureHEVCDecoder(vps: vps, sps: sps, pps: pps)
+            }
         }
 
         guard !avccFrame.isEmpty else { return }
@@ -223,7 +240,26 @@ class VideoDecoder {
         }
     }
 
-    private func configureDecoder(sps: Data, pps: Data) {
+    private func nalType(for nal: Data, codec: XDisplayVideoCodec) -> UInt8 {
+        guard let firstByte = nal.first else { return 0 }
+        switch codec {
+        case .h264:
+            return firstByte & 0x1f
+        case .hevc:
+            return (firstByte >> 1) & 0x3f
+        }
+    }
+
+    private func parameterSetTypes(for codec: XDisplayVideoCodec) -> Set<UInt8> {
+        switch codec {
+        case .h264:
+            return [7, 8]
+        case .hevc:
+            return [32, 33, 34]
+        }
+    }
+
+    private func configureH264Decoder(sps: Data, pps: Data) {
         if decompressionSession != nil, currentSPS == sps, currentPPS == pps {
             return
         }
@@ -255,6 +291,50 @@ class VideoDecoder {
             return
         }
 
+        currentVPS = nil
+        currentSPS = sps
+        currentPPS = pps
+        formatDescription = format
+        setupDecompressionSession(format: format)
+    }
+
+    private func configureHEVCDecoder(vps: Data, sps: Data, pps: Data) {
+        if decompressionSession != nil, currentVPS == vps, currentSPS == sps, currentPPS == pps {
+            return
+        }
+
+        var newFormatDescription: CMVideoFormatDescription?
+        let status = vps.withUnsafeBytes { vpsBytes in
+            sps.withUnsafeBytes { spsBytes in
+                pps.withUnsafeBytes { ppsBytes in
+                    guard let vpsPointer = vpsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                          let spsPointer = spsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                          let ppsPointer = ppsBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                        return kCMFormatDescriptionError_InvalidParameter
+                    }
+
+                    let parameterSetPointers = [vpsPointer, spsPointer, ppsPointer]
+                    let parameterSetSizes = [vps.count, sps.count, pps.count]
+
+                    return CMVideoFormatDescriptionCreateFromHEVCParameterSets(
+                        allocator: kCFAllocatorDefault,
+                        parameterSetCount: 3,
+                        parameterSetPointers: parameterSetPointers,
+                        parameterSetSizes: parameterSetSizes,
+                        nalUnitHeaderLength: 4,
+                        extensions: nil,
+                        formatDescriptionOut: &newFormatDescription
+                    )
+                }
+            }
+        }
+
+        guard status == noErr, let format = newFormatDescription else {
+            print("[-] HEVC CMVideoFormatDescription creation failed: \(status)")
+            return
+        }
+
+        currentVPS = vps
         currentSPS = sps
         currentPPS = pps
         formatDescription = format
@@ -335,12 +415,19 @@ class VideoDecoder {
         sessionLock.lock()
         defer { sessionLock.unlock() }
 
+        resetLocked()
+        print("[+] VideoDecoder reset successfully")
+    }
+
+    private func resetLocked() {
         timingLock.lock()
         if let session = decompressionSession {
             VTDecompressionSessionInvalidate(session)
             decompressionSession = nil
         }
         formatDescription = nil
+        currentCodec = nil
+        currentVPS = nil
         currentSPS = nil
         currentPPS = nil
         decodeCallCount = 0
@@ -350,7 +437,6 @@ class VideoDecoder {
         receivedFrameCount = 0
         lastDecodedFrameCount = 0
         timingLock.unlock()
-        print("[+] VideoDecoder reset successfully")
     }
 
     deinit {
@@ -359,5 +445,16 @@ class VideoDecoder {
             VTDecompressionSessionInvalidate(session)
         }
         sessionLock.unlock()
+    }
+}
+
+private extension XDisplayVideoCodec {
+    var displayName: String {
+        switch self {
+        case .h264:
+            return "H.264"
+        case .hevc:
+            return "HEVC"
+        }
     }
 }

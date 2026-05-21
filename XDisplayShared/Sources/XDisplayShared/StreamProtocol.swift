@@ -12,6 +12,7 @@ public enum XDisplayProtocolError: Error, Equatable {
     case invalidLength
     case invalidMagic(UInt8)
     case invalidInputIdentifier(UInt8)
+    case invalidVideoCodec(UInt8)
 }
 
 public enum XDisplayPayloadMagic: UInt8, Equatable {
@@ -20,6 +21,45 @@ public enum XDisplayPayloadMagic: UInt8, Equatable {
     case pairingResult = 0x04
     case videoFrame = 0x10
     case inputEvent = 0x11
+}
+
+public enum XDisplayVideoCodec: UInt8, Equatable, Sendable {
+    case h264 = 0x01
+    case hevc = 0x02
+}
+
+public struct XDisplayVideoFramePayload: Equatable, Sendable {
+    public let codec: XDisplayVideoCodec
+    public let data: Data
+
+    public init(codec: XDisplayVideoCodec, data: Data) {
+        self.codec = codec
+        self.data = data
+    }
+
+    public func encodeRawPayload() -> Data {
+        var payload = Data()
+        payload.reserveCapacity(1 + data.count)
+        payload.append(codec.rawValue)
+        payload.append(data)
+        return payload
+    }
+
+    public static func decodeRawPayload(_ payload: Data) throws -> XDisplayVideoFramePayload {
+        guard let rawCodec = payload.first else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        guard let codec = XDisplayVideoCodec(rawValue: rawCodec) else {
+            throw XDisplayProtocolError.invalidVideoCodec(rawCodec)
+        }
+
+        let frameData = payload.dropFirst()
+        guard !frameData.isEmpty else {
+            throw XDisplayProtocolError.invalidLength
+        }
+
+        return XDisplayVideoFramePayload(codec: codec, data: frameData)
+    }
 }
 
 public enum XDisplayPacketCodec {

@@ -55,12 +55,85 @@ import Testing
 @Test func retinaDisplayConfigurationDerivesPixelSize() throws {
     let configuration = try XDisplayDisplayConfiguration(
         logicalSize: XDisplaySize(width: 1366, height: 1024),
-        scale: .retina2x
+        scale: .retina2x,
+        pixelsPerInch: 264
     )
 
     #expect(configuration.logicalSize == XDisplaySize(width: 1366, height: 1024))
     #expect(configuration.pixelSize == XDisplaySize(width: 2732, height: 2048))
     #expect(configuration.scale == .retina2x)
+    #expect(configuration.pixelsPerInch == 264)
+}
+
+@Test func iPadAirResolutionConfigurationDerivesPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 1210, height: 834),
+        scale: .retina2x,
+        pixelsPerInch: 264
+    )
+
+    #expect(configuration.pixelSize == XDisplaySize(width: 2420, height: 1668))
+    #expect(configuration.pixelsPerInch == 264)
+}
+
+@Test func iPadAirStandardScaleConfigurationKeepsPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 2420, height: 1668),
+        scale: .standard1x,
+        pixelsPerInch: 264
+    )
+
+    #expect(configuration.pixelSize == XDisplaySize(width: 2420, height: 1668))
+    #expect(configuration.scale == .standard1x)
+    #expect(configuration.pixelsPerInch == 264)
+}
+
+@Test func iPadPro13RetinaConfigurationDerivesPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 1376, height: 1032),
+        scale: .retina2x,
+        pixelsPerInch: 264
+    )
+
+    #expect(configuration.pixelSize == XDisplaySize(width: 2752, height: 2064))
+    #expect(configuration.scale == .retina2x)
+    #expect(configuration.pixelsPerInch == 264)
+}
+
+@Test func iPadPro13StandardScaleConfigurationKeepsPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 2752, height: 2064),
+        scale: .standard1x,
+        pixelsPerInch: 264
+    )
+
+    #expect(configuration.pixelSize == XDisplaySize(width: 2752, height: 2064))
+    #expect(configuration.scale == .standard1x)
+    #expect(configuration.pixelsPerInch == 264)
+}
+
+@Test func iPadMiniRetinaConfigurationDerivesPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 1133, height: 744),
+        scale: .retina2x,
+        pixelsPerInch: 326
+    )
+
+    #expect(configuration.pixelSize == XDisplaySize(width: 2266, height: 1488))
+    #expect(configuration.scale == .retina2x)
+    #expect(configuration.pixelsPerInch == 326)
+}
+
+@Test func iPadMiniStandardScaleConfigurationKeepsPixelSize() throws {
+    let configuration = try XDisplayDisplayConfiguration(
+        logicalSize: XDisplaySize(width: 2266, height: 1488),
+        scale: .standard1x,
+        pixelsPerInch: 326
+    )
+
+    #expect(configuration.pixelSize == XDisplaySize(width: 2266, height: 1488))
+    #expect(configuration.scale == .standard1x)
+    #expect(configuration.pixelsPerInch == 326)
 }
 
 @Test func standardDisplayConfigurationKeepsPixelSize() throws {
@@ -90,4 +163,31 @@ import Testing
     }
 
     Issue.record("Expected invalid display configuration failure")
+}
+
+@Test func videoFramePayloadRoundTrip() throws {
+    let h264 = XDisplayVideoFramePayload(codec: .h264, data: Data([1, 2, 3]))
+    let hevc = XDisplayVideoFramePayload(codec: .hevc, data: Data([4, 5, 6]))
+
+    #expect(try XDisplayVideoFramePayload.decodeRawPayload(h264.encodeRawPayload()) == h264)
+    #expect(try XDisplayVideoFramePayload.decodeRawPayload(hevc.encodeRawPayload()) == hevc)
+}
+
+@Test func invalidVideoFramePayloadFails() throws {
+    do {
+        _ = try XDisplayVideoFramePayload.decodeRawPayload(Data())
+        Issue.record("Expected invalid length failure")
+    } catch XDisplayProtocolError.invalidLength {
+        // Expected.
+    } catch {
+        Issue.record("Expected invalid length failure")
+    }
+
+    do {
+        _ = try XDisplayVideoFramePayload.decodeRawPayload(Data([0xff, 1]))
+    } catch XDisplayProtocolError.invalidVideoCodec(0xff) {
+        return
+    }
+
+    Issue.record("Expected invalid video codec failure")
 }

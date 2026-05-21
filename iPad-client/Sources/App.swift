@@ -112,8 +112,8 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
 
     // StreamClientDelegate
-    func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data) {
-        videoDecoder.decode(data: data)
+    func streamClient(_ client: StreamClient, didReceiveVideoFrame data: Data, codec: XDisplayVideoCodec) {
+        videoDecoder.decode(codec: codec, data: data)
     }
 
     func streamClient(_ client: StreamClient, connectionStateDidChange state: NWConnection.State) {

@@ -72,7 +72,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
 
-    func startCaptureOfVirtualDisplay(configuration: XDisplayDisplayConfiguration, virtualDisplayID: CGDirectDisplayID?) async throws {
+    func startCaptureOfVirtualDisplay(configuration: XDisplayDisplayConfiguration, codec: XDisplayVideoCodec, virtualDisplayID: CGDirectDisplayID?) async throws {
         do {
             await requestScreenCaptureAccessIfNeeded()
             let pixelSize = configuration.pixelSize
@@ -83,7 +83,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
 
             print("[*] Initializing VideoEncoder...")
             encoder.delegate = self
-            encoder.initialize(width: pixelSize.width, height: pixelSize.height)
+            try encoder.initialize(width: pixelSize.width, height: pixelSize.height, codec: codec)
 
             resetCaptureStats()
             isCaptureActive = true
@@ -552,13 +552,13 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     }
 
     // VideoEncoderDelegate callback
-    func videoEncoder(_ encoder: VideoEncoder, didEncodeNALUnit data: Data, isKeyFrame: Bool) {
+    func videoEncoder(_ encoder: VideoEncoder, didEncodeNALUnit data: Data, codec: XDisplayVideoCodec, isKeyFrame: Bool) {
         broadcastFrameCount += 1
         if broadcastFrameCount <= 5 {
-            print("[Broadcast] frame #\(broadcastFrameCount), key=\(isKeyFrame), bytes=\(data.count)")
+            print("[Broadcast] frame #\(broadcastFrameCount), codec=\(codec.displayName), key=\(isKeyFrame), bytes=\(data.count)")
         }
-        // Broadcast the H.264 raw NAL unit to all connected clients
-        server.broadcast(data: data)
+        // Broadcast codec-tagged Annex-B video data to all connected clients.
+        server.broadcast(data: data, codec: codec)
     }
 
     // StreamServerDelegate callbacks
@@ -784,28 +784,40 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         logicalHeight: 1080,
         scale: .standard1x
     )
+    private var selectedCodec: XDisplayVideoCodec = .h264
 
     private static let resolutionPresets: [DisplayResolutionPreset] = [
         // Landscape
         DisplayResolutionPreset(title: "1920 x 1080 @1x (16:9)", configuration: makeConfiguration(logicalWidth: 1920, logicalHeight: 1080, scale: .standard1x)),
         DisplayResolutionPreset(title: "2048 x 1536 @1x (4:3)", configuration: makeConfiguration(logicalWidth: 2048, logicalHeight: 1536, scale: .standard1x)),
-        DisplayResolutionPreset(title: "1133 x 744 @2x (iPad mini 6)", configuration: makeConfiguration(logicalWidth: 1133, logicalHeight: 744, scale: .retina2x)),
+        DisplayResolutionPreset(title: "2266 x 1488 @1x (iPad mini, 326 ppi)", configuration: makeConfiguration(logicalWidth: 2266, logicalHeight: 1488, scale: .standard1x, pixelsPerInch: 326)),
+        DisplayResolutionPreset(title: "2420 x 1668 @1x (264 ppi)", configuration: makeConfiguration(logicalWidth: 2420, logicalHeight: 1668, scale: .standard1x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "1133 x 744 @2x (2266 x 1488, iPad mini)", configuration: makeConfiguration(logicalWidth: 1133, logicalHeight: 744, scale: .retina2x, pixelsPerInch: 326)),
         DisplayResolutionPreset(title: "1194 x 834 @2x (iPad Pro 11\")", configuration: makeConfiguration(logicalWidth: 1194, logicalHeight: 834, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1210 x 834 @2x (2420 x 1668, 264 ppi)", configuration: makeConfiguration(logicalWidth: 1210, logicalHeight: 834, scale: .retina2x, pixelsPerInch: 264)),
         DisplayResolutionPreset(title: "1366 x 1024 @2x (iPad Pro 12.9\")", configuration: makeConfiguration(logicalWidth: 1366, logicalHeight: 1024, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1376 x 1032 @2x (2752 x 2064, iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 1376, logicalHeight: 1032, scale: .retina2x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "2752 x 2064 @1x (iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 2752, logicalHeight: 2064, scale: .standard1x, pixelsPerInch: 264)),
 
         // Portrait
         DisplayResolutionPreset(title: "1080 x 1920 @1x (16:9 Portrait)", configuration: makeConfiguration(logicalWidth: 1080, logicalHeight: 1920, scale: .standard1x)),
         DisplayResolutionPreset(title: "1536 x 2048 @1x (4:3 Portrait)", configuration: makeConfiguration(logicalWidth: 1536, logicalHeight: 2048, scale: .standard1x)),
-        DisplayResolutionPreset(title: "744 x 1133 @2x (iPad mini 6 Portrait)", configuration: makeConfiguration(logicalWidth: 744, logicalHeight: 1133, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1488 x 2266 @1x (iPad mini Portrait, 326 ppi)", configuration: makeConfiguration(logicalWidth: 1488, logicalHeight: 2266, scale: .standard1x, pixelsPerInch: 326)),
+        DisplayResolutionPreset(title: "1668 x 2420 @1x (264 ppi Portrait)", configuration: makeConfiguration(logicalWidth: 1668, logicalHeight: 2420, scale: .standard1x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "744 x 1133 @2x (1488 x 2266, iPad mini Portrait)", configuration: makeConfiguration(logicalWidth: 744, logicalHeight: 1133, scale: .retina2x, pixelsPerInch: 326)),
         DisplayResolutionPreset(title: "834 x 1194 @2x (iPad Pro 11\" Portrait)", configuration: makeConfiguration(logicalWidth: 834, logicalHeight: 1194, scale: .retina2x)),
-        DisplayResolutionPreset(title: "1024 x 1366 @2x (iPad Pro 12.9\" Portrait)", configuration: makeConfiguration(logicalWidth: 1024, logicalHeight: 1366, scale: .retina2x))
+        DisplayResolutionPreset(title: "834 x 1210 @2x (1668 x 2420, 264 ppi)", configuration: makeConfiguration(logicalWidth: 834, logicalHeight: 1210, scale: .retina2x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "1024 x 1366 @2x (iPad Pro 12.9\" Portrait)", configuration: makeConfiguration(logicalWidth: 1024, logicalHeight: 1366, scale: .retina2x)),
+        DisplayResolutionPreset(title: "1032 x 1376 @2x (2064 x 2752, iPad Pro 13\" Portrait)", configuration: makeConfiguration(logicalWidth: 1032, logicalHeight: 1376, scale: .retina2x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "2064 x 2752 @1x (iPad Pro 13\" Portrait)", configuration: makeConfiguration(logicalWidth: 2064, logicalHeight: 2752, scale: .standard1x, pixelsPerInch: 264))
     ]
 
-    private static func makeConfiguration(logicalWidth: Int, logicalHeight: Int, scale: XDisplayScale) -> XDisplayDisplayConfiguration {
+    private static func makeConfiguration(logicalWidth: Int, logicalHeight: Int, scale: XDisplayScale, pixelsPerInch: Double = 110.0) -> XDisplayDisplayConfiguration {
         do {
             return try XDisplayDisplayConfiguration(
                 logicalSize: XDisplaySize(width: logicalWidth, height: logicalHeight),
-                scale: scale
+                scale: scale,
+                pixelsPerInch: pixelsPerInch
             )
         } catch {
             preconditionFailure("Invalid bundled display configuration: \(error)")
@@ -887,6 +899,18 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         resItem.submenu = resMenu
         menu.addItem(resItem)
 
+        let codecItem = NSMenuItem(title: "Codec", action: nil, keyEquivalent: "")
+        let codecMenu = NSMenu()
+        for codec in [XDisplayVideoCodec.h264, .hevc] {
+            let item = NSMenuItem(title: codec.displayName, action: #selector(selectCodec(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = codec.rawValue
+            item.state = (codec == selectedCodec) ? .on : .off
+            codecMenu.addItem(item)
+        }
+        codecItem.submenu = codecMenu
+        menu.addItem(codecItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // 4. Quit Action
@@ -903,15 +927,17 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         Task {
             do {
                 let configuration = selectedConfiguration
+                let codec = selectedCodec
                 let logicalSize = configuration.logicalSize
                 let pixelSize = configuration.pixelSize
-                print("[*] Creating virtual display logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(configuration.scale.multiplier)x...")
+                print("[*] Creating virtual display logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(configuration.scale.multiplier)x, ppi=\(configuration.pixelsPerInch), codec=\(codec.displayName)...")
                 try helper.createVirtualDisplay(
                     withLogicalWidth: UInt32(logicalSize.width),
                     logicalHeight: UInt32(logicalSize.height),
                     pixelWidth: UInt32(pixelSize.width),
                     pixelHeight: UInt32(pixelSize.height),
-                    hiDPI: configuration.scale.isHiDPI
+                    hiDPI: configuration.scale.isHiDPI,
+                    pixelsPerInch: configuration.pixelsPerInch
                 )
 
                 isDisplayActive = true
@@ -925,6 +951,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
                 let preferredDisplayID = createdDisplayID == kCGNullDirectDisplay ? nil : createdDisplayID
                 try await captureManager.startCaptureOfVirtualDisplay(
                     configuration: configuration,
+                    codec: codec,
                     virtualDisplayID: preferredDisplayID
                 )
 
@@ -963,12 +990,30 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 
         let logicalSize = selectedConfiguration.logicalSize
         let pixelSize = selectedConfiguration.pixelSize
-        print("[*] Resolution changed to logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(selectedConfiguration.scale.multiplier)x")
+        print("[*] Resolution changed to logical=\(logicalSize.width)x\(logicalSize.height), pixel=\(pixelSize.width)x\(pixelSize.height), scale=\(selectedConfiguration.scale.multiplier)x, ppi=\(selectedConfiguration.pixelsPerInch)")
         updateMenu()
 
         if isDisplayActive {
             stopDisplay()
             // Grace period to let the old virtual display tear down cleanly
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.startDisplay()
+            }
+        }
+    }
+
+    @objc private func selectCodec(_ sender: NSMenuItem) {
+        guard let rawValue = sender.representedObject as? UInt8,
+              let codec = XDisplayVideoCodec(rawValue: rawValue) else {
+            return
+        }
+
+        selectedCodec = codec
+        print("[*] Codec changed to: \(codec.displayName)")
+        updateMenu()
+
+        if isDisplayActive {
+            stopDisplay()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.startDisplay()
             }
@@ -996,6 +1041,17 @@ struct X_display {
         strongDelegate = delegate
         app.delegate = delegate
         app.run()
+    }
+}
+
+private extension XDisplayVideoCodec {
+    var displayName: String {
+        switch self {
+        case .h264:
+            return "H.264"
+        case .hevc:
+            return "HEVC"
+        }
     }
 }
 #endif

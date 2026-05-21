@@ -42,6 +42,7 @@ public enum XDisplayScale: Equatable, Sendable {
 public enum XDisplayDisplayConfigurationError: Error, Equatable {
     case invalidLogicalSize
     case invalidPixelSize
+    case invalidPixelsPerInch
     case inconsistentPixelSize(expected: XDisplaySize, actual: XDisplaySize)
 }
 
@@ -49,24 +50,29 @@ public struct XDisplayDisplayConfiguration: Equatable, Sendable {
     public let logicalSize: XDisplaySize
     public let pixelSize: XDisplaySize
     public let scale: XDisplayScale
+    public let pixelsPerInch: Double
 
-    public init(logicalSize: XDisplaySize, scale: XDisplayScale) throws {
+    public init(logicalSize: XDisplaySize, scale: XDisplayScale, pixelsPerInch: Double = 110.0) throws {
         try self.init(
             logicalSize: logicalSize,
             pixelSize: XDisplaySize(
                 width: logicalSize.width * scale.multiplier,
                 height: logicalSize.height * scale.multiplier
             ),
-            scale: scale
+            scale: scale,
+            pixelsPerInch: pixelsPerInch
         )
     }
 
-    public init(logicalSize: XDisplaySize, pixelSize: XDisplaySize, scale: XDisplayScale) throws {
+    public init(logicalSize: XDisplaySize, pixelSize: XDisplaySize, scale: XDisplayScale, pixelsPerInch: Double = 110.0) throws {
         guard logicalSize.width > 0, logicalSize.height > 0 else {
             throw XDisplayDisplayConfigurationError.invalidLogicalSize
         }
         guard pixelSize.width > 0, pixelSize.height > 0 else {
             throw XDisplayDisplayConfigurationError.invalidPixelSize
+        }
+        guard pixelsPerInch > 0 else {
+            throw XDisplayDisplayConfigurationError.invalidPixelsPerInch
         }
 
         let expectedPixelSize = XDisplaySize(
@@ -83,5 +89,6 @@ public struct XDisplayDisplayConfiguration: Equatable, Sendable {
         self.logicalSize = logicalSize
         self.pixelSize = pixelSize
         self.scale = scale
+        self.pixelsPerInch = pixelsPerInch
     }
 }

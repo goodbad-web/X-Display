@@ -60,9 +60,10 @@
 - (BOOL)createVirtualDisplayWithWidth:(uint32_t)width height:(uint32_t)height error:(NSError **)outError {
     return [self createVirtualDisplayWithLogicalWidth:width
                                         logicalHeight:height
-                                           pixelWidth:width
-                                          pixelHeight:height
+                                          pixelWidth:width
+                                         pixelHeight:height
                                                hiDPI:NO
+                                      pixelsPerInch:110.0
                                                error:outError];
 }
 
@@ -71,13 +72,15 @@
                                   pixelWidth:(uint32_t)pixelWidth
                                  pixelHeight:(uint32_t)pixelHeight
                                       hiDPI:(BOOL)hiDPI
+                             pixelsPerInch:(double)pixelsPerInch
                                       error:(NSError **)outError {
-    NSLog(@"[CVirtualDisplayHelper] Starting createVirtualDisplay: logical=%u x %u, pixel=%u x %u, hiDPI=%@",
+    NSLog(@"[CVirtualDisplayHelper] Starting createVirtualDisplay: logical=%u x %u, pixel=%u x %u, hiDPI=%@, ppi=%.1f",
           logicalWidth,
           logicalHeight,
           pixelWidth,
           pixelHeight,
-          hiDPI ? @"YES" : @"NO");
+          hiDPI ? @"YES" : @"NO",
+          pixelsPerInch);
     if (_virtualDisplay) {
         NSLog(@"[CVirtualDisplayHelper] Virtual display already exists.");
         return YES; // Already created
@@ -123,8 +126,7 @@
     descriptor.whitePoint = CGPointMake(0.3125, 0.3291);
     descriptor.queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
     
-    // Use logical size for physical dimensions so HiDPI modes keep a Retina-style backing scale.
-    descriptor.sizeInMillimeters = CGSizeMake(25.4 * logicalWidth / 110.0, 25.4 * logicalHeight / 110.0);
+    descriptor.sizeInMillimeters = CGSizeMake(25.4 * pixelWidth / pixelsPerInch, 25.4 * pixelHeight / pixelsPerInch);
     descriptor.productID = 0x1234;
     descriptor.vendorID = 0x5678;
     descriptor.serialNum = 0x0001;

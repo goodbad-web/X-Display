@@ -4,7 +4,7 @@ import CryptoKit
 import XDisplayShared
 
 protocol StreamClientDelegate: AnyObject {
-    func streamClient(_ client: StreamClient, didReceiveNALUnit data: Data)
+    func streamClient(_ client: StreamClient, didReceiveVideoFrame data: Data, codec: XDisplayVideoCodec)
     func streamClient(_ client: StreamClient, connectionStateDidChange state: NWConnection.State)
     func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data)
     func streamClient(_ client: StreamClient, didFinishPairingWithResult success: Bool)
@@ -321,7 +321,8 @@ class StreamClient {
             }
             do {
                 let decryptedVideo = try CryptoHelper.decrypt(combinedData: encryptedVideo, key: key)
-                self.delegate?.streamClient(self, didReceiveNALUnit: decryptedVideo)
+                let framePayload = try XDisplayVideoFramePayload.decodeRawPayload(decryptedVideo)
+                self.delegate?.streamClient(self, didReceiveVideoFrame: framePayload.data, codec: framePayload.codec)
             } catch {
                 print("[-] Failed to decrypt video frame: \(error.localizedDescription)")
             }

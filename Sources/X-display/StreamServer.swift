@@ -325,7 +325,7 @@ final class StreamServer: @unchecked Sendable {
         }
     }
     
-    func broadcast(data: Data) {
+    func broadcast(data: Data, codec: XDisplayVideoCodec) {
         connectionQueue.async { [weak self] in
             guard let self = self else { return }
             let start = DispatchTime.now().uptimeNanoseconds
@@ -336,8 +336,8 @@ final class StreamServer: @unchecked Sendable {
                 guard let key = session.sessionKey else { continue }
                 
                 do {
-                    // Encrypt NAL unit video data
-                    let encryptedData = try CryptoHelper.encrypt(data: data, key: key)
+                    let framePayload = XDisplayVideoFramePayload(codec: codec, data: data).encodeRawPayload()
+                    let encryptedData = try CryptoHelper.encrypt(data: framePayload, key: key)
                     
                     let payload = XDisplayPacketCodec.makeEncryptedVideoFrame(encryptedData)
                     
