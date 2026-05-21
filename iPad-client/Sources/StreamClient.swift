@@ -32,8 +32,12 @@ class StreamClient {
         return newUUID
     }()
     
-    func connect(endpoint: NWEndpoint) {
+    func connect(endpoint: NWEndpoint, type: ConnectionType? = nil) {
         let parameters = NWParameters.tcp
+        
+        if type == .wired {
+            parameters.requiredInterfaceType = .wiredEthernet
+        }
         
         // Disable Nagle's algorithm for ultra-low latency
         if let tcpOpt = parameters.defaultProtocolStack.applicationProtocols.first as? NWProtocolTCP.Options {
@@ -82,6 +86,7 @@ class StreamClient {
         sessionKey = nil
         salt = nil
         serverID = nil
+        connection?.stateUpdateHandler = nil
         connection?.cancel()
         connection = nil
         print("[*] StreamClient disconnected. Reason: \(reason)")

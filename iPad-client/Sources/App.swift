@@ -86,7 +86,9 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     }
 
     func connect(endpoint: NWEndpoint, type: ConnectionType) {
-        deviceBrowser.stopBrowsing()
+        if type == .wired {
+            deviceBrowser.stopBrowsing()
+        }
         connectionStatus = "Connecting..."
         videoDecoder.reset()
         
@@ -96,7 +98,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             self.lastWirelessEndpoint = endpoint
         }
         
-        streamClient.connect(endpoint: endpoint)
+        streamClient.connect(endpoint: endpoint, type: type)
     }
 
     func connect(host: String, port: UInt16) {
