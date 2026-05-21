@@ -127,6 +127,10 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .screen else { return }
 
+        guard server.hasActivePairedConnections else {
+            return
+        }
+
         if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
             enqueueLatestFrame(
                 PendingVideoFrame(

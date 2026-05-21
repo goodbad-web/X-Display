@@ -59,12 +59,14 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     }
 
     func connect(endpoint: NWEndpoint) {
+        deviceBrowser.stopBrowsing()
         connectionStatus = "Connecting..."
         videoDecoder.reset()
         streamClient.connect(endpoint: endpoint)
     }
 
     func connect(host: String, port: UInt16) {
+        deviceBrowser.stopBrowsing()
         connectionStatus = "Connecting..."
         videoDecoder.reset()
         streamClient.connect(host: host, port: port)
@@ -79,6 +81,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         enteredPIN = ""
         connectionStatus = "Disconnected"
         frameHolder.display(nil)
+        deviceBrowser.startBrowsing()
     }
 
     func submitPIN() {
@@ -129,10 +132,12 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
                 self.connectionStatus = "Failed: \(error.localizedDescription)"
                 self.isConnected = false
                 self.isPairingRequired = false
+                self.deviceBrowser.startBrowsing()
             case .cancelled:
                 self.connectionStatus = "Disconnected"
                 self.isConnected = false
                 self.isPairingRequired = false
+                self.deviceBrowser.startBrowsing()
             @unknown default:
                 break
             }
@@ -151,6 +156,9 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             self.isPairingRequired = false
             self.connectionStatus = success ? "Connected" : "Pairing failed"
             self.isConnected = success
+            if !success {
+                self.disconnect()
+            }
         }
     }
 

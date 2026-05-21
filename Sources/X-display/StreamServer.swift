@@ -48,6 +48,15 @@ final class StreamServer: @unchecked Sendable {
     private var lastBroadcastLogTime = Date()
     private var lastBroadcastCount = 0
     
+    private let statusLock = NSLock()
+    private var _hasActivePairedConnections = false
+    
+    var hasActivePairedConnections: Bool {
+        statusLock.lock()
+        defer { statusLock.unlock() }
+        return _hasActivePairedConnections
+    }
+    
     func start(port: UInt16) throws {
         let nwPort = NWEndpoint.Port(rawValue: port)!
         let parameters = NWParameters.tcp
@@ -90,6 +99,7 @@ final class StreamServer: @unchecked Sendable {
                 session.connection.cancel()
             }
             self.activeConnections.removeAll()
+            self.updateActiveConnectionsStatus()
             print("[+] StreamServer stopped.")
         }
     }
@@ -101,6 +111,7 @@ final class StreamServer: @unchecked Sendable {
             
             let session = ClientSession(id: id, connection: connection)
             self.activeConnections[id] = session
+            self.updateActiveConnectionsStatus()
             
             print("\n" + String(repeating: "*", count: 40))
             print("[***] NEW CLIENT PENDING PAIRING!")
@@ -234,6 +245,7 @@ final class StreamServer: @unchecked Sendable {
                     print("[+] PIN Pairing Successful! Session is now encrypted.")
                     session.isPaired = true
                     session.sessionKey = derivedKey
+                    self.updateActiveConnectionsStatus()
                     
                     let reply = XDisplayPacketCodec.makePairingResult(success: true)
                     self.sendPacket(reply, to: session.connection)
@@ -307,6 +319,7 @@ final class StreamServer: @unchecked Sendable {
             guard let self = self else { return }
             if let session = self.activeConnections.removeValue(forKey: id) {
                 session.connection.cancel()
+                self.updateActiveConnectionsStatus()
                 print("[-] Client disconnected. Total clients: \(self.activeConnections.count)")
             }
         }
@@ -356,6 +369,13 @@ final class StreamServer: @unchecked Sendable {
                 print(String(format: "[Timing] broadcast: %.2f ms (avg %.2f ms, max %.2f ms) | sent FPS: %.1f", elapsedMs, averageMs, maxMs, sentFPS))
             }
         }
+    }
+    
+    private func updateActiveConnectionsStatus() {
+        statusLock.lock()
+        let hasPaired = activeConnections.values.contains { $0.isPaired && $0.sessionKey != nil }
+        _hasActivePairedConnections = hasPaired
+        statusLock.unlock()
     }
 }
 #endif
