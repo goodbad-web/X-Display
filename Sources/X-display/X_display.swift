@@ -627,6 +627,13 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     func streamServerDidCompletePairing(_ server: StreamServer) {
         print("[+] Client pairing complete – forcing immediate keyframe.")
         submitLatestFrameAsKeyFrame()
+        Task { @MainActor in
+            for window in NSApp.windows {
+                if window.title == "X-Display PIN" {
+                    window.close()
+                }
+            }
+        }
     }
 
     func streamServer(_ server: StreamServer, didReceiveClientInfo isPortrait: Bool) {
@@ -804,17 +811,30 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     private var selectedCodec: XDisplayVideoCodec = .h264
 
     private static let resolutionPresets: [DisplayResolutionPreset] = [
-        // Landscape
-        DisplayResolutionPreset(title: "1920 x 1080 @1x (16:9)", configuration: makeConfiguration(logicalWidth: 1920, logicalHeight: 1080, scale: .standard1x)),
-        DisplayResolutionPreset(title: "2048 x 1536 @1x (4:3)", configuration: makeConfiguration(logicalWidth: 2048, logicalHeight: 1536, scale: .standard1x)),
-        DisplayResolutionPreset(title: "2266 x 1488 @1x (iPad mini, 326 ppi)", configuration: makeConfiguration(logicalWidth: 2266, logicalHeight: 1488, scale: .standard1x, pixelsPerInch: 326)),
-        DisplayResolutionPreset(title: "2420 x 1668 @1x (264 ppi)", configuration: makeConfiguration(logicalWidth: 2420, logicalHeight: 1668, scale: .standard1x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "1133 x 744 @2x (2266 x 1488, iPad mini)", configuration: makeConfiguration(logicalWidth: 1133, logicalHeight: 744, scale: .retina2x, pixelsPerInch: 326)),
-        DisplayResolutionPreset(title: "1194 x 834 @2x (iPad Pro 11\")", configuration: makeConfiguration(logicalWidth: 1194, logicalHeight: 834, scale: .retina2x)),
-        DisplayResolutionPreset(title: "1210 x 834 @2x (2420 x 1668, 264 ppi)", configuration: makeConfiguration(logicalWidth: 1210, logicalHeight: 834, scale: .retina2x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "1366 x 1024 @2x (iPad Pro 12.9\")", configuration: makeConfiguration(logicalWidth: 1366, logicalHeight: 1024, scale: .retina2x)),
-        DisplayResolutionPreset(title: "1376 x 1032 @2x (2752 x 2064, iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 1376, logicalHeight: 1032, scale: .retina2x, pixelsPerInch: 264)),
-        DisplayResolutionPreset(title: "2752 x 2064 @1x (iPad Pro 13\")", configuration: makeConfiguration(logicalWidth: 2752, logicalHeight: 2064, scale: .standard1x, pixelsPerInch: 264))
+        // --- iPad Pro 13" (M4) ---
+        DisplayResolutionPreset(title: "1376 x 1032 @2x (iPad Pro 13\" Recommended)", configuration: makeConfiguration(logicalWidth: 1376, logicalHeight: 1032, scale: .retina2x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "2752 x 2064 @1x (iPad Pro 13\" Native)", configuration: makeConfiguration(logicalWidth: 2752, logicalHeight: 2064, scale: .standard1x, pixelsPerInch: 264)),
+
+        // --- iPad Pro 12.9" / iPad Air 13" ---
+        DisplayResolutionPreset(title: "1366 x 1024 @2x (iPad Pro 12.9\"/Air 13\" Recommended)", configuration: makeConfiguration(logicalWidth: 1366, logicalHeight: 1024, scale: .retina2x)),
+        DisplayResolutionPreset(title: "2732 x 2048 @1x (iPad Pro 12.9\"/Air 13\" Native)", configuration: makeConfiguration(logicalWidth: 2732, logicalHeight: 2048, scale: .standard1x, pixelsPerInch: 264)),
+
+        // --- iPad Pro 11" (M4 & Legacy) ---
+        DisplayResolutionPreset(title: "1210 x 834 @2x (iPad Pro 11\" M4 Recommended)", configuration: makeConfiguration(logicalWidth: 1210, logicalHeight: 834, scale: .retina2x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "1194 x 834 @2x (iPad Pro 11\" Legacy Recommended)", configuration: makeConfiguration(logicalWidth: 1194, logicalHeight: 834, scale: .retina2x)),
+        DisplayResolutionPreset(title: "2420 x 1668 @1x (iPad Pro 11\" M4 Native)", configuration: makeConfiguration(logicalWidth: 2420, logicalHeight: 1668, scale: .standard1x, pixelsPerInch: 264)),
+
+        // --- iPad Air 11" / iPad 10.9" ---
+        DisplayResolutionPreset(title: "1180 x 820 @2x (iPad Air 11\"/iPad 10.9\" Recommended)", configuration: makeConfiguration(logicalWidth: 1180, logicalHeight: 820, scale: .retina2x, pixelsPerInch: 264)),
+        DisplayResolutionPreset(title: "2360 x 1640 @1x (iPad Air 11\"/iPad 10.9\" Native)", configuration: makeConfiguration(logicalWidth: 2360, logicalHeight: 1640, scale: .standard1x, pixelsPerInch: 264)),
+
+        // --- iPad mini 8.3" ---
+        DisplayResolutionPreset(title: "1133 x 744 @2x (iPad mini Recommended)", configuration: makeConfiguration(logicalWidth: 1133, logicalHeight: 744, scale: .retina2x, pixelsPerInch: 326)),
+        DisplayResolutionPreset(title: "2266 x 1488 @1x (iPad mini Native)", configuration: makeConfiguration(logicalWidth: 2266, logicalHeight: 1488, scale: .standard1x, pixelsPerInch: 326)),
+
+        // --- Standard / Legacy ---
+        DisplayResolutionPreset(title: "1920 x 1080 @1x (16:9 Standard)", configuration: makeConfiguration(logicalWidth: 1920, logicalHeight: 1080, scale: .standard1x)),
+        DisplayResolutionPreset(title: "2048 x 1536 @1x (4:3 Legacy)", configuration: makeConfiguration(logicalWidth: 2048, logicalHeight: 1536, scale: .standard1x))
     ]
 
     private static func makeConfiguration(logicalWidth: Int, logicalHeight: Int, scale: XDisplayScale, pixelsPerInch: Double = 110.0) -> XDisplayDisplayConfiguration {
@@ -830,6 +850,16 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Load saved settings
+        if let savedResolutionIndex = UserDefaults.standard.object(forKey: "selectedResolutionIndex") as? Int,
+           Self.resolutionPresets.indices.contains(savedResolutionIndex) {
+            selectedConfiguration = Self.resolutionPresets[savedResolutionIndex].configuration
+        }
+        if let savedCodecRawValue = UserDefaults.standard.object(forKey: "selectedCodecRawValue") as? Int,
+           let codec = XDisplayVideoCodec(rawValue: UInt8(savedCodecRawValue)) {
+            selectedCodec = codec
+        }
+
         // Configure as a background/accessory app (no Dock icon)
         NSApp.setActivationPolicy(.accessory)
 
@@ -1030,6 +1060,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             return
         }
         selectedConfiguration = Self.resolutionPresets[index].configuration
+        UserDefaults.standard.set(index, forKey: "selectedResolutionIndex")
         restartDisplayIfNeeded(reason: "resolution change")
     }
     
@@ -1066,6 +1097,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         }
 
         selectedCodec = codec
+        UserDefaults.standard.set(Int(codec.rawValue), forKey: "selectedCodecRawValue")
         print("[*] Codec changed to: \(codec.displayName)")
         updateMenu()
 

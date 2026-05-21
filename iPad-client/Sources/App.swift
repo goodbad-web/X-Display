@@ -211,6 +211,11 @@ struct ContentView: View {
 
     @State private var isIdle = false
     @State private var idleTimerTask: Task<Void, Never>? = nil
+    @State private var showSettings = false
+
+    // Sync settings with UserDefaults
+    @AppStorage("enableApplePencil") private var enableApplePencil = true
+    @AppStorage("idleTimeoutSeconds") private var idleTimeoutSeconds = 5
 
     private func resetIdleTimer() {
         idleTimerTask?.cancel()
@@ -220,7 +225,7 @@ struct ContentView: View {
             }
         }
         idleTimerTask = Task {
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            try? await Task.sleep(nanoseconds: UInt64(idleTimeoutSeconds) * 1_000_000_000)
             guard !Task.isCancelled else { return }
             withAnimation(.easeInOut(duration: 0.5)) {
                 isIdle = true
@@ -256,11 +261,15 @@ struct ContentView: View {
                             },
                             onPencilEvent: { event in
                                 resetIdleTimer()
-                                viewModel.sendPencilEvent(event)
+                                if enableApplePencil {
+                                    viewModel.sendPencilEvent(event)
+                                }
                             },
                             onPencilInteractionEvent: { event in
                                 resetIdleTimer()
-                                viewModel.sendPencilInteractionEvent(event)
+                                if enableApplePencil {
+                                    viewModel.sendPencilInteractionEvent(event)
+                                }
                             }
                         )
                     }
@@ -325,6 +334,21 @@ struct ContentView: View {
 
                     ScrollView {
                         VStack(spacing: 32) {
+                            // Settings Button Row
+                            HStack {
+                                Spacer()
+                                Button(action: { showSettings = true }) {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.white)
+                                        .padding(12)
+                                        .background(Color.white.opacity(0.08))
+                                        .clipShape(Circle())
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.top, 16)
+
                             // Header
                             VStack(spacing: 8) {
                                 Image(systemName: "ipad")
@@ -551,6 +575,9 @@ struct ContentView: View {
             } onCancel: {
                 viewModel.disconnect()
             }
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 

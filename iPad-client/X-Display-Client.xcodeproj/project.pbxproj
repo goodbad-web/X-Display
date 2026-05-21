@@ -10,6 +10,7 @@
 		04548C91400AAFE931539498 /* MetalRendererView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0564471E05AC10C6B139113F /* MetalRendererView.swift */; };
 		08082185DF6F651DC11558C0 /* XDisplayShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5F3EBAC0CF1F820CD199F616 /* XDisplayShared */; };
 		1D0DF888039D01EEA2E37F46 /* StreamClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F45DED6E6586FDCE01DB28 /* StreamClient.swift */; };
+		4CED8759F5F339D3C0EA32EF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C114E69EACE20916359B51 /* SettingsView.swift */; };
 		772530126FD303C9172D8988 /* VideoDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E6D9BF48E03610E212FA0A /* VideoDecoder.swift */; };
 		783546F99D8C510F7C43FB58 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB77DFB227F21A091B29FE5F /* App.swift */; };
 		7C4CBCB7DE20856230F0941D /* DeviceBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C110025CE026BF8BFDC5F69C /* DeviceBrowser.swift */; };
@@ -21,6 +22,7 @@
 		0564471E05AC10C6B139113F /* MetalRendererView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRendererView.swift; sourceTree = "<group>"; };
 		1060878AE32C0022160A1FE5 /* XDisplayShared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = XDisplayShared; path = ../XDisplayShared; sourceTree = SOURCE_ROOT; };
 		17E6D9BF48E03610E212FA0A /* VideoDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoDecoder.swift; sourceTree = "<group>"; };
+		47C114E69EACE20916359B51 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		501F615F26EC4B8F8002FFC2 /* X-Display-Client.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "X-Display-Client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		937DBBB0A5A2A5D1A35F6C52 /* TouchOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchOverlayView.swift; sourceTree = "<group>"; };
 		C110025CE026BF8BFDC5F69C /* DeviceBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceBrowser.swift; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 				FB77DFB227F21A091B29FE5F /* App.swift */,
 				C110025CE026BF8BFDC5F69C /* DeviceBrowser.swift */,
 				0564471E05AC10C6B139113F /* MetalRendererView.swift */,
+				47C114E69EACE20916359B51 /* SettingsView.swift */,
 				FA90EDF2C1B9714CACB1594B /* Shaders.metal */,
 				C4F45DED6E6586FDCE01DB28 /* StreamClient.swift */,
 				937DBBB0A5A2A5D1A35F6C52 /* TouchOverlayView.swift */,
@@ -147,6 +150,7 @@
 				783546F99D8C510F7C43FB58 /* App.swift in Sources */,
 				7C4CBCB7DE20856230F0941D /* DeviceBrowser.swift in Sources */,
 				04548C91400AAFE931539498 /* MetalRendererView.swift in Sources */,
+				4CED8759F5F339D3C0EA32EF /* SettingsView.swift in Sources */,
 				E8564052AAF3445932C5187E /* Shaders.metal in Sources */,
 				1D0DF888039D01EEA2E37F46 /* StreamClient.swift in Sources */,
 				A19CB4DD702BE405CEF14F92 /* TouchOverlayView.swift in Sources */,
