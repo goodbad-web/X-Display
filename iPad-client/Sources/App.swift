@@ -209,6 +209,25 @@ struct ContentView: View {
     @State private var hostPort: String = "12345"
     @State private var showManualConnection = false
 
+    @State private var isIdle = false
+    @State private var idleTimerTask: Task<Void, Never>? = nil
+
+    private func resetIdleTimer() {
+        idleTimerTask?.cancel()
+        if isIdle {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isIdle = false
+            }
+        }
+        idleTimerTask = Task {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                isIdle = true
+            }
+        }
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let isPortrait = geometry.size.height > geometry.size.width
@@ -222,52 +241,62 @@ struct ContentView: View {
                             .blur(radius: viewModel.isTransitioning ? 30 : 0)
                             .opacity(viewModel.isTransitioning ? 0.6 : 1.0)
 
-                    TouchOverlayView(
-                        onTouchEvent: { event in
-                            viewModel.sendTouchEvent(event)
-                        },
-                        onScrollEvent: { deltaX, deltaY, x, y in
-                            viewModel.sendScrollEvent(deltaX: deltaX, deltaY: deltaY, x: x, y: y)
-                        },
-                        onRightClickEvent: { x, y in
-                            viewModel.sendRightClickEvent(x: x, y: y)
-                        },
-                        onPencilEvent: { event in
-                            viewModel.sendPencilEvent(event)
-                        },
-                        onPencilInteractionEvent: { event in
-                            viewModel.sendPencilInteractionEvent(event)
-                        }
+                        TouchOverlayView(
+                            onTouchEvent: { event in
+                                resetIdleTimer()
+                                viewModel.sendTouchEvent(event)
+                            },
+                            onScrollEvent: { deltaX, deltaY, x, y in
+                                resetIdleTimer()
+                                viewModel.sendScrollEvent(deltaX: deltaX, deltaY: deltaY, x: x, y: y)
+                            },
+                            onRightClickEvent: { x, y in
+                                resetIdleTimer()
+                                viewModel.sendRightClickEvent(x: x, y: y)
+                            },
+                            onPencilEvent: { event in
+                                resetIdleTimer()
+                                viewModel.sendPencilEvent(event)
+                            },
+                            onPencilInteractionEvent: { event in
+                                resetIdleTimer()
+                                viewModel.sendPencilInteractionEvent(event)
+                            }
+                        )
+                    }
+                    .edgesIgnoringSafeArea(.all)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in resetIdleTimer() }
                     )
 
-                }
-                .edgesIgnoringSafeArea(.all)
-
-                // Disconnect overlay button
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button(action: viewModel.disconnect) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "xmark.circle.fill")
-                                Text("Disconnect")
+                    // Disconnect overlay button
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button(action: viewModel.disconnect) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "xmark.circle.fill")
+                                    Text("Disconnect")
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.red.opacity(0.85))
+                                        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                )
                             }
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(
-                                Capsule()
-                                    .fill(Color.red.opacity(0.85))
-                                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
-                            )
+                            .padding()
+                            .opacity(isIdle ? 0.0 : 1.0)
+                            .allowsHitTesting(!isIdle)
                         }
-                        .padding()
+                        Spacer()
                     }
-                    Spacer()
-                }
-            } else {
+                } else {
                 // Device Discovery & Setup Screen (Premium Glassmorphism Style)
                 ZStack {
                     // Deep futuristic background
@@ -498,7 +527,23 @@ struct ContentView: View {
         }
         .onAppear {
             viewModel.updateOrientation(isPortrait: isPortrait)
+            if viewModel.isConnected {
+                resetIdleTimer()
+            }
         }
+        .onDisappear {
+            idleTimerTask?.cancel()
+        }
+        }
+        .statusBarHidden(isIdle)
+        .persistentSystemOverlays(isIdle ? .hidden : .automatic)
+        .onChange(of: viewModel.isConnected) { isConnected in
+            if isConnected {
+                resetIdleTimer()
+            } else {
+                idleTimerTask?.cancel()
+                isIdle = false
+            }
         }
         .sheet(isPresented: $viewModel.isPairingRequired) {
             PINEntryView(pin: $viewModel.enteredPIN) {
