@@ -84,6 +84,46 @@ struct SettingsView: View {
                             .font(.caption)
                             .fontWeight(.semibold)
                     }
+
+                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                Text("Universal Control Conflict")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            Text("When 'Link to Mac or iPad' (Universal Control) is enabled in iPad Settings, pointer movement at screen edges may conflict, causing cursor jitter or unexpected disconnections.")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            Button(action: {
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                HStack {
+                                    Text("Open iPad Settings")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                    Image(systemName: "arrow.up.forward.app")
+                                }
+                                .foregroundColor(.indigo)
+                                .padding(.top, 4)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .listRowBackground(Color.white.opacity(0.05))
+                    } header: {
+                        Text("Universal Control")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                    }
                 }
                 .scrollContentBackground(.hidden) // Make form background transparent to show gradient
             }
