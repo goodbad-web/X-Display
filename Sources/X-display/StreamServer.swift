@@ -12,7 +12,7 @@ protocol StreamServerDelegate: AnyObject {
     func streamServer(_ server: StreamServer, didReceivePencilInteractionEvent event: XDisplayPencilInteractionEvent)
     func streamServerDidCompletePairing(_ server: StreamServer)
     func streamServer(_ server: StreamServer, didGeneratePIN pin: String)
-    func streamServer(_ server: StreamServer, didReceiveClientInfo isPortrait: Bool)
+    func streamServer(_ server: StreamServer, didReceiveClientInfo event: XDisplayClientInfoEvent)
 }
 
 final class ClientSession: @unchecked Sendable {
@@ -294,7 +294,7 @@ final class StreamServer: @unchecked Sendable {
             do {
                 let decryptedEvent = try CryptoHelper.decrypt(combinedData: encryptedEvent, key: key)
                 let event = try XDisplayClientInfoEvent.decodeRawPayload(decryptedEvent)
-                delegate?.streamServer(self, didReceiveClientInfo: event.isPortrait)
+                delegate?.streamServer(self, didReceiveClientInfo: event)
             } catch {
                 print("[-] Error decrypting client info event: \(error.localizedDescription)")
             }

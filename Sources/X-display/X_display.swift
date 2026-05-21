@@ -40,8 +40,8 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var lastStreamRestartTime = Date.distantPast
     private var captureConfiguration: XDisplayDisplayConfiguration?
     private var preferredVirtualDisplayID: CGDirectDisplayID?
-    
-    var onClientOrientationChanged: ((Bool) -> Void)?
+    var onClientInfoReceived: ((XDisplayClientInfoEvent) -> Void)?
+    var maxFrameRate: UInt8 = 60
 
     // Keep only the newest pending frame so latency does not grow under load.
     private let encodeQueue = DispatchQueue(label: "com.xdisplay.encode-queue", qos: .userInteractive)
@@ -229,7 +229,7 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         config.height = configuration.pixelSize.height
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.queueDepth = 3
-        config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
+        config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(maxFrameRate))
         config.showsCursor = true
         config.capturesAudio = false
         return config
@@ -636,8 +636,8 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         }
     }
 
-    func streamServer(_ server: StreamServer, didReceiveClientInfo isPortrait: Bool) {
-        onClientOrientationChanged?(isPortrait)
+    func streamServer(_ server: StreamServer, didReceiveClientInfo event: XDisplayClientInfoEvent) {
+        onClientInfoReceived?(event)
     }
 
     private func pointInDisplay(x: Float, y: Float) -> CGPoint? {
@@ -873,10 +873,10 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         requestAccessibilityPermissionIfNeeded()
         setupMenuBar()
         
-        captureManager.onClientOrientationChanged = { [weak self] isPortrait in
+        captureManager.onClientInfoReceived = { [weak self] event in
             guard let self = self else { return }
             Task { @MainActor in
-                self.handleOrientationChange(isPortrait: isPortrait)
+                self.handleClientInfoReceived(event)
             }
         }
 
@@ -1064,11 +1064,35 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         restartDisplayIfNeeded(reason: "resolution change")
     }
     
-    private func handleOrientationChange(isPortrait: Bool) {
-        if self.isClientPortrait != isPortrait {
-            self.isClientPortrait = isPortrait
-            print("[*] Client orientation changed to \(isPortrait ? "Portrait" : "Landscape")")
-            restartDisplayIfNeeded(reason: "client rotation")
+    private func handleClientInfoReceived(_ event: XDisplayClientInfoEvent) {
+        var needsRestart = false
+        var restartReason = ""
+
+        if self.isClientPortrait != event.isPortrait {
+            self.isClientPortrait = event.isPortrait
+            needsRestart = true
+            restartReason += "rotation to \(event.isPortrait ? "Portrait" : "Landscape"), "
+        }
+
+        if self.selectedCodec != event.preferredCodec {
+            self.selectedCodec = event.preferredCodec
+            UserDefaults.standard.set(Int(event.preferredCodec.rawValue), forKey: "selectedCodecRawValue")
+            needsRestart = true
+            restartReason += "codec to \(event.preferredCodec.displayName), "
+        }
+
+        if self.captureManager.maxFrameRate != event.maxFrameRate {
+            self.captureManager.maxFrameRate = event.maxFrameRate
+            needsRestart = true
+            restartReason += "framerate to \(event.maxFrameRate)fps, "
+        }
+
+        if needsRestart {
+            if restartReason.hasSuffix(", ") {
+                restartReason.removeLast(2)
+            }
+            print("[*] Client requested settings change: \(restartReason)")
+            restartDisplayIfNeeded(reason: "client settings change")
         }
     }
     

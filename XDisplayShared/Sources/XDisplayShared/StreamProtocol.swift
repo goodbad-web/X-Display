@@ -65,20 +65,40 @@ public struct XDisplayVideoFramePayload: Equatable, Sendable {
 
 public struct XDisplayClientInfoEvent: Equatable, Sendable {
     public let isPortrait: Bool
+    public let preferredCodec: XDisplayVideoCodec
+    public let maxFrameRate: UInt8
 
-    public init(isPortrait: Bool) {
+    public init(isPortrait: Bool, preferredCodec: XDisplayVideoCodec = .h264, maxFrameRate: UInt8 = 60) {
         self.isPortrait = isPortrait
+        self.preferredCodec = preferredCodec
+        self.maxFrameRate = maxFrameRate
     }
 
     public func encodeRawPayload() -> Data {
-        Data([isPortrait ? 1 : 0])
+        Data([isPortrait ? 1 : 0, preferredCodec.rawValue, maxFrameRate])
     }
 
     public static func decodeRawPayload(_ payload: Data) throws -> XDisplayClientInfoEvent {
         guard let value = payload.first else {
             throw XDisplayProtocolError.invalidLength
         }
-        return XDisplayClientInfoEvent(isPortrait: value == 1)
+        let isPortrait = value == 1
+        
+        let preferredCodec: XDisplayVideoCodec
+        if payload.count >= 2 {
+            preferredCodec = XDisplayVideoCodec(rawValue: payload[1]) ?? .h264
+        } else {
+            preferredCodec = .h264
+        }
+        
+        let maxFrameRate: UInt8
+        if payload.count >= 3 {
+            maxFrameRate = payload[2]
+        } else {
+            maxFrameRate = 60
+        }
+        
+        return XDisplayClientInfoEvent(isPortrait: isPortrait, preferredCodec: preferredCodec, maxFrameRate: maxFrameRate)
     }
 }
 

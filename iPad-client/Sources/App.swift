@@ -112,11 +112,24 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         streamClient.sendPencilInteractionEvent(event)
     }
 
+    func sendClientInfo() {
+        let codecStr = UserDefaults.standard.string(forKey: "selectedCodec") ?? "HEVC"
+        let codec: XDisplayVideoCodec = (codecStr == "H.264") ? .h264 : .hevc
+        let maxFps = UserDefaults.standard.integer(forKey: "maxFrameRate")
+        let fps = (maxFps == 30) ? UInt8(30) : UInt8(60)
+        
+        streamClient.sendClientInfo(
+            isPortrait: self.isClientPortrait,
+            preferredCodec: codec,
+            maxFrameRate: fps
+        )
+    }
+
     func updateOrientation(isPortrait: Bool) {
         if self.isClientPortrait != isPortrait {
             self.isClientPortrait = isPortrait
             self.isTransitioning = true
-            streamClient.sendClientInfo(isPortrait: isPortrait)
+            sendClientInfo()
         }
     }
 
@@ -168,7 +181,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             self.connectionStatus = success ? "Connected" : "Pairing failed"
             self.isConnected = success
             if success {
-                self.streamClient.sendClientInfo(isPortrait: self.isClientPortrait)
+                self.sendClientInfo()
             } else {
                 self.disconnect()
             }
@@ -216,6 +229,8 @@ struct ContentView: View {
     // Sync settings with UserDefaults
     @AppStorage("enableApplePencil") private var enableApplePencil = true
     @AppStorage("idleTimeoutSeconds") private var idleTimeoutSeconds = 5
+    @AppStorage("selectedCodec") private var selectedCodec = "HEVC"
+    @AppStorage("maxFrameRate") private var maxFrameRate = 60
 
     private func resetIdleTimer() {
         idleTimerTask?.cancel()
@@ -578,6 +593,16 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .onChange(of: selectedCodec) { _ in
+            if viewModel.isConnected {
+                viewModel.sendClientInfo()
+            }
+        }
+        .onChange(of: maxFrameRate) { _ in
+            if viewModel.isConnected {
+                viewModel.sendClientInfo()
+            }
         }
     }
 

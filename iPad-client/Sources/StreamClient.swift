@@ -179,10 +179,14 @@ class StreamClient {
 
 
     
-    func sendClientInfo(isPortrait: Bool) {
+    func sendClientInfo(isPortrait: Bool, preferredCodec: XDisplayVideoCodec, maxFrameRate: UInt8) {
         guard isRunning, isPaired, let key = sessionKey else { return }
         
-        let rawEvent = XDisplayClientInfoEvent(isPortrait: isPortrait).encodeRawPayload()
+        let rawEvent = XDisplayClientInfoEvent(
+            isPortrait: isPortrait,
+            preferredCodec: preferredCodec,
+            maxFrameRate: maxFrameRate
+        ).encodeRawPayload()
         
         do {
             let encryptedEvent = try CryptoHelper.encrypt(data: rawEvent, key: key)
