@@ -660,20 +660,29 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     func streamServer(_ server: StreamServer, didReceiveInputEvent phase: UInt8, x: Float, y: Float, pressure: Float) {
         guard let point = pointInDisplay(x: x, y: y) else { return }
 
+        // Warp the physical mouse cursor position to align absolute coordinates (highly critical for drags)
+        CGWarpMouseCursorPosition(point)
+
         var mouseType: CGEventType
         let mouseButton: CGMouseButton = .left
 
-        switch phase {
-        case 0: // Began
-            mouseType = .leftMouseDown
-        case 1: // Moved / Dragged
-            mouseType = .leftMouseDragged
-        case 2: // Ended
-            mouseType = .leftMouseUp
-        case 3: // Cancelled
-            mouseType = .leftMouseUp
-        default:
-            return
+        if pressure == 0.0 {
+            // Treat pressure=0.0 as hover mouse movement always.
+            mouseType = .mouseMoved
+        } else {
+            // Treat pressure > 0.0 as active mouse button clicks/drags (for taps and long-press drags)
+            switch phase {
+            case 0: // Began
+                mouseType = .leftMouseDown
+            case 1: // Moved / Dragged
+                mouseType = .leftMouseDragged
+            case 2: // Ended
+                mouseType = .leftMouseUp
+            case 3: // Cancelled
+                mouseType = .leftMouseUp
+            default:
+                return
+            }
         }
 
         // Generate and post the system mouse event to simulate user input

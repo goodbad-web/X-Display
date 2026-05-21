@@ -37,12 +37,25 @@ final class FrameHolder {
 
 class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate {
     @Published var connectionStatus: String = "Disconnected"
-    @Published var isConnected = false
+    @Published var isConnected = false {
+        didSet {
+            if isConnected {
+                self.startScreenSaverTimer()
+            } else {
+                self.stopScreenSaverTimer()
+            }
+        }
+    }
     @Published var isPairingRequired = false
     @Published var enteredPIN: String = ""
     @Published var frameSize: CGSize = .init(width: 1920, height: 1080)
     @Published var isTransitioning: Bool = false
     @Published var isClientPortrait: Bool = false
+    @Published var isScreenSaverActive: Bool = false
+
+    private var lastActivityTime: Date = Date()
+    private var originalBrightness: CGFloat = 0.5
+    private var screenSaverTimer: Timer?
     let frameHolder = FrameHolder()
     @Published var discoveredDevices: [DiscoveredDevice] = [] {
         didSet {
@@ -123,22 +136,27 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     }
 
     func sendTouchEvent(_ event: TouchEvent) {
+        registerActivity()
         streamClient.sendInputEvent(phase: event.phase, x: event.x, y: event.y, pressure: event.pressure)
     }
 
     func sendScrollEvent(deltaX: Float, deltaY: Float, x: Float, y: Float) {
+        registerActivity()
         streamClient.sendScrollEvent(deltaX: deltaX, deltaY: deltaY, x: x, y: y)
     }
 
     func sendRightClickEvent(x: Float, y: Float) {
+        registerActivity()
         streamClient.sendRightClickEvent(x: x, y: y)
     }
 
     func sendPencilEvent(_ event: XDisplayPencilEvent) {
+        registerActivity()
         streamClient.sendPencilEvent(event)
     }
 
     func sendPencilInteractionEvent(_ event: XDisplayPencilInteractionEvent) {
+        registerActivity()
         streamClient.sendPencilInteractionEvent(event)
     }
 
@@ -192,6 +210,9 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     // StreamClientDelegate
     func streamClient(_ client: StreamClient, didReceiveVideoFrame data: Data, codec: XDisplayVideoCodec) {
+        DispatchQueue.main.async {
+            self.registerActivity()
+        }
         videoDecoder.decode(codec: codec, data: data)
     }
 
@@ -285,7 +306,77 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         frameHolder.display(pixelBuffer)
     }
 
+    // Screen Saver (Power Saving) Logic
+    private func startScreenSaverTimer() {
+        DispatchQueue.main.async {
+            self.screenSaverTimer?.invalidate()
+            self.lastActivityTime = Date()
+            self.screenSaverTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                self?.checkScreenSaverTimeout()
+            }
+        }
+    }
+
+    private func stopScreenSaverTimer() {
+        DispatchQueue.main.async {
+            self.screenSaverTimer?.invalidate()
+            self.screenSaverTimer = nil
+            self.deactivateScreenSaver()
+        }
+    }
+
+    private func checkScreenSaverTimeout() {
+        let enable = UserDefaults.standard.bool(forKey: "enableScreenSaver")
+        guard enable else { return }
+
+        let timeoutMinutes = UserDefaults.standard.integer(forKey: "screenSaverTimeoutMinutes")
+        // Default to 5 minutes if not configured or 0
+        let timeoutSeconds = Double(timeoutMinutes == 0 ? 300 : timeoutMinutes * 60)
+
+        let elapsed = Date().timeIntervalSince(lastActivityTime)
+        if elapsed >= timeoutSeconds {
+            if !isScreenSaverActive {
+                activateScreenSaver()
+            }
+        }
+    }
+
+    private func activateScreenSaver() {
+        guard !isScreenSaverActive else { return }
+        print("[+] Screen saver activated. Saving power...")
+
+        DispatchQueue.main.async {
+            self.originalBrightness = UIScreen.main.brightness
+            UIScreen.main.brightness = 0.0
+            UIApplication.shared.isIdleTimerDisabled = false
+            withAnimation(.easeInOut(duration: 0.5)) {
+                self.isScreenSaverActive = true
+            }
+        }
+    }
+
+    private func deactivateScreenSaver() {
+        guard isScreenSaverActive else { return }
+        print("[-] Screen saver deactivated.")
+
+        DispatchQueue.main.async {
+            UIScreen.main.brightness = self.originalBrightness
+            UIApplication.shared.isIdleTimerDisabled = true
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.isScreenSaverActive = false
+            }
+        }
+    }
+
+    func registerActivity() {
+        lastActivityTime = Date()
+        if isScreenSaverActive {
+            deactivateScreenSaver()
+        }
+    }
+
     deinit {
+        screenSaverTimer?.invalidate()
         deviceBrowser.stopBrowsing()
     }
 }
@@ -642,6 +733,15 @@ struct ContentView: View {
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
+
+                if viewModel.isScreenSaverActive {
+                    Color.black
+                        .edgesIgnoringSafeArea(.all)
+                        .transition(.opacity)
+                        .onTapGesture {
+                            viewModel.registerActivity()
+                        }
+                }
             }
         }
         .onChange(of: isPortrait) { _, newValue in
@@ -662,8 +762,8 @@ struct ContentView: View {
             idleTimerTask?.cancel()
         }
         }
-        .statusBarHidden(isIdle)
-        .persistentSystemOverlays(isIdle ? .hidden : .automatic)
+        .statusBarHidden(isIdle || viewModel.isScreenSaverActive)
+        .persistentSystemOverlays((isIdle || viewModel.isScreenSaverActive) ? .hidden : .automatic)
         .onChange(of: viewModel.isConnected) { _, isConnected in
             if isConnected {
                 resetIdleTimer()
@@ -742,9 +842,16 @@ struct PINEntryView: View {
     let onSubmit: () -> Void
     let onCancel: () -> Void
 
+    @FocusState private var isTextFieldFocused: Bool
+
     var body: some View {
         ZStack {
-            Color(hex: "0B0F19").edgesIgnoringSafeArea(.all)
+            // Tap background to dismiss keyboard
+            Color(hex: "0B0F19")
+                .ignoresSafeArea(.all)
+                .onTapGesture {
+                    isTextFieldFocused = false
+                }
 
             VStack(spacing: 32) {
                 VStack(spacing: 8) {
@@ -768,6 +875,7 @@ struct PINEntryView: View {
 
                 VStack(spacing: 12) {
                     TextField("0000", text: $pin)
+                        .focused($isTextFieldFocused)
                         .keyboardType(.numberPad)
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.system(size: 48, weight: .bold, design: .monospaced))
@@ -786,7 +894,10 @@ struct PINEntryView: View {
                 }
 
                 VStack(spacing: 12) {
-                    Button(action: onSubmit) {
+                    Button(action: {
+                        isTextFieldFocused = false
+                        onSubmit()
+                    }) {
                         Text("Connect")
                             .font(.headline)
                             .fontWeight(.bold)
@@ -801,14 +912,37 @@ struct PINEntryView: View {
                     .disabled(pin.count < 4)
                     .opacity(pin.count < 4 ? 0.5 : 1.0)
 
-                    Button(action: onCancel) {
+                    Button(action: {
+                        isTextFieldFocused = false
+                        onCancel()
+                    }) {
                         Text("Cancel")
                             .font(.subheadline)
                             .foregroundColor(.gray)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: 280)
                     }
                 }
             }
             .padding(40)
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                isTextFieldFocused = true
+            }
+        }
+        .onChange(of: pin) { _, newValue in
+            let filtered = newValue.filter { $0.isNumber }
+            if filtered != newValue {
+                pin = filtered
+            }
+            if pin.count > 4 {
+                pin = String(pin.prefix(4))
+            }
+            if pin.count == 4 {
+                isTextFieldFocused = false
+                onSubmit()
+            }
         }
     }
 }

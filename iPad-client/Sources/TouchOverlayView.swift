@@ -47,6 +47,7 @@ struct TouchOverlayView: UIViewRepresentable {
         private var activePencilTouch: UITouch?
         /// 1本指が最初に接地した正規化座標（pan .began 時の mouseDown 位置補正用）
         private var fingerDownNormalized: CGPoint?
+        private var isDragging = false
         
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -119,6 +120,12 @@ struct TouchOverlayView: UIViewRepresentable {
             twoFingerTap.numberOfTouchesRequired = 2
             twoFingerTap.delegate = self
             addGestureRecognizer(twoFingerTap)
+            
+            // 1-finger Long Press (Drag / Press & Hold)
+            let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+            longPress.minimumPressDuration = 0.28
+            longPress.delegate = self
+            addGestureRecognizer(longPress)
             
             // 1-finger Pan (Drag / Move)
             let singlePan = UIPanGestureRecognizer(target: self, action: #selector(handleSinglePan(_:)))
@@ -246,7 +253,35 @@ struct TouchOverlayView: UIViewRepresentable {
             onRightClickEvent(normX, normY)
         }
         
+        @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+            guard let onTouchEvent = onTouchEvent else { return }
+            let location = gesture.location(in: self)
+            let b = bounds
+            guard b.width > 0 && b.height > 0 else { return }
+            
+            let normX = Float(max(0, min(1, location.x / b.width)))
+            let normY = Float(max(0, min(1, location.y / b.height)))
+            
+            switch gesture.state {
+            case .began:
+                isDragging = true
+                onTouchEvent(TouchEvent(phase: .began, x: normX, y: normY, pressure: 1.0))
+            case .changed:
+                onTouchEvent(TouchEvent(phase: .moved, x: normX, y: normY, pressure: 1.0))
+            case .ended:
+                isDragging = false
+                onTouchEvent(TouchEvent(phase: .ended, x: normX, y: normY, pressure: 1.0))
+            case .cancelled, .failed:
+                isDragging = false
+                onTouchEvent(TouchEvent(phase: .cancelled, x: normX, y: normY, pressure: 1.0))
+            default:
+                break
+            }
+        }
+        
         @objc private func handleSinglePan(_ gesture: UIPanGestureRecognizer) {
+            guard !isDragging else { return }
+            
             let phase: XDisplayTouchPhase
             switch gesture.state {
             case .began: phase = .began
@@ -279,8 +314,7 @@ struct TouchOverlayView: UIViewRepresentable {
                 normY = Float(max(0, min(1, location.y / b.height)))
             }
 
-            let pressure: Float = (gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed) ? 0.0 : 1.0
-            onTouchEvent(TouchEvent(phase: phase, x: normX, y: normY, pressure: pressure))
+            onTouchEvent(TouchEvent(phase: phase, x: normX, y: normY, pressure: 0.0))
         }
         
         @objc private func handleTwoFingerPan(_ gesture: UIPanGestureRecognizer) {

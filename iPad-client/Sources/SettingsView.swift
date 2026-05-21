@@ -8,6 +8,8 @@ struct SettingsView: View {
     @AppStorage("maxFrameRate") private var maxFrameRate = 60
     @AppStorage("enableApplePencil") private var enableApplePencil = true
     @AppStorage("idleTimeoutSeconds") private var idleTimeoutSeconds = 5
+    @AppStorage("enableScreenSaver") private var enableScreenSaver = false
+    @AppStorage("screenSaverTimeoutMinutes") private var screenSaverTimeoutMinutes = 5
 
     var body: some View {
         NavigationStack {
@@ -80,6 +82,36 @@ struct SettingsView: View {
                         .listRowBackground(Color.white.opacity(0.05))
                     } header: {
                         Text("Interface & System UI")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                    }
+
+                    Section {
+                        HStack {
+                            Image(systemName: "leaf.fill")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Toggle("Screen Saver", isOn: $enableScreenSaver)
+                                .tint(.emerald)
+                                .foregroundColor(.white)
+                        }
+                        .listRowBackground(Color.white.opacity(0.05))
+
+                        if enableScreenSaver {
+                            HStack {
+                                Image(systemName: "timer")
+                                    .foregroundColor(.indigo)
+                                    .frame(width: 24)
+                                Stepper(value: $screenSaverTimeoutMinutes, in: 1...15) {
+                                    Text("Timeout: \(screenSaverTimeoutMinutes) min")
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .listRowBackground(Color.white.opacity(0.05))
+                        }
+                    } header: {
+                        Text("Power Saving")
                             .foregroundColor(.gray)
                             .font(.caption)
                             .fontWeight(.semibold)
