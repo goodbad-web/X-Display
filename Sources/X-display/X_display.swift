@@ -510,9 +510,19 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         let resMenu = NSMenu()
 
         let resolutions = [
+            // --- Landscape ---
             (1920, 1080, "1920 x 1080 (16:9)"),
             (2048, 1536, "2048 x 1536 (4:3)"),
-            (2732, 2048, "2732 x 2048 (iPad Pro)")
+            (2266, 1488, "2266 x 1488 (iPad mini 6)"),
+            (2388, 1668, "2388 x 1668 (iPad Pro 11\")"),
+            (2732, 2048, "2732 x 2048 (iPad Pro 12.9\")"),
+            
+            // --- Portrait ---
+            (1080, 1920, "1080 x 1920 (16:9 Portrait)"),
+            (1536, 2048, "1536 x 2048 (4:3 Portrait)"),
+            (1488, 2266, "1488 x 2266 (iPad mini 6 Portrait)"),
+            (1668, 2388, "1668 x 2388 (iPad Pro 11\" Portrait)"),
+            (2048, 2732, "2048 x 2732 (iPad Pro 12.9\" Portrait)")
         ]
 
         for (w, h, title) in resolutions {
