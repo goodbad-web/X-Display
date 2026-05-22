@@ -44,6 +44,10 @@ class StreamClient {
     }()
     
     func connect(endpoint: NWEndpoint, type: ConnectionType? = nil) {
+        if connection != nil {
+            disconnect(reason: "New connection initiated while active connection exists")
+        }
+        
         let parameters = NWParameters.tcp
         parameters.includePeerToPeer = true
         
