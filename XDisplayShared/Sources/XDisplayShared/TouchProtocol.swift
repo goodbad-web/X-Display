@@ -272,4 +272,110 @@ public struct XDisplayPencilInteractionEvent: Equatable {
     }
 }
 
+public struct XDisplayKeyboardEvent: Equatable {
+    public let keyCode: UInt16
+    public let isDown: Bool
+    public let modifierFlags: UInt64
 
+    public init(keyCode: UInt16, isDown: Bool, modifierFlags: UInt64) {
+        self.keyCode = keyCode
+        self.isDown = isDown
+        self.modifierFlags = modifierFlags
+    }
+
+    // Payload: 1 (id: 0x06) + 2 (keyCode) + 1 (isDown) + 8 (modifierFlags) = 12 bytes
+    public func encodeRawPayload() -> Data {
+        var payload = Data()
+        payload.reserveCapacity(12)
+        payload.append(0x06) // keyboardEventIdentifier
+        
+        var key = keyCode.bigEndian
+        withUnsafeBytes(of: &key) { payload.append(contentsOf: $0) }
+        
+        payload.append(isDown ? 1 : 0)
+        
+        var modifiers = modifierFlags.bigEndian
+        withUnsafeBytes(of: &modifiers) { payload.append(contentsOf: $0) }
+        
+        return payload
+    }
+
+    public static func decodeRawPayload(_ data: Data) throws -> XDisplayKeyboardEvent {
+        guard data.count >= 12 else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        let identifier = data[0]
+        guard identifier == 0x06 else {
+            throw XDisplayProtocolError.invalidInputIdentifier(identifier)
+        }
+        
+        let key = data[1...2].reduce(UInt16(0)) { ($0 << 8) | UInt16($1) }
+        let isDown = data[3] != 0
+        
+        let modifiers = data[4...11].reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
+        
+        return XDisplayKeyboardEvent(keyCode: key, isDown: isDown, modifierFlags: modifiers)
+    }
+}
+
+public struct XDisplayMouseEvent: Equatable {
+    public let type: UInt8 // 0: Move, 1: ButtonDown, 2: ButtonUp
+    public let buttonNumber: UInt8 // 0: Left, 1: Right, 2: Middle/Other
+    public let deltaX: Float
+    public let deltaY: Float
+    public let x: Float
+    public let y: Float
+
+    public init(type: UInt8, buttonNumber: UInt8, deltaX: Float, deltaY: Float, x: Float, y: Float) {
+        self.type = type
+        self.buttonNumber = buttonNumber
+        self.deltaX = deltaX
+        self.deltaY = deltaY
+        self.x = x
+        self.y = y
+    }
+
+    // Payload: 1 (id: 0x07) + 1 (type) + 1 (buttonNumber) + 4 (deltaX) + 4 (deltaY) + 4 (x) + 4 (y) = 19 bytes
+    public func encodeRawPayload() -> Data {
+        var payload = Data()
+        payload.reserveCapacity(19)
+        payload.append(0x07) // mouseEventIdentifier
+        payload.append(type)
+        payload.append(buttonNumber)
+        appendFloat(deltaX, to: &payload)
+        appendFloat(deltaY, to: &payload)
+        appendFloat(x, to: &payload)
+        appendFloat(y, to: &payload)
+        return payload
+    }
+
+    public static func decodeRawPayload(_ data: Data) throws -> XDisplayMouseEvent {
+        guard data.count >= 19 else {
+            throw XDisplayProtocolError.invalidLength
+        }
+        let identifier = data[0]
+        guard identifier == 0x07 else {
+            throw XDisplayProtocolError.invalidInputIdentifier(identifier)
+        }
+        return XDisplayMouseEvent(
+            type: data[1],
+            buttonNumber: data[2],
+            deltaX: decodeFloat(in: data, range: 3..<7),
+            deltaY: decodeFloat(in: data, range: 7..<11),
+            x: decodeFloat(in: data, range: 11..<15),
+            y: decodeFloat(in: data, range: 15..<19)
+        )
+    }
+
+    private func appendFloat(_ value: Float, to data: inout Data) {
+        var bits = value.bitPattern.bigEndian
+        withUnsafeBytes(of: &bits) { data.append(contentsOf: $0) }
+    }
+
+    private static func decodeFloat(in data: Data, range: Range<Data.Index>) -> Float {
+        let bits = data[range].reduce(UInt32(0)) { partial, byte in
+            (partial << 8) | UInt32(byte)
+        }
+        return Float(bitPattern: bits)
+    }
+}
