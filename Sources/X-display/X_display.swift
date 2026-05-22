@@ -61,6 +61,11 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
     private var broadcastFrameCount = 0
     private var fallbackFrameCount = 0
 
+    // Track mouse button states for drag-event mapping
+    private var isLeftMouseDown = false
+    private var isRightMouseDown = false
+    private var isOtherMouseDown = false
+
     private func requestScreenCaptureAccessIfNeeded() async {
         if CGPreflightScreenCaptureAccess() {
             return
@@ -825,8 +830,83 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         upEvent.post(tap: .cghidEventTap)
     }
 
+    func streamServer(_ server: StreamServer, didReceiveKeyboardEvent event: XDisplayKeyboardEvent) {
+        guard let cgEvent = CGEvent(
+            keyboardEventSource: nil,
+            virtualKey: CGKeyCode(event.keyCode),
+            keyDown: event.isDown
+        ) else { return }
+        cgEvent.flags = CGEventFlags(rawValue: event.modifierFlags)
+        cgEvent.post(tap: .cghidEventTap)
+    }
 
+    func streamServer(_ server: StreamServer, didReceiveMouseEvent event: XDisplayMouseEvent) {
+        guard let point = pointInDisplay(x: event.x, y: event.y) else { return }
+        
+        // Synchronize absolute hardware cursor coordinates
+        CGWarpMouseCursorPosition(point)
+        
+        let mouseType: CGEventType
+        let mouseButton: CGMouseButton
+        
+        switch event.buttonNumber {
+        case 0: // Left Button
+            mouseButton = .left
+            switch event.type {
+            case 0: // Move
+                mouseType = isLeftMouseDown ? .leftMouseDragged : .mouseMoved
+            case 1: // Down
+                isLeftMouseDown = true
+                mouseType = .leftMouseDown
+            case 2: // Up
+                isLeftMouseDown = false
+                mouseType = .leftMouseUp
+            default:
+                return
+            }
+        case 1: // Right Button
+            mouseButton = .right
+            switch event.type {
+            case 0: // Move
+                mouseType = isRightMouseDown ? .rightMouseDragged : .mouseMoved
+            case 1: // Down
+                isRightMouseDown = true
+                mouseType = .rightMouseDown
+            case 2: // Up
+                isRightMouseDown = false
+                mouseType = .rightMouseUp
+            default:
+                return
+            }
+        case 2: // Center / Other Button
+            mouseButton = .center
+            switch event.type {
+            case 0: // Move
+                mouseType = isOtherMouseDown ? .otherMouseDragged : .mouseMoved
+            case 1: // Down
+                isOtherMouseDown = true
+                mouseType = .otherMouseDown
+            case 2: // Up
+                isOtherMouseDown = false
+                mouseType = .otherMouseUp
+            default:
+                return
+            }
+        default:
+            return
+        }
+        
+        guard let cgEvent = CGEvent(
+            mouseEventSource: nil,
+            mouseType: mouseType,
+            mouseCursorPosition: point,
+            mouseButton: mouseButton
+        ) else { return }
+        
+        cgEvent.post(tap: .cghidEventTap)
+    }
 }
+
 
 @MainActor
 class XDisplayAppManager: NSObject, NSApplicationDelegate {
@@ -1228,7 +1308,11 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openReceiverWindow() {
+        #if !SWIFT_PACKAGE
         ClientReceiverWindowController.open()
+        #else
+        print("[!] Receiver Window is not available in standalone Swift Package build. Use Xcode project to build with full Receiver features.")
+        #endif
     }
 
     @objc private func quitApp() {

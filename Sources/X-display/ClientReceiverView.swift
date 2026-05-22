@@ -1,4 +1,4 @@
-#if os(macOS)
+#if os(macOS) && !SWIFT_PACKAGE
 import SwiftUI
 import AppKit
 import Network
