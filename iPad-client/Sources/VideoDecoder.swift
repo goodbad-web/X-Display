@@ -3,13 +3,35 @@ import VideoToolbox
 import CoreMedia
 import XDisplayShared
 
+@MainActor
 protocol VideoDecoderDelegate: AnyObject {
     func videoDecoder(_ decoder: VideoDecoder, didDecodeImageBuffer pixelBuffer: CVPixelBuffer)
 }
 
+@MainActor
 class VideoDecoder {
+    private final class DecompressionSessionHolder {
+        let session: VTDecompressionSession
+        init(_ session: VTDecompressionSession) {
+            self.session = session
+        }
+        deinit {
+            VTDecompressionSessionInvalidate(session)
+        }
+    }
+
+    private struct SendableUnmanaged<Instance: AnyObject>: @unchecked Sendable {
+        let value: Unmanaged<Instance>
+        init(_ value: Unmanaged<Instance>) {
+            self.value = value
+        }
+    }
+
     weak var delegate: VideoDecoderDelegate?
-    private var decompressionSession: VTDecompressionSession?
+    private var sessionHolder: DecompressionSessionHolder?
+    private var decompressionSession: VTDecompressionSession? {
+        sessionHolder?.session
+    }
     private var formatDescription: CMVideoFormatDescription?
     private let timingLock = NSLock()
     private let sessionLock = NSRecursiveLock() // Lock to secure decompressionSession & formatDescription
@@ -246,9 +268,17 @@ class VideoDecoder {
             flags: [._EnableAsynchronousDecompression],
             infoFlagsOut: &flagsOut
         ) { [weak self] (status, infoFlags, imageBuffer, taggedBuffers, presentationTimeStamp, presentationDuration) in
-            guard status == noErr, let pixelBuffer = imageBuffer, let self = self else { return }
-            self.recordDecodedFrame()
-            self.delegate?.videoDecoder(self, didDecodeImageBuffer: pixelBuffer)
+            guard status == noErr, let pixelBuffer = imageBuffer else { return }
+            let sendableUnmanaged = SendableUnmanaged(Unmanaged.passRetained(pixelBuffer))
+            Task { @MainActor [weak self] in
+                guard let self = self else {
+                    sendableUnmanaged.value.release()
+                    return
+                }
+                let buffer = sendableUnmanaged.value.takeRetainedValue()
+                self.recordDecodedFrame()
+                self.delegate?.videoDecoder(self, didDecodeImageBuffer: buffer)
+            }
         }
 
         if status != noErr {
@@ -358,10 +388,7 @@ class VideoDecoder {
     }
 
     private func setupDecompressionSession(format: CMVideoFormatDescription) {
-        if decompressionSession != nil {
-            VTDecompressionSessionInvalidate(decompressionSession!)
-            decompressionSession = nil
-        }
+        sessionHolder = nil
 
         // Configure output pixel buffer format as 32BGRA for seamless Metal compatibility
         let destinationImageBufferAttributes: [String: Any] = [
@@ -388,7 +415,7 @@ class VideoDecoder {
         // Enable real-time / zero-latency decoding
         VTSessionSetProperty(session, key: kVTDecompressionPropertyKey_RealTime, value: kCFBooleanTrue)
 
-        self.decompressionSession = session
+        self.sessionHolder = DecompressionSessionHolder(session)
         print("[+] VTDecompressionSession initialized successfully!")
     }
 
@@ -437,10 +464,7 @@ class VideoDecoder {
 
     private func resetLocked() {
         timingLock.lock()
-        if let session = decompressionSession {
-            VTDecompressionSessionInvalidate(session)
-            decompressionSession = nil
-        }
+        sessionHolder = nil
         formatDescription = nil
         currentCodec = nil
         currentVPS = nil
@@ -455,13 +479,7 @@ class VideoDecoder {
         timingLock.unlock()
     }
 
-    deinit {
-        sessionLock.lock()
-        if let session = decompressionSession {
-            VTDecompressionSessionInvalidate(session)
-        }
-        sessionLock.unlock()
-    }
+
 }
 
 private extension XDisplayVideoCodec {

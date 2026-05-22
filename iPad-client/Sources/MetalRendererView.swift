@@ -2,10 +2,43 @@ import SwiftUI
 import MetalKit
 import CoreVideo
 
-struct MetalRendererView: UIViewRepresentable {
+#if os(iOS)
+typealias ViewRepresentable = UIViewRepresentable
+#elseif os(macOS)
+typealias ViewRepresentable = NSViewRepresentable
+#endif
+
+@MainActor
+struct MetalRendererView: ViewRepresentable {
     let frameHolder: FrameHolder
 
+    #if os(iOS)
     func makeUIView(context: Context) -> MTKView {
+        makeView(context: context)
+    }
+
+    func updateUIView(_ uiView: MTKView, context: Context) {
+        updateView(uiView, context: context)
+    }
+
+    static func dismantleUIView(_ uiView: MTKView, coordinator: Coordinator) {
+        dismantleView(uiView, coordinator: coordinator)
+    }
+    #elseif os(macOS)
+    func makeNSView(context: Context) -> MTKView {
+        makeView(context: context)
+    }
+
+    func updateNSView(_ nsView: MTKView, context: Context) {
+        updateView(nsView, context: context)
+    }
+
+    static func dismantleNSView(_ nsView: MTKView, coordinator: Coordinator) {
+        dismantleView(nsView, coordinator: coordinator)
+    }
+    #endif
+
+    private func makeView(context: Context) -> MTKView {
         let mtkView = MTKView()
         mtkView.device = MTLCreateSystemDefaultDevice()
         mtkView.colorPixelFormat = .bgra8Unorm
@@ -23,19 +56,19 @@ struct MetalRendererView: UIViewRepresentable {
         return mtkView
     }
 
-    func updateUIView(_ uiView: MTKView, context: Context) {
-        context.coordinator.attach(to: uiView)
+    private func updateView(_ view: MTKView, context: Context) {
+        context.coordinator.attach(to: view)
+    }
+
+    private static func dismantleView(_ view: MTKView, coordinator: Coordinator) {
+        coordinator.detach()
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(frameHolder: frameHolder)
     }
 
-    static func dismantleUIView(_ uiView: MTKView, coordinator: Coordinator) {
-        coordinator.detach()
-    }
-
-    class Coordinator: NSObject, MTKViewDelegate {
+    @MainActor class Coordinator: NSObject, MTKViewDelegate {
         private let frameHolder: FrameHolder
         var pixelBuffer: CVPixelBuffer?
         private var device: MTLDevice?
@@ -211,5 +244,41 @@ struct MetalRendererView: UIViewRepresentable {
                 print(String(format: "[Timing] render: %.2f ms (avg %.2f ms, max %.2f ms) | rendered FPS: %.1f", elapsedMs, averageMs, maxMs, renderedFPS))
             }
         }
+    }
+}
+
+struct StreamViewport: View {
+    let frameHolder: FrameHolder
+
+    var body: some View {
+        MetalRendererView(frameHolder: frameHolder)
+    }
+}
+
+extension Color {
+    static let emerald = Color(hex: "10B981")
+
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 }

@@ -117,6 +117,7 @@ struct SettingsView: View {
                             .fontWeight(.semibold)
                     }
 
+#if os(iOS)
                     Section {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 8) {
@@ -156,6 +157,7 @@ struct SettingsView: View {
                             .font(.caption)
                             .fontWeight(.semibold)
                     }
+#endif
                 }
                 .scrollContentBackground(.hidden) // Make form background transparent to show gradient
             }

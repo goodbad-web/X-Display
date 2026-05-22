@@ -3,6 +3,7 @@ import Network
 import CryptoKit
 import XDisplayShared
 
+@MainActor
 protocol StreamClientDelegate: AnyObject {
     func streamClient(_ client: StreamClient, didReceiveVideoFrame data: Data, codec: XDisplayVideoCodec)
     func streamClient(_ client: StreamClient, connectionStateDidChange state: NWConnection.State)
@@ -11,6 +12,7 @@ protocol StreamClientDelegate: AnyObject {
     func streamClient(_ client: StreamClient, didAcceptConnectionWithPIN pin: String)
 }
 
+@MainActor
 class StreamClient {
     enum Mode {
         case initiator
@@ -53,25 +55,27 @@ class StreamClient {
         connection = NWConnection(to: endpoint, using: parameters)
         
         connection?.stateUpdateHandler = { [weak self] state in
-            guard let self = self else { return }
-            self.delegate?.streamClient(self, connectionStateDidChange: state)
-            
-            switch state {
-            case .ready:
-                print("[+] Connected to Mac host! Awaiting security pairing salt...")
-                self.isPaired = false
-                self.sessionKey = nil
-                self.salt = nil
-                self.serverID = nil
-                self.startReceiving()
-            case .failed(let error):
-                print("[-] Connection error: \(error.localizedDescription)")
-                self.disconnect(reason: "Connection state failed: \(error.localizedDescription)")
-            case .cancelled:
-                print("[*] Connection cancelled.")
-                self.disconnect(reason: "Connection state cancelled")
-            default:
-                break
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.delegate?.streamClient(self, connectionStateDidChange: state)
+                
+                switch state {
+                case .ready:
+                    print("[+] Connected to Mac host! Awaiting security pairing salt...")
+                    self.isPaired = false
+                    self.sessionKey = nil
+                    self.salt = nil
+                    self.serverID = nil
+                    self.startReceiving()
+                case .failed(let error):
+                    print("[-] Connection error: \(error.localizedDescription)")
+                    self.disconnect(reason: "Connection state failed: \(error.localizedDescription)")
+                case .cancelled:
+                    print("[*] Connection cancelled.")
+                    self.disconnect(reason: "Connection state cancelled")
+                default:
+                    break
+                }
             }
         }
         
@@ -112,7 +116,9 @@ class StreamClient {
             }
             
             listener?.newConnectionHandler = { [weak self] connection in
-                self?.handleNewConnection(connection)
+                Task { @MainActor [weak self] in
+                    self?.handleNewConnection(connection)
+                }
             }
             
             listener?.start(queue: clientQueue)
@@ -145,23 +151,22 @@ class StreamClient {
         print("[***] SHOWING PIN ON IPAD: \(pinToDisplay)")
         print(String(repeating: "*", count: 40) + "\n")
         
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.delegate?.streamClient(self, didAcceptConnectionWithPIN: pinToDisplay)
-        }
+        self.delegate?.streamClient(self, didAcceptConnectionWithPIN: pinToDisplay)
         
         connection.stateUpdateHandler = { [weak self] state in
-            guard let self = self else { return }
-            self.delegate?.streamClient(self, connectionStateDidChange: state)
-            switch state {
-            case .ready:
-                self.startReceiving()
-            case .failed(let error):
-                self.disconnect(reason: "Connection failed: \(error.localizedDescription)")
-            case .cancelled:
-                self.disconnect(reason: "Connection cancelled")
-            default:
-                break
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.delegate?.streamClient(self, connectionStateDidChange: state)
+                switch state {
+                case .ready:
+                    self.startReceiving()
+                case .failed(let error):
+                    self.disconnect(reason: "Connection failed: \(error.localizedDescription)")
+                case .cancelled:
+                    self.disconnect(reason: "Connection cancelled")
+                default:
+                    break
+                }
             }
         }
         
@@ -198,22 +203,24 @@ class StreamClient {
             return
         }
         
+        let cID = self.clientID
         clientQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            // Derive session key
             let key = CryptoHelper.deriveKey(pin: pin, salt: salt)
-            self.sessionKey = key
             
-            do {
-                let token = Data(XDisplayProtocol.pairingVerificationToken.utf8)
-                let encryptedToken = try CryptoHelper.encrypt(data: token, key: key)
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.sessionKey = key
                 
-                let payload = XDisplayPacketCodec.makePairingVerification(clientID: self.clientID, isTokenAuth: false, encryptedToken: encryptedToken)
-                
-                self.sendPacket(payload)
-            } catch {
-                print("[-] Encryption error during PIN submission: \(error.localizedDescription)")
+                do {
+                    let token = Data(XDisplayProtocol.pairingVerificationToken.utf8)
+                    let encryptedToken = try CryptoHelper.encrypt(data: token, key: key)
+                    
+                    let payload = XDisplayPacketCodec.makePairingVerification(clientID: cID, isTokenAuth: false, encryptedToken: encryptedToken)
+                    
+                    self.sendPacket(payload)
+                } catch {
+                    print("[-] Encryption error during PIN submission: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -333,32 +340,34 @@ class StreamClient {
         guard isRunning else { return }
         // Read 4-byte size header
         connection?.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] (data, context, isComplete, error) in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("[-] Receive length failed: \(error.localizedDescription)")
-                self.disconnect(reason: "Receive length error: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let data = data, data.count == 4 else {
-                if isComplete {
-                    self.disconnect(reason: "Receive length EOF")
-                } else {
-                    self.startReceiving()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("[-] Receive length failed: \(error.localizedDescription)")
+                    self.disconnect(reason: "Receive length error: \(error.localizedDescription)")
+                    return
                 }
-                return
+                
+                guard let data = data, data.count == 4 else {
+                    if isComplete {
+                        self.disconnect(reason: "Receive length EOF")
+                    } else {
+                        self.startReceiving()
+                    }
+                    return
+                }
+                
+                let payloadSize: Int
+                do {
+                    payloadSize = try XDisplayPacketCodec.decodeLengthHeader(data)
+                } catch {
+                    print("[-] Invalid client packet length header: \(error)")
+                    self.disconnect(reason: "Invalid length header: \(error)")
+                    return
+                }
+                self.receivePayload(size: Int(payloadSize))
             }
-            
-            let payloadSize: Int
-            do {
-                payloadSize = try XDisplayPacketCodec.decodeLengthHeader(data)
-            } catch {
-                print("[-] Invalid client packet length header: \(error)")
-                self.disconnect(reason: "Invalid length header: \(error)")
-                return
-            }
-            self.receivePayload(size: Int(payloadSize))
         }
     }
     
@@ -369,27 +378,29 @@ class StreamClient {
         }
         
         connection?.receive(minimumIncompleteLength: size, maximumLength: size) { [weak self] (data, context, isComplete, error) in
-            guard let self = self else { return }
-            
-            if let error = error {
-                print("[-] Receive payload failed: \(error.localizedDescription)")
-                self.disconnect(reason: "Receive payload error: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let data = data, data.count == size else {
-                if isComplete {
-                    self.disconnect(reason: "Receive payload EOF")
-                } else {
-                    self.startReceiving()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("[-] Receive payload failed: \(error.localizedDescription)")
+                    self.disconnect(reason: "Receive payload error: \(error.localizedDescription)")
+                    return
                 }
-                return
+                
+                guard let data = data, data.count == size else {
+                    if isComplete {
+                        self.disconnect(reason: "Receive payload EOF")
+                    } else {
+                        self.startReceiving()
+                    }
+                    return
+                }
+                
+                self.handleIncomingPayload(data)
+                
+                // Listen for next package
+                self.startReceiving()
             }
-            
-            self.handleIncomingPayload(data)
-            
-            // Listen for next package
-            self.startReceiving()
         }
     }
     
@@ -418,17 +429,20 @@ class StreamClient {
             
             if let token = KeychainManager.getToken(for: serverUUID.uuidString) {
                 print("[+] Found persistent token for server. Attempting automatic connection...")
+                let cID = self.clientID
                 clientQueue.async { [weak self] in
-                    guard let self = self else { return }
                     let key = CryptoHelper.deriveKey(keyData: token, salt: saltData)
-                    self.sessionKey = key
-                    do {
-                        let tokenData = Data(XDisplayProtocol.pairingVerificationToken.utf8)
-                        let encryptedToken = try CryptoHelper.encrypt(data: tokenData, key: key)
-                        let payload = XDisplayPacketCodec.makePairingVerification(clientID: self.clientID, isTokenAuth: true, encryptedToken: encryptedToken)
-                        self.sendPacket(payload)
-                    } catch {
-                        print("[-] Encryption error during auto-connect: \(error)")
+                    Task { @MainActor [weak self] in
+                        guard let self = self else { return }
+                        self.sessionKey = key
+                        do {
+                            let tokenData = Data(XDisplayProtocol.pairingVerificationToken.utf8)
+                            let encryptedToken = try CryptoHelper.encrypt(data: tokenData, key: key)
+                            let payload = XDisplayPacketCodec.makePairingVerification(clientID: cID, isTokenAuth: true, encryptedToken: encryptedToken)
+                            self.sendPacket(payload)
+                        } catch {
+                            print("[-] Encryption error during auto-connect: \(error)")
+                        }
                     }
                 }
             } else {

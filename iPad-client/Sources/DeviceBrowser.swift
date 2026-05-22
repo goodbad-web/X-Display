@@ -14,14 +14,15 @@ struct DiscoveredDevice: Identifiable, Hashable {
     let type: ConnectionType
 }
 
+@MainActor
 class DeviceBrowser: ObservableObject {
     @Published var discoveredDevices: [DiscoveredDevice] = []
     private var browser: NWBrowser?
     private let browserQueue = DispatchQueue(label: "com.xdisplay.client.browser-queue", qos: .utility)
     
     func startBrowsing() {
-        browserQueue.async { [weak self] in
-            guard let self = self else { return }
+        let queue = browserQueue
+        queue.async { [weak self] in
             let parameters = NWParameters()
             parameters.includePeerToPeer = true
             let serviceType = NWBrowser.Descriptor.bonjour(type: XDisplayProtocol.bonjourServiceType, domain: "local.")
@@ -40,8 +41,6 @@ class DeviceBrowser: ObservableObject {
             }
             
             newBrowser.browseResultsChangedHandler = { [weak self] (results, changes) in
-                guard let self = self else { return }
-                
                 var devices: [DiscoveredDevice] = []
                 for result in results {
                     if case let .service(name, type, domain, _) = result.endpoint {
@@ -52,21 +51,22 @@ class DeviceBrowser: ObservableObject {
                     }
                 }
                 
-                DispatchQueue.main.async {
-                    self.discoveredDevices = devices
+                Task { @MainActor [weak self] in
+                    self?.discoveredDevices = devices
                 }
             }
             
-            newBrowser.start(queue: self.browserQueue)
-            self.browser = newBrowser
+            newBrowser.start(queue: queue)
+            
+            Task { @MainActor [weak self] in
+                self?.browser = newBrowser
+            }
         }
     }
     
     func stopBrowsing() {
         browser?.cancel()
         browser = nil
-        DispatchQueue.main.async {
-            self.discoveredDevices = []
-        }
+        discoveredDevices = []
     }
 }

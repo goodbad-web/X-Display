@@ -1034,6 +1034,13 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem.separator())
 
+        // 4.5 Open Receiver Window
+        let receiverItem = NSMenuItem(title: "Open Receiver Window", action: #selector(openReceiverWindow), keyEquivalent: "r")
+        receiverItem.target = self
+        menu.addItem(receiverItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         // 5. Quit Action
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
@@ -1218,6 +1225,10 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    @objc private func openReceiverWindow() {
+        ClientReceiverWindowController.open()
     }
 
     @objc private func quitApp() {
