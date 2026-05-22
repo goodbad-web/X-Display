@@ -22,6 +22,7 @@
 		86608E36812CBB91646C7EAB /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9383FDE152DDC7D061B68AC0 /* AppViewModel.swift */; };
 		8D33B4FB3EF10F030F82BAFF /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9383FDE152DDC7D061B68AC0 /* AppViewModel.swift */; };
 		99C6D36E9022B2C306AB637A /* MetalRendererView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E5EDCE1CE211B20C414A57A /* MetalRendererView.swift */; };
+		A7B4FCB8141D08C1C4A853FA /* WindowLayoutRestorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21634ED1B2BB021516B437D3 /* WindowLayoutRestorer.swift */; };
 		A952A9B390738A0816B4077B /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04C2E9C4F957E21887C51669 /* App.swift */; };
 		B264E7CB0905373E3D565FB6 /* MetalRendererView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E5EDCE1CE211B20C414A57A /* MetalRendererView.swift */; };
 		C944CA6548A140FD6EDFCB23 /* StreamClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AFCEEE17C230DFFF0734000 /* StreamClient.swift */; };
@@ -33,9 +34,10 @@
 
 /* Begin PBXFileReference section */
 		04C2E9C4F957E21887C51669 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-		0AB41F63E12C19CDDBDD296F /* X-Display-Client.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X-Display-Client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0AB41F63E12C19CDDBDD296F /* X-Display-Client.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "X-Display-Client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E5EDCE1CE211B20C414A57A /* MetalRendererView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRendererView.swift; sourceTree = "<group>"; };
-		202A228318548DD227E329EB /* XDisplayShared */ = {isa = PBXFileReference; lastKnownFileType = folder; path = XDisplayShared; sourceTree = SOURCE_ROOT; };
+		202A228318548DD227E329EB /* XDisplayShared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = XDisplayShared; path = XDisplayShared; sourceTree = SOURCE_ROOT; };
+		21634ED1B2BB021516B437D3 /* WindowLayoutRestorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutRestorer.swift; sourceTree = "<group>"; };
 		21ED29364738174351C3C9EF /* ClientReceiverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientReceiverView.swift; sourceTree = "<group>"; };
 		290006FF26BEE7AA02629929 /* X_display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = X_display.swift; sourceTree = "<group>"; };
 		2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamServer.swift; sourceTree = "<group>"; };
@@ -97,6 +99,7 @@
 				21ED29364738174351C3C9EF /* ClientReceiverView.swift */,
 				2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */,
 				8AACD9D0BBFB80BE208E94EE /* VideoEncoder.swift */,
+				21634ED1B2BB021516B437D3 /* WindowLayoutRestorer.swift */,
 				290006FF26BEE7AA02629929 /* X_display.swift */,
 			);
 			name = "X-display";
@@ -247,6 +250,7 @@
 				4BDF520060BAA53CA49AE65E /* StreamServer.swift in Sources */,
 				547513A74C2012257FD265D6 /* VideoDecoder.swift in Sources */,
 				3C2462C559A53A202CD31E76 /* VideoEncoder.swift in Sources */,
+				A7B4FCB8141D08C1C4A853FA /* WindowLayoutRestorer.swift in Sources */,
 				F75AF0489E33180BD7EE9065 /* X_display.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -339,7 +343,6 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "iPad-client/Info.plist";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -480,7 +483,6 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "iPad-client/Info.plist";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

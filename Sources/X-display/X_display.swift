@@ -919,6 +919,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let helper = CVirtualDisplayHelper.shared()
     private let captureManager = ScreenCaptureManager()
+    private let windowRestorer = WindowLayoutRestorer()
 
     #if canImport(Sparkle)
     private var updaterController: SPUStandardUpdaterController?
@@ -1188,11 +1189,18 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     }
 
     private func performStopDisplay(keepServer: Bool = false) async {
+        let createdDisplayID = helper.currentDisplayID()
+        if createdDisplayID != kCGNullDirectDisplay {
+            windowRestorer.saveLayout(forDisplayID: createdDisplayID)
+        }
+
         print("[*] Stopping screen capture stream...")
         await captureManager.stopCapture(keepServer: keepServer)
 
         print("[*] Destroying virtual display and releasing ports...")
         helper.destroyVirtualDisplay()
+
+        windowRestorer.restoreLayoutToMainDisplay()
         print("[+] Streaming stopped & resources cleaned up.")
     }
 
