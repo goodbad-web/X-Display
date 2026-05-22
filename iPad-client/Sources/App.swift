@@ -27,6 +27,7 @@ struct ContentView: View {
     @AppStorage("idleTimeoutSeconds") private var idleTimeoutSeconds = 5
     @AppStorage("selectedCodec") private var selectedCodec = "HEVC"
     @AppStorage("maxFrameRate") private var maxFrameRate = 60
+    @AppStorage("enableEnergySaving") private var enableEnergySaving = false
 
     private func resetIdleTimer() {
         idleTimerTask?.cancel()
@@ -419,6 +420,11 @@ struct ContentView: View {
             }
         }
         .onChange(of: maxFrameRate) {
+            if viewModel.isConnected {
+                viewModel.sendClientInfo()
+            }
+        }
+        .onChange(of: enableEnergySaving) {
             if viewModel.isConnected {
                 viewModel.sendClientInfo()
             }

@@ -11,6 +11,7 @@
 		08082185DF6F651DC11558C0 /* XDisplayShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5F3EBAC0CF1F820CD199F616 /* XDisplayShared */; };
 		1D0DF888039D01EEA2E37F46 /* StreamClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F45DED6E6586FDCE01DB28 /* StreamClient.swift */; };
 		4CED8759F5F339D3C0EA32EF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C114E69EACE20916359B51 /* SettingsView.swift */; };
+		54AD6C1D35AED0989B664ABD /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9113DDDA98FB461DF7A155 /* AppViewModel.swift */; };
 		772530126FD303C9172D8988 /* VideoDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E6D9BF48E03610E212FA0A /* VideoDecoder.swift */; };
 		783546F99D8C510F7C43FB58 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB77DFB227F21A091B29FE5F /* App.swift */; };
 		7C4CBCB7DE20856230F0941D /* DeviceBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C110025CE026BF8BFDC5F69C /* DeviceBrowser.swift */; };
@@ -25,6 +26,7 @@
 		47C114E69EACE20916359B51 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		501F615F26EC4B8F8002FFC2 /* X-Display-Client.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "X-Display-Client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		937DBBB0A5A2A5D1A35F6C52 /* TouchOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchOverlayView.swift; sourceTree = "<group>"; };
+		9B9113DDDA98FB461DF7A155 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
 		C110025CE026BF8BFDC5F69C /* DeviceBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceBrowser.swift; sourceTree = "<group>"; };
 		C4F45DED6E6586FDCE01DB28 /* StreamClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamClient.swift; sourceTree = "<group>"; };
 		FA90EDF2C1B9714CACB1594B /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				FB77DFB227F21A091B29FE5F /* App.swift */,
+				9B9113DDDA98FB461DF7A155 /* AppViewModel.swift */,
 				C110025CE026BF8BFDC5F69C /* DeviceBrowser.swift */,
 				0564471E05AC10C6B139113F /* MetalRendererView.swift */,
 				47C114E69EACE20916359B51 /* SettingsView.swift */,
@@ -148,6 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				783546F99D8C510F7C43FB58 /* App.swift in Sources */,
+				54AD6C1D35AED0989B664ABD /* AppViewModel.swift in Sources */,
 				7C4CBCB7DE20856230F0941D /* DeviceBrowser.swift in Sources */,
 				04548C91400AAFE931539498 /* MetalRendererView.swift in Sources */,
 				4CED8759F5F339D3C0EA32EF /* SettingsView.swift in Sources */,

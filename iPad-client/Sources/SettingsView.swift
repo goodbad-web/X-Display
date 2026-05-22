@@ -10,6 +10,7 @@ struct SettingsView: View {
     @AppStorage("idleTimeoutSeconds") private var idleTimeoutSeconds = 5
     @AppStorage("enableScreenSaver") private var enableScreenSaver = false
     @AppStorage("screenSaverTimeoutMinutes") private var screenSaverTimeoutMinutes = 5
+    @AppStorage("enableEnergySaving") private var enableEnergySaving = false
 
     var body: some View {
         NavigationStack {
@@ -93,6 +94,16 @@ struct SettingsView: View {
                                 .foregroundColor(.emerald)
                                 .frame(width: 24)
                             Toggle("Screen Saver", isOn: $enableScreenSaver)
+                                .tint(.emerald)
+                                .foregroundColor(.white)
+                        }
+                        .listRowBackground(Color.white.opacity(0.05))
+
+                        HStack {
+                            Image(systemName: "battery.100.bolt")
+                                .foregroundColor(.emerald)
+                                .frame(width: 24)
+                            Toggle("Energy Saving Mode (30 FPS)", isOn: $enableEnergySaving)
                                 .tint(.emerald)
                                 .foregroundColor(.white)
                         }

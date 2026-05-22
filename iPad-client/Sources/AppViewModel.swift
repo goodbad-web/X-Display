@@ -162,7 +162,14 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         let codecStr = UserDefaults.standard.string(forKey: "selectedCodec") ?? "HEVC"
         let codec: XDisplayVideoCodec = (codecStr == "H.264") ? .h264 : .hevc
         let maxFps = UserDefaults.standard.integer(forKey: "maxFrameRate")
-        let fps = (maxFps == 30) ? UInt8(30) : UInt8(60)
+        let enableEnergySaving = UserDefaults.standard.bool(forKey: "enableEnergySaving")
+        
+        let fps: UInt8
+        if enableEnergySaving {
+            fps = 30
+        } else {
+            fps = (maxFps == 30) ? UInt8(30) : UInt8(60)
+        }
         
         streamClient.sendClientInfo(
             isPortrait: self.isClientPortrait,
