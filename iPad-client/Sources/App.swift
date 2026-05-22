@@ -550,9 +550,6 @@ struct PINEntryView: View {
             
             if newValue != truncated {
                 pin = truncated
-            } else if truncated.count == 4 {
-                isTextFieldFocused = false
-                onSubmit()
             }
         }
     }
