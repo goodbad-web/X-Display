@@ -18,6 +18,8 @@
 - reconnect_started
 - reconnect_succeeded
 - reconnect_failed
+- client_window_opened
+- client_window_closed
 
 ## フレームごとのtimestamp
 - capture_ts

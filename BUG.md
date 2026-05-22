@@ -47,8 +47,26 @@
 - **現象**: 接続完了後、または再接続時にiPadの画面が黒いままになり、ペアリング成功（`Pairing verified by host!`）の直後に `StreamClient` が即時切断（`StreamClient disconnected`）され無限再接続ループに陥る。
 - **原因の仮説と対応策**:
   - **仮説1**: Mac側の `NSAlert.runModal()` がメインスレッドをブロックし、ペアリング成功後のストリーム配信やソケット通信にデッドロックやタイムアウトを引き起こしている。
-    - **対応策**: `X_display.swift` 内の `alert.runModal()` を非ブロックのフローティングウィンドウ表示（`window.makeKeyAndOrderFront`）へ変更し、メインスレッドのブロッキングリスクを完全に排除。
+    - **対応策**: `X_display.swift` 内の `alert.runModal()` を非ブロックの浮動ウィンドウ表示（`window.makeKeyAndOrderFront`）へ変更し、メインスレッドのブロッキングリスクを完全に排除。
   - **仮説2**: SwiftUIのシート破棄の副作用、またはソケット切断（EOF）による自動クローズ。
     - **対応策**: `StreamClient.swift` の切断ロジックおよび `AppViewModel.disconnect()` に詳細なスタックトレースと切断理由（Reason）ログを組み込み、実行時ログからトリガーを特定できるようにした。
   - **確認済み原因**: ペアリング前の `SCStream` フレーム破棄により、接続直後に送る初回IDR/SPS/PPSが欠けるケースがあった。また仮想ディスプレイ環境では `SCStream` が初回1フレーム後に継続更新しないケースを確認。
     - **対応策**: ペアリング前から最新 `CVPixelBuffer` を保持し、ペアリング完了時に即時keyframe送信する。`SCStream` health monitor + restart を追加し、停止・詰まり時は `SCStream` のみ再生成する。fallback capture は再起動失敗時の最終手段に限定する。
+
+---
+
+## 3. 統合開発における想定課題（Unified App Integration Issues）
+
+### ⚠️ Issue 06: AppKit / UIKit 依存関係のコンパイル衝突
+- **現象**: 統合プロジェクトをビルドする際、macOS用の `NSWindow` / `NSAlert` 関連コードがiOSビルド時にコンパイルエラーを起こす、またはiOS用の `UIWindow` 関連コードがmacOSビルド時にエラーを起こす。
+- **原因**: プラットフォーム固有のUIフレームワークがターゲットを跨いで参照されてしまうこと。
+- **解決策**:
+  - UIやウィンドウの制御ファイルは完全にプラットフォーム毎にフォルダ分けを行い、Xcodeの Target Membership を厳密に設定する。
+  - 共通コード内でUIライブラリに依存せざるを得ない部分は、`#if os(macOS)`（AppKit呼び出し）と `#if os(iOS)`（UIKit呼び出し）で厳格に分岐させる。
+
+### ⚠️ Issue 07: Bridge-HeaderおよびmacOS専用ライブラリのiOSターゲットへの漏洩
+- **現象**: iOSターゲットのビルド時、`CVirtualDisplay`（Objective-Cクラス）や `Sparkle` パッケージへの暗黙参照が発生し、リンクエラーが発生する。
+- **原因**: 共通ファイルやBridging-Headerがプラットフォーム毎に精査されず、共通で読み込まれてしまう。
+- **解決策**:
+  - `Sparkle` はmacOSターゲットの `Dependencies` にのみ追加し、コード内での `import Sparkle` は必ず `#if os(macOS)` で囲む。
+  - Bridging Header内のインポートはmacOSでのみ有効化されるようにヘッダー記述をガードするか、Xcodeのビルド設定でiOSターゲット側にはBridging Headerを設定しないように構成する。

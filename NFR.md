@@ -18,7 +18,8 @@
 
 ## Resource
 - idle CPU: 5%以下
-- streaming CPU: 25%以下
+- streaming CPU: 25%以下（Mac送信のみ または iPad受信のみ）
+- dual-mode streaming CPU: 30%以下（Mac上での送信＋受信同時稼働時）
 - memory leak: 10MB/hour 以下
 - thermal warning時: bitrateまたはfpsを下げる
 

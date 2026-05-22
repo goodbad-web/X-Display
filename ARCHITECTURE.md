@@ -1,24 +1,25 @@
 # ARCHITECTURE: 内部設計・データフロー定義書
 
 ## 1. 全体スレッド＆キュー設計
-低遅延処理を保証するため、ホスト（macOS）およびクライアント（iPadOS）はスレッドを厳格に分離し、メインスレッドのブロッキングを回避する非同期アーキテクチャを採用します。
+低遅延処理を保証するため、ホスト（macOS）およびクライアント（iPadOS / macOS Client）はスレッドを厳格に分離し、メインスレッドのブロッキングを回避する非同期アーキテクチャを採用します。
 
-### 1.1 macOS (Host) スレッド構成
+### 1.1 macOS (Dual-Mode: Host + Client) スレッド構成
+macOSアプリはホスト（送信）とクライアント（受信）の両機能を持ったマルチスレッドとして動作可能です。
+
 ```
-[Main Thread] (UI/ウィンドウ管理/ユーザー入力)
+[Main Thread] (UI/ウィンドウ管理/ユーザー入力/ライフサイクル)
    │
-   ├── [AVD Event Queue] (VirtualDisplayの起動・ライフサイクル管理)
+   ├── 【Host / 送信側コンポーネント】
+   │     ├── [AVD Event Queue] (CGVirtualDisplayの起動・ライフサイクル管理)
+   │     ├── [SCK Capture Queue] (ScreenCaptureKitのフレーム受信用: Serial Dispatch Queue)
+   │     │     └── キャプチャコールバック (CVPixelBufferの取得)
+   │     ├── [VideoToolbox Queue] (エンコード処理スレッド: H.264/HEVC 圧縮)
+   │     └── [Socket Send Queue] (USBMuxd / Bonjour TCPソケットへのノンブロッキング送信)
    │
-   ├── [SCK Capture Queue] (ScreenCaptureKitのフレーム受信用: Serial Dispatch Queue)
-   │     └── キャプチャコールバック (CVPixelBufferの取得)
-   │           │
-   │           ▼
-   ├── [VideoToolbox Queue] (エンコード処理スレッド)
-   │     └── H.264/HEVC リアルタイム圧縮 (B-Frames = 0)
-   │           │
-   │           ▼
-   └── [Socket Send Queue] (送信用バックグラウンドスレッド)
-         └── USBMuxd / Bonjour TCPソケットへのノンブロッキング送信 (TCP_NODELAY)
+   └── 【Client / 受信側コンポーネント】
+         ├── [Socket Recv Queue] (TCPソケット受信スレッド)
+         ├── [VideoToolbox Dec Queue] (ハードウェアデコード処理スレッド)
+         └── [Metal Render Queue] (MTKViewを用いた画面描画スレッド: 60fps)
 ```
 
 ---

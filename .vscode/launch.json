@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:X-display}",
+            "name": "Debug X-display",
+            "target": "X-display",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug X-display"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:X-display}",
+            "name": "Release X-display",
+            "target": "X-display",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release X-display"
+        }
+    ]
+}

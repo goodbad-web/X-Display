@@ -16,41 +16,57 @@
 
 ## 2. API 実装テンプレート (Core API Code Patterns)
 
-### 2.1 AppleVirtualDisplay の動的ロードパターン (Objective-C)
-プライベートシンボルのリンクを避けるため、実行時に `dlopen` と `NSInvocation` を用いて仮想ディスプレイを動的に構築する標準パターンです。
+### 2.1 CGVirtualDisplay の動的ロードパターン (Objective-C)
+プライベートシンボルのリンクを避けるため、実行時に `NSClassFromString` を用いて `CGVirtualDisplay` 関連クラスをロードし、仮想ディスプレイを動的に構築する標準パターンです。
 
 ```objc
-// Dynamic creation helper
-- (id)createDisplayWithWidth:(uint32_t)w height:(uint32_t)h error:(NSError **)err {
-    Class controllerClass = NSClassFromString(@"AVDVirtualDisplayController");
-    Class settingsClass = NSClassFromString(@"AVDVirtualDisplaySettings");
-    if (!controllerClass || !settingsClass) return nil;
+- (BOOL)createVirtualDisplayWithLogicalWidth:(uint32_t)logicalWidth
+                               logicalHeight:(uint32_t)logicalHeight
+                                  pixelWidth:(uint32_t)pixelWidth
+                                 pixelHeight:(uint32_t)pixelHeight
+                                       hiDPI:(BOOL)hiDPI
+                              pixelsPerInch:(double)pixelsPerInch
+                                       error:(NSError **)outError {
+    Class descriptorClass = NSClassFromString(@"CGVirtualDisplayDescriptor");
+    Class modeClass = NSClassFromString(@"CGVirtualDisplayMode");
+    Class settingsClass = NSClassFromString(@"CGVirtualDisplaySettings");
+    Class displayClass = NSClassFromString(@"CGVirtualDisplay");
 
-    id controller = [[controllerClass alloc] init];
-    id settings = [[settingsClass alloc] init];
-    [settings setValue:@(w) forKey:@"width"];
-    [settings setValue:@(h) forKey:@"height"];
+    if (!descriptorClass || !modeClass || !settingsClass || !displayClass) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"CVirtualDisplay" code:1 userInfo:@{NSLocalizedDescriptionKey: @"CGVirtualDisplay private classes are not available."}];
+        }
+        return NO;
+    }
 
-    SEL createSelector = NSSelectorFromString(@"createVirtualDisplayWithSettings:queue:error:");
-    NSMethodSignature *sig = [controller methodSignatureForSelector:createSelector];
-    NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
-    [inv setTarget:controller];
-    [inv setSelector:createSelector];
-
-    dispatch_queue_t queue = dispatch_get_main_queue();
-    __autoreleasing NSError *creationError = nil;
-    NSError *__autoreleasing *errPtr = &creationError;
-
-    [inv setArgument:&settings atIndex:2];
-    [inv setArgument:&queue atIndex:3];
-    [inv setArgument:&errPtr atIndex:4];
-
-    [inv invoke];
-    __unsafe_unretained id displayResult = nil;
-    [inv getReturnValue:&displayResult];
+    // ディスクリプタの初期化
+    id descriptor = [[descriptorClass alloc] init];
+    [descriptor setValue:@"X-Display Virtual Display" forKey:@"name"];
+    [descriptor setValue:@(pixelWidth) forKey:@"maxPixelsWide"];
+    [descriptor setValue:@(pixelHeight) forKey:@"maxPixelsHigh"];
+    [descriptor setValue:dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0) forKey:@"queue"];
     
-    if (err) *err = creationError;
-    return displayResult;
+    // 設定とモードの初期化
+    id settings = [[settingsClass alloc] init];
+    [settings setValue:@(hiDPI ? 1 : 0) forKey:@"hiDPI"];
+
+    // 解像度モードの作成（1920x1080@60Hz等）
+    id mode = [[modeClass alloc] performSelector:@selector(initWithWidth:height:refreshRate:)
+                                      withObject:@(logicalWidth)
+                                      withObject:@(logicalHeight)
+                                      withObject:@(60.0)];
+    [settings setValue:@[mode] forKey:@"modes"];
+
+    // ディスプレイの生成と設定反映
+    id virtualDisplay = [[displayClass alloc] performSelector:@selector(initWithDescriptor:) withObject:descriptor];
+    BOOL applied = [virtualDisplay performSelector:@selector(applySettings:) withObject:settings];
+    
+    if (!applied) {
+        return NO;
+    }
+    
+    _virtualDisplay = virtualDisplay; // インスタンスを保持
+    return YES;
 }
 ```
 

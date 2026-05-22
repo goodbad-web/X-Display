@@ -43,3 +43,10 @@
   - [ ] OBSERVABILITY.md の必須ログを実装
   - [ ] Degraded / Reconfiguring / Fatal 状態を実装
   - [ ] sleep/wake, USB抜き差し, Wi-Fi切断, iPad再接続を検証
+
+- [ ] **Phase 8: Unified App Integration & Target Consolidation**
+  - [ ] `project.yml` を拡張したマルチプラットフォーム用単一XcodeGen定義の構築
+  - [ ] 送受信共通ロジック `XDisplayShared` とのターゲット間依存性整理
+  - [ ] `#if os(macOS)` を用いたプライベートAPI（`CGVirtualDisplay` 等）のiOSからの完全除外
+  - [ ] macOS側エントリーポイントにおける「送信/受信デュアルモード」UIの実装
+  - [ ] iOS向けビルドにおけるプライベートAPI参照の排除検証（`nm` / `strings` 静的解析）
