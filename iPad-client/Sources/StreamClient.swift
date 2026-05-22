@@ -56,11 +56,12 @@ class StreamClient {
             tcpOpt.noDelay = true
         }
         
-        connection = NWConnection(to: endpoint, using: parameters)
+        let newConnection = NWConnection(to: endpoint, using: parameters)
+        self.connection = newConnection
         
-        connection?.stateUpdateHandler = { [weak self] state in
+        newConnection.stateUpdateHandler = { [weak self] state in
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
+                guard let self = self, self.connection === newConnection else { return }
                 self.delegate?.streamClient(self, connectionStateDidChange: state)
                 
                 switch state {
@@ -159,7 +160,7 @@ class StreamClient {
         
         connection.stateUpdateHandler = { [weak self] state in
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
+                guard let self = self, self.connection === connection else { return }
                 self.delegate?.streamClient(self, connectionStateDidChange: state)
                 switch state {
                 case .ready:
@@ -193,6 +194,7 @@ class StreamClient {
         connection?.cancel()
         connection = nil
         print("[*] StreamClient disconnected. Reason: \(reason)")
+        self.delegate?.streamClient(self, connectionStateDidChange: .cancelled)
     }
 
     func stopListening() {
@@ -341,11 +343,11 @@ class StreamClient {
     }
     
     private func startReceiving() {
-        guard isRunning else { return }
+        guard isRunning, let currentConnection = connection else { return }
         // Read 4-byte size header
-        connection?.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] (data, context, isComplete, error) in
+        currentConnection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] (data, context, isComplete, error) in
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
+                guard let self = self, self.connection === currentConnection else { return }
                 
                 if let error = error {
                     print("[-] Receive length failed: \(error.localizedDescription)")
@@ -376,14 +378,14 @@ class StreamClient {
     }
     
     private func receivePayload(size: Int) {
-        guard isRunning, size > 0 else {
+        guard isRunning, size > 0, let currentConnection = connection else {
             self.startReceiving()
             return
         }
         
-        connection?.receive(minimumIncompleteLength: size, maximumLength: size) { [weak self] (data, context, isComplete, error) in
+        currentConnection.receive(minimumIncompleteLength: size, maximumLength: size) { [weak self] (data, context, isComplete, error) in
             Task { @MainActor [weak self] in
-                guard let self = self else { return }
+                guard let self = self, self.connection === currentConnection else { return }
                 
                 if let error = error {
                     print("[-] Receive payload failed: \(error.localizedDescription)")

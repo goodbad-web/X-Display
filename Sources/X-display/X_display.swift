@@ -235,7 +235,8 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         config.height = configuration.pixelSize.height
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.queueDepth = 3
-        config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(maxFrameRate))
+        // VFR(可変フレームレート)を利用してエネルギー効率を向上させるため、minimumFrameIntervalの固定を解除
+        // config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(maxFrameRate))
         config.showsCursor = true
         config.capturesAudio = false
         return config

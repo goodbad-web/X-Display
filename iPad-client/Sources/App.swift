@@ -488,7 +488,7 @@ struct PINEntryView: View {
                 VStack(spacing: 12) {
                     TextField("0000", text: $pin)
                         .focused($isTextFieldFocused)
-                        .keyboardType(.numberPad)
+                        .keyboardType(.asciiCapableNumberPad)
                         .submitLabel(.done)
                         .onSubmit {
                             if pin.count == 4 {

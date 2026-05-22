@@ -245,13 +245,14 @@ final class StreamServer: @unchecked Sendable {
         }
     }
     
-    private func sendPacket(_ payload: Data, to connection: NWConnection) {
+    private func sendPacket(_ payload: Data, to connection: NWConnection, completion: (() -> Void)? = nil) {
         let packet = XDisplayPacketCodec.encodePacket(payload: payload)
         
         connection.send(content: packet, completion: .contentProcessed({ error in
             if let error = error {
                 print("[-] Server failed to send packet: \(error.localizedDescription)")
             }
+            completion?()
         }))
     }
     
@@ -388,8 +389,9 @@ final class StreamServer: @unchecked Sendable {
             } catch {
                 print("[-] Pairing Failed. Invalid PIN or Token submitted by client.")
                 let reply = XDisplayPacketCodec.makePairingResult(success: false, encryptedToken: nil)
-                self.sendPacket(reply, to: session.connection)
-                self.removeConnection(id: session.id)
+                self.sendPacket(reply, to: session.connection) { [weak self] in
+                    self?.removeConnection(id: session.id)
+                }
             }
             
         case .inputEvent:

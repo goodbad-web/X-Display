@@ -112,10 +112,12 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         print("[*] AppViewModel.disconnect() called from stack:\n\(Thread.callStackSymbols.prefix(5).joined(separator: "\n"))")
         streamClient.disconnect(reason: "AppViewModel request")
         videoDecoder.reset()
-        isConnected = false
-        isPairingRequired = false
-        enteredPIN = ""
-        hostGeneratedPIN = nil
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            isConnected = false
+            isPairingRequired = false
+            enteredPIN = ""
+            hostGeneratedPIN = nil
+        }
         connectionStatus = "Disconnected"
         frameHolder.display(nil)
         
@@ -205,9 +207,11 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             
             streamClient.disconnect(reason: "Auto-switching to wired connection")
             videoDecoder.reset()
-            isConnected = false
-            isPairingRequired = false
-            enteredPIN = ""
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                isConnected = false
+                isPairingRequired = false
+                enteredPIN = ""
+            }
             
             self.connect(endpoint: wiredDevice.endpoint, type: .wired)
         }
@@ -237,13 +241,17 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
                 if self.activeConnectionType == .wired, let fallbackEndpoint = self.lastWirelessEndpoint {
                     print("[-] Wired connection lost. Falling back to Wireless...")
                     self.connectionStatus = "Fallback to Wireless..."
-                    self.isConnected = false
-                    self.isPairingRequired = false
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        self.isConnected = false
+                        self.isPairingRequired = false
+                    }
                     self.connect(endpoint: fallbackEndpoint, type: .wireless)
                 } else {
                     self.connectionStatus = "Failed: \(error.localizedDescription)"
-                    self.isConnected = false
-                    self.isPairingRequired = false
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        self.isConnected = false
+                        self.isPairingRequired = false
+                    }
                     self.deviceBrowser.startBrowsing()
                 }
             case .cancelled:
@@ -252,8 +260,10 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
                     break
                 }
                 self.connectionStatus = "Disconnected"
-                self.isConnected = false
-                self.isPairingRequired = false
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    self.isConnected = false
+                    self.isPairingRequired = false
+                }
                 self.deviceBrowser.startBrowsing()
             @unknown default:
                 break
@@ -264,23 +274,29 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data) {
         DispatchQueue.main.async {
             self.connectionStatus = "PIN required"
-            self.isPairingRequired = true
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                self.isPairingRequired = true
+            }
         }
     }
     
     func streamClient(_ client: StreamClient, didAcceptConnectionWithPIN pin: String) {
         DispatchQueue.main.async {
-            self.hostGeneratedPIN = pin
             self.connectionStatus = "Mac is connecting..."
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                self.hostGeneratedPIN = pin
+            }
         }
     }
 
     func streamClient(_ client: StreamClient, didFinishPairingWithResult success: Bool) {
         DispatchQueue.main.async {
-            self.isPairingRequired = false
-            self.hostGeneratedPIN = nil
             self.connectionStatus = success ? "Connected" : "Pairing failed"
-            self.isConnected = success
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                self.isPairingRequired = false
+                self.hostGeneratedPIN = nil
+                self.isConnected = success
+            }
             if success {
                 self.sendClientInfo()
             } else {

@@ -70,7 +70,8 @@ class VideoEncoder {
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_MaxFrameDelayCount, value: 0 as CFNumber)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_AllowFrameReordering, value: kCFBooleanFalse)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ProfileLevel, value: codec.profileLevel)
-        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ExpectedFrameRate, value: 60 as CFNumber)
+        // VFR対応のためExpectedFrameRateの固定を解除
+        // VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ExpectedFrameRate, value: 60 as CFNumber)
 
         let bitRate = targetBitRate(width: width, height: height, codec: codec)
         let dataRateLimit: [NSNumber] = [

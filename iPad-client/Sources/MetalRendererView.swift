@@ -198,9 +198,6 @@ struct MetalRendererView: ViewRepresentable {
             }
             commandBuffer.commit()
             
-            // 不要になったテクスチャキャッシュを即座に解放し、メモリの肥大化とスパイクを防ぐ
-            CVMetalTextureCacheFlush(textureCache, 0)
-            
             recordRenderTiming(DispatchTime.now().uptimeNanoseconds - start)
         }
 
