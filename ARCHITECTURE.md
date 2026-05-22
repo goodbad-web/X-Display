@@ -61,57 +61,26 @@ stateDiagram-v2
 
 ## 3. 通信データパケット仕様 (Packet Protocol)
 
-Wi-FiおよびUSB/Thunderbolt経由でのTCPソケット通信において、画面データと入力データを効率的かつ低オーバーヘッドで識別するためのカスタムバイナリプロトコルを定義します。
+低遅延・超軽量通信を実現するため、プロトコルは極めてシンプルなヘッダー構造を採用しています。
 
-struct XDSPPacketHeader {
-    uint32_t magicNumber;
-    uint16_t protocolVersion;
-    uint16_t packetType;
-    uint16_t flags;
-    uint16_t headerLength;
-    uint32_t sequenceNumber;
-    uint32_t payloadLength;
-    uint32_t crc32;
-};
+### 3.1 パケット構造
 
-### Version Compatibility Policy
+```
+[ 4 bytes: Payload Length (UInt32, Big-Endian) ] [ Variable bytes: Payload ]
+```
 
-- major mismatch -> reject connection
-- minor mismatch -> feature downgrade allowed
-- unsupported flags -> ignore safely
+### 3.2 ペイロード構造 (Payload)
 
-### 3.1 パケット共通ヘッダー (Packet Header: 24 bytes)
-すべてのパケットは、先頭に以下の12バイトの共通ヘッダーを持ちます。
+ペイロードの先頭1バイトはデータ型を識別するマジックバイト（`XDisplayPayloadMagic`）です。
 
-| バイト位置 (Offset) | データ型 (Type) | フィールド名 (Field Name) | 説明 (Description) |
-| :--- | :--- | :--- | :--- |
-| `0x00 - 0x03` | `uint32_t` | `magicNumber` | プロトコル識別マジックナンバー (`0x58445350` = "XDSP") |
-| `0x04 - 0x05` | `uint16_t` | `packetType` | パケットタイプ (下記参照) |
-| `0x06 - 0x07` | `uint16_t` | `reserved` | 予約領域 (将来の拡張用: `0x0000`) |
-| `0x08 - 0x0B` | `uint32_t` | `payloadLength` | ペイロードデータサイズ (ヘッダーを除いた実データ長) |
+```
+[ 1 byte: Magic ] [ Variable bytes: Encrypted or Plain Body ]
+```
 
-### 3.2 パケットタイプ定義 (`packetType`)
-- `0x0001`: **Ping / Pong** (接続確認・遅延測定用)
-- `0x0002`: **Handshake Request / Response** (初期情報、解像度、OSバージョン情報の交換)
-- `0x0003`: **Auth / PIN Verify** (ペアリング認証)
-- `0x0010`: **Video Stream Frame** (H.264/HEVC エンコードされたNALユニットのペイロード)
-- `0x0020`: **Touch Input Event** (iPad側からのシングル/マルチタッチ座標データ)
-- `0x0021`: **Apple Pencil Event** (タッチ座標に加え、筆圧・傾き・消しゴム情報を含む高精度ペンデータ)
-- `0x0030`: **Command / Control** (解像度の動的変更、画面スリープ、切断通知など)
-
-### 3.3 ペイロード構成例
-
-#### ① Video Stream Frame (`0x0010`)
-ヘッダーの直後に以下のメタデータが入り、その後にH.264/H.265のNALユニットバイナリが続きます。
-- `frameNumber` (`uint32_t`: 4 bytes): 連番フレームインデックス
-- `timestamp` (`uint64_t`: 8 bytes): 送信側タイムスタンプ (遅延計測用)
-- `videoData` (`Variable bytes`): H.264/HEVC NAL Units (SPS/PPS, I-Frame, P-Frame)
-
-#### ② Apple Pencil Event (`0x0021`)
-iPadから逆送信される高精度ペン入力パケットのペイロード構造です。
-- `x` (`float`: 4 bytes): 横方向正規化座標 (0.0 〜 1.0)
-- `y` (`float`: 4 bytes): 縦方向正規化座標 (0.0 〜 1.0)
-- `pressure` (`float`: 4 bytes): 筆圧値 (0.0 〜 1.0)
-- `tilt` (`float`: 4 bytes): ペンの傾き角度 (ラジアン)
-- `azimuth` (`float`: 4 bytes): ペンの平面的向き (ラジアン)
-- `eventType` (`uint8_t`: 1 byte): `0` = TouchBegan, `1` = TouchMoved, `2` = TouchEnded
+#### マジックバイト一覧 (`XDisplayPayloadMagic`)
+- `0x02` (Pairing Request): ペアリング要求 (Salt + UUID)
+- `0x03` (Pairing Verify): ペアリング検証 (UUID + Token Auth Flag + Encrypted Token)
+- `0x04` (Pairing Result): ペアリング結果 (Success Flag + Encrypted Token)
+- `0x10` (Video Frame): ビデオストリームフレーム (Encrypted H.264/HEVC NAL Units)
+- `0x11` (Input Event): 入力イベント (Encrypted Touch/Pencil イベント)
+- `0x12` (Client Info): クライアント環境情報 (Encrypted orientation/codec/fps)
