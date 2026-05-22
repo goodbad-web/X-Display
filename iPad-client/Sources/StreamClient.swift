@@ -8,19 +8,28 @@ protocol StreamClientDelegate: AnyObject {
     func streamClient(_ client: StreamClient, connectionStateDidChange state: NWConnection.State)
     func streamClient(_ client: StreamClient, didRequestPINWithSalt salt: Data)
     func streamClient(_ client: StreamClient, didFinishPairingWithResult success: Bool)
+    func streamClient(_ client: StreamClient, didAcceptConnectionWithPIN pin: String)
 }
 
 class StreamClient {
+    enum Mode {
+        case initiator
+        case listener
+    }
+
     weak var delegate: StreamClientDelegate?
     private var connection: NWConnection?
+    private var listener: NWListener?
     private let clientQueue = DispatchQueue(label: "com.xdisplay.client.network-queue", qos: .userInteractive)
     private var isRunning = false
+    private var currentMode: Mode = .initiator
     
     // Security / Pairing State
     private var isPaired = false
     private var sessionKey: SymmetricKey?
     private var salt: Data?
     private var serverID: UUID?
+    private var generatedPIN: String?
     
     private let clientID: UUID = {
         if let uuidString = UserDefaults.standard.string(forKey: "XDisplayClientID"),
@@ -75,6 +84,92 @@ class StreamClient {
         let endpointPort = NWEndpoint.Port(rawValue: port)!
         connect(endpoint: .hostPort(host: endpointHost, port: endpointPort))
     }
+
+    func startListening(port: UInt16 = 0) {
+        guard listener == nil else {
+            print("[*] StreamClient is already listening.")
+            return
+        }
+        let parameters = NWParameters.tcp
+        parameters.includePeerToPeer = true
+        if let tcpOpt = parameters.defaultProtocolStack.applicationProtocols.first as? NWProtocolTCP.Options {
+            tcpOpt.noDelay = true
+        }
+        
+        do {
+            listener = try NWListener(using: parameters, on: NWEndpoint.Port(rawValue: port) ?? .any)
+            listener?.service = NWListener.Service(name: "X-Display Client", type: "_xdisplay-client._tcp")
+            
+            listener?.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    print("[+] StreamClient listening for Host connections...")
+                case .failed(let error):
+                    print("[-] StreamClient listener failed: \(error.localizedDescription)")
+                default:
+                    break
+                }
+            }
+            
+            listener?.newConnectionHandler = { [weak self] connection in
+                self?.handleNewConnection(connection)
+            }
+            
+            listener?.start(queue: clientQueue)
+        } catch {
+            print("[-] Failed to start listener: \(error.localizedDescription)")
+        }
+    }
+    
+    private func handleNewConnection(_ connection: NWConnection) {
+        if self.connection != nil {
+            self.disconnect(reason: "New connection received, closing old one")
+        }
+        
+        self.connection = connection
+        self.currentMode = .listener
+        self.isRunning = true
+        self.isPaired = false
+        self.sessionKey = nil
+        self.serverID = nil
+        
+        self.generatedPIN = String(format: "%04d", Int.random(in: 0...9999))
+        var saltBytes = [UInt8](repeating: 0, count: XDisplayProtocol.saltLength)
+        _ = SecRandomCopyBytes(kSecRandomDefault, XDisplayProtocol.saltLength, &saltBytes)
+        self.salt = Data(saltBytes)
+        
+        let pinToDisplay = self.generatedPIN!
+        
+        print("\n" + String(repeating: "*", count: 40))
+        print("[***] MAC HOST CONNECTED! (Reverse Mode)")
+        print("[***] SHOWING PIN ON IPAD: \(pinToDisplay)")
+        print(String(repeating: "*", count: 40) + "\n")
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.streamClient(self, didAcceptConnectionWithPIN: pinToDisplay)
+        }
+        
+        connection.stateUpdateHandler = { [weak self] state in
+            guard let self = self else { return }
+            self.delegate?.streamClient(self, connectionStateDidChange: state)
+            switch state {
+            case .ready:
+                self.startReceiving()
+            case .failed(let error):
+                self.disconnect(reason: "Connection failed: \(error.localizedDescription)")
+            case .cancelled:
+                self.disconnect(reason: "Connection cancelled")
+            default:
+                break
+            }
+        }
+        
+        connection.start(queue: clientQueue)
+        
+        let authRequest = XDisplayPacketCodec.makePairingRequest(salt: self.salt!, serverID: self.clientID)
+        self.sendPacket(authRequest)
+    }
     
     func disconnect(reason: String = "Unknown") {
         guard isRunning else { return }
@@ -83,10 +178,17 @@ class StreamClient {
         sessionKey = nil
         salt = nil
         serverID = nil
+        generatedPIN = nil
+        currentMode = .initiator
         connection?.stateUpdateHandler = nil
         connection?.cancel()
         connection = nil
         print("[*] StreamClient disconnected. Reason: \(reason)")
+    }
+
+    func stopListening() {
+        listener?.cancel()
+        listener = nil
     }
     
     // Submit PIN from User Input View
@@ -398,7 +500,78 @@ class StreamClient {
                 print("[-] Failed to decrypt video frame: \(error.localizedDescription)")
             }
             
-        case .pairingVerify, .inputEvent, .clientInfo:
+        case .pairingVerify:
+            guard currentMode == .listener else {
+                print("[-] Unexpected pairingVerify received in initiator mode")
+                return
+            }
+            let clientID: UUID
+            let isTokenAuth: Bool
+            let encryptedToken: Data
+            do {
+                (clientID, isTokenAuth, encryptedToken) = try XDisplayPacketCodec.decodePairingVerification(data)
+            } catch {
+                print("[-] Invalid pairing verification payload: \(error)")
+                return
+            }
+            
+            var derivedKey: SymmetricKey?
+            var usedTokenAuth = false
+            
+            if isTokenAuth {
+                if let persistentToken = KeychainManager.getToken(for: clientID.uuidString), let salt = self.salt {
+                    derivedKey = CryptoHelper.deriveKey(keyData: persistentToken, salt: salt)
+                    usedTokenAuth = true
+                }
+            }
+            
+            if derivedKey == nil, let pin = generatedPIN, let salt = self.salt {
+                derivedKey = CryptoHelper.deriveKey(pin: pin, salt: salt)
+                usedTokenAuth = false
+            }
+            
+            guard let key = derivedKey else { return }
+            
+            do {
+                let decryptedData = try CryptoHelper.decrypt(combinedData: encryptedToken, key: key)
+                if let decryptedString = String(data: decryptedData, encoding: .utf8), decryptedString == XDisplayProtocol.pairingVerificationToken {
+                    print("[+] PIN/Token Pairing Successful! Session is now encrypted.")
+                    self.isPaired = true
+                    self.sessionKey = key
+                    self.serverID = clientID // Use the Mac's ID
+                    
+                    var newEncryptedToken: Data? = nil
+                    if !usedTokenAuth {
+                        var tokenBytes = [UInt8](repeating: 0, count: 32)
+                        _ = SecRandomCopyBytes(kSecRandomDefault, 32, &tokenBytes)
+                        let persistentToken = Data(tokenBytes)
+                        
+                        _ = KeychainManager.saveToken(persistentToken, for: clientID.uuidString)
+                        newEncryptedToken = try? CryptoHelper.encrypt(data: persistentToken, key: key)
+                    }
+                    
+                    let reply = XDisplayPacketCodec.makePairingResult(success: true, encryptedToken: newEncryptedToken)
+                    self.sendPacket(reply)
+                    
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self else { return }
+                        self.delegate?.streamClient(self, didFinishPairingWithResult: true)
+                    }
+                } else {
+                    throw NSError(domain: "AuthError", code: -1, userInfo: nil)
+                }
+            } catch {
+                print("[-] Pairing Failed. Invalid PIN or Token submitted by host.")
+                let reply = XDisplayPacketCodec.makePairingResult(success: false, encryptedToken: nil)
+                self.sendPacket(reply)
+                self.disconnect(reason: "Pairing Failed")
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.streamClient(self, didFinishPairingWithResult: false)
+                }
+            }
+
+        case .inputEvent, .clientInfo:
             print("[-] Unexpected magic received from server: \(magic.rawValue)")
         }
     }

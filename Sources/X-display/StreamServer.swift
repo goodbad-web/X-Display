@@ -13,6 +13,8 @@ protocol StreamServerDelegate: AnyObject {
     func streamServerDidCompletePairing(_ server: StreamServer)
     func streamServer(_ server: StreamServer, didGeneratePIN pin: String)
     func streamServer(_ server: StreamServer, didReceiveClientInfo event: XDisplayClientInfoEvent)
+    func streamServer(_ server: StreamServer, didDiscoverDevices devices: [NWEndpoint])
+    func streamServer(_ server: StreamServer, didRequestPINForSession sessionID: UUID)
 }
 
 final class ClientSession: @unchecked Sendable {
@@ -20,26 +22,33 @@ final class ClientSession: @unchecked Sendable {
     let connection: NWConnection
     var isPaired = false
     var sessionKey: SymmetricKey?
-    let salt: Data
-    let pin: String
+    var salt: Data?
+    let pin: String?
+    let isInitiator: Bool
+    var remoteServerID: UUID?
     
-    init(id: UUID, connection: NWConnection) {
+    init(id: UUID, connection: NWConnection, isInitiator: Bool = false) {
         self.id = id
         self.connection = connection
+        self.isInitiator = isInitiator
         
-        // Generate 4-digit PIN
-        self.pin = String(format: "%04d", Int.random(in: 0...9999))
-        
-        // Generate random 16-byte salt
-        var saltBytes = [UInt8](repeating: 0, count: XDisplayProtocol.saltLength)
-        _ = SecRandomCopyBytes(kSecRandomDefault, XDisplayProtocol.saltLength, &saltBytes)
-        self.salt = Data(saltBytes)
+        if isInitiator {
+            self.pin = nil
+            self.salt = nil
+        } else {
+            self.pin = String(format: "%04d", Int.random(in: 0...9999))
+            var saltBytes = [UInt8](repeating: 0, count: XDisplayProtocol.saltLength)
+            _ = SecRandomCopyBytes(kSecRandomDefault, XDisplayProtocol.saltLength, &saltBytes)
+            self.salt = Data(saltBytes)
+        }
     }
 }
 
 final class StreamServer: @unchecked Sendable {
     weak var delegate: StreamServerDelegate?
     private var listener: NWListener?
+    private var browser: NWBrowser?
+    private var discoveredEndpoints: [NWEndpoint] = []
     private var activeConnections: [UUID: ClientSession] = [:]
     private let connectionQueue = DispatchQueue(label: "com.xdisplay.server.connection-queue", qos: .userInteractive)
     private let timingLock = NSLock()
@@ -116,6 +125,78 @@ final class StreamServer: @unchecked Sendable {
         }
     }
     
+    func startBrowsing() {
+        let parameters = NWParameters.tcp
+        parameters.includePeerToPeer = true
+        browser = NWBrowser(for: .bonjour(type: "_xdisplay-client._tcp", domain: "local."), using: parameters)
+        
+        browser?.browseResultsChangedHandler = { [weak self] results, changes in
+            guard let self = self else { return }
+            self.discoveredEndpoints = results.map { $0.endpoint }
+            DispatchQueue.main.async {
+                self.delegate?.streamServer(self, didDiscoverDevices: self.discoveredEndpoints)
+            }
+        }
+        browser?.start(queue: connectionQueue)
+    }
+    
+    func stopBrowsing() {
+        browser?.cancel()
+        browser = nil
+    }
+    
+    func connect(to endpoint: NWEndpoint) {
+        let parameters = NWParameters.tcp
+        parameters.includePeerToPeer = true
+        if let tcpOpt = parameters.defaultProtocolStack.applicationProtocols.first as? NWProtocolTCP.Options {
+            tcpOpt.noDelay = true
+        }
+        
+        let connection = NWConnection(to: endpoint, using: parameters)
+        let id = UUID()
+        
+        connectionQueue.async { [weak self] in
+            guard let self = self else { return }
+            let session = ClientSession(id: id, connection: connection, isInitiator: true)
+            self.activeConnections[id] = session
+            self.updateActiveConnectionsStatus()
+            
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready:
+                    print("[+] Mac Initiator connected to iPad!")
+                    self.startReceiving(session)
+                case .failed(let error):
+                    print("[-] Mac Initiator connection failed: \(error)")
+                    self.removeConnection(id: id)
+                case .cancelled:
+                    self.removeConnection(id: id)
+                default:
+                    break
+                }
+            }
+            connection.start(queue: self.connectionQueue)
+        }
+    }
+    
+    func submitPIN(_ pin: String, forSession id: UUID) {
+        connectionQueue.async { [weak self] in
+            guard let self = self, let session = self.activeConnections[id], session.isInitiator, let salt = session.salt else { return }
+            
+            let key = CryptoHelper.deriveKey(pin: pin, salt: salt)
+            session.sessionKey = key
+            
+            do {
+                let token = Data(XDisplayProtocol.pairingVerificationToken.utf8)
+                let encryptedToken = try CryptoHelper.encrypt(data: token, key: key)
+                let payload = XDisplayPacketCodec.makePairingVerification(clientID: self.serverID, isTokenAuth: false, encryptedToken: encryptedToken)
+                self.sendPacket(payload, to: session.connection)
+            } catch {
+                print("[-] Encryption error during PIN submission: \(error)")
+            }
+        }
+    }
+    
     private func handleNewConnection(_ connection: NWConnection) {
         let id = UUID()
         connectionQueue.async { [weak self] in
@@ -125,13 +206,14 @@ final class StreamServer: @unchecked Sendable {
             self.activeConnections[id] = session
             self.updateActiveConnectionsStatus()
             
+            let pinStr = session.pin ?? ""
             print("\n" + String(repeating: "*", count: 40))
             print("[***] NEW CLIENT PENDING PAIRING!")
-            print("[***] ENTER THIS PIN ON YOUR IPAD: \(session.pin)")
+            print("[***] ENTER THIS PIN ON YOUR IPAD: \(pinStr)")
             print(String(repeating: "*", count: 40) + "\n")
 
             // Notify delegate so UI can show the PIN to the user
-            let pin = session.pin
+            let pin = session.pin ?? ""
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.delegate?.streamServer(self, didGeneratePIN: pin)
@@ -151,8 +233,10 @@ final class StreamServer: @unchecked Sendable {
             }
             connection.start(queue: self.connectionQueue)
             
-            let authRequest = XDisplayPacketCodec.makePairingRequest(salt: session.salt, serverID: self.serverID)
-            self.sendPacket(authRequest, to: connection)
+            if let salt = session.salt {
+                let authRequest = XDisplayPacketCodec.makePairingRequest(salt: salt, serverID: self.serverID)
+                self.sendPacket(authRequest, to: connection)
+            }
             
             // Start receiving packets
             self.startReceiving(session)
@@ -242,6 +326,10 @@ final class StreamServer: @unchecked Sendable {
         
         switch magic {
         case .pairingVerify:
+            guard !session.isInitiator else {
+                print("[-] Unexpected pairingVerify received by initiator")
+                return
+            }
             let clientID: UUID
             let isTokenAuth: Bool
             let encryptedToken: Data
@@ -256,16 +344,16 @@ final class StreamServer: @unchecked Sendable {
             var usedTokenAuth = false
             
             if isTokenAuth {
-                if let persistentToken = KeychainManager.getToken(for: clientID.uuidString) {
-                    derivedKey = CryptoHelper.deriveKey(keyData: persistentToken, salt: session.salt)
+                if let persistentToken = KeychainManager.getToken(for: clientID.uuidString), let salt = session.salt {
+                    derivedKey = CryptoHelper.deriveKey(keyData: persistentToken, salt: salt)
                     usedTokenAuth = true
                 } else {
                     print("[-] Token auth requested but no token found for client: \(clientID.uuidString)")
                 }
             }
             
-            if derivedKey == nil {
-                derivedKey = CryptoHelper.deriveKey(pin: session.pin, salt: session.salt)
+            if derivedKey == nil, let pin = session.pin, let salt = session.salt {
+                derivedKey = CryptoHelper.deriveKey(pin: pin, salt: salt)
                 usedTokenAuth = false
             }
             
@@ -340,7 +428,90 @@ final class StreamServer: @unchecked Sendable {
                 print("[-] Error decrypting client info event: \(error.localizedDescription)")
             }
             
-        case .pairingRequest, .pairingResult, .videoFrame:
+        case .pairingRequest:
+            guard session.isInitiator else {
+                print("[-] Unexpected pairingRequest received by listener")
+                return
+            }
+            let saltData: Data
+            let serverUUID: UUID
+            do {
+                (saltData, serverUUID) = try XDisplayPacketCodec.decodePairingRequest(data)
+            } catch {
+                print("[-] Invalid pairing request payload")
+                return
+            }
+            session.salt = saltData
+            session.remoteServerID = serverUUID
+            
+            if let token = KeychainManager.getToken(for: serverUUID.uuidString) {
+                print("[+] Found persistent token for iPad. Attempting automatic connection...")
+                connectionQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    let key = CryptoHelper.deriveKey(keyData: token, salt: saltData)
+                    session.sessionKey = key
+                    do {
+                        let tokenData = Data(XDisplayProtocol.pairingVerificationToken.utf8)
+                        let encryptedToken = try CryptoHelper.encrypt(data: tokenData, key: key)
+                        let payload = XDisplayPacketCodec.makePairingVerification(clientID: self.serverID, isTokenAuth: true, encryptedToken: encryptedToken)
+                        self.sendPacket(payload, to: session.connection)
+                    } catch {
+                        print("[-] Encryption error during auto-connect: \(error)")
+                    }
+                }
+            } else {
+                print("[+] Received pairing salt. Requesting PIN from UI...")
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.streamServer(self, didRequestPINForSession: session.id)
+                }
+            }
+            
+        case .pairingResult:
+            guard session.isInitiator else {
+                print("[-] Unexpected pairingResult received by listener")
+                return
+            }
+            let success: Bool
+            let encryptedPersistentToken: Data?
+            do {
+                (success, encryptedPersistentToken) = try XDisplayPacketCodec.decodePairingResult(data)
+            } catch {
+                print("[-] Invalid pairing result payload")
+                return
+            }
+            
+            if success {
+                print("[+] Pairing verified by iPad! Communication is now secure.")
+                session.isPaired = true
+                self.updateActiveConnectionsStatus()
+                
+                if let encryptedPersistentToken = encryptedPersistentToken,
+                   let key = session.sessionKey,
+                   let serverID = session.remoteServerID {
+                    do {
+                        let decryptedToken = try CryptoHelper.decrypt(combinedData: encryptedPersistentToken, key: key)
+                        if KeychainManager.saveToken(decryptedToken, for: serverID.uuidString) {
+                            print("[+] Saved persistent token to Keychain.")
+                        }
+                    } catch {
+                        print("[-] Failed to decrypt persistent token")
+                    }
+                }
+                
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.streamServerDidCompletePairing(self)
+                }
+            } else {
+                print("[-] Pairing rejected by iPad.")
+                if let serverID = session.remoteServerID {
+                    _ = KeychainManager.deleteToken(for: serverID.uuidString)
+                }
+                self.removeConnection(id: session.id)
+            }
+
+        case .videoFrame:
             print("[-] Unexpected package magic received: \(magic.rawValue)")
         }
     }

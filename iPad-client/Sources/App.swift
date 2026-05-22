@@ -48,6 +48,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
     }
     @Published var isPairingRequired = false
     @Published var enteredPIN: String = ""
+    @Published var hostGeneratedPIN: String? = nil
     @Published var frameSize: CGSize = .init(width: 1920, height: 1080)
     @Published var isTransitioning: Bool = false
     @Published var isClientPortrait: Bool = false
@@ -83,6 +84,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
 
     func startDiscovery() {
         deviceBrowser.startBrowsing()
+        streamClient.startListening(port: 0)
     }
 
     func connect(endpoint: NWEndpoint, type: ConnectionType) {
@@ -120,6 +122,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
         isConnected = false
         isPairingRequired = false
         enteredPIN = ""
+        hostGeneratedPIN = nil
         connectionStatus = "Disconnected"
         frameHolder.display(nil)
         
@@ -262,10 +265,18 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             self.isPairingRequired = true
         }
     }
+    
+    func streamClient(_ client: StreamClient, didAcceptConnectionWithPIN pin: String) {
+        DispatchQueue.main.async {
+            self.hostGeneratedPIN = pin
+            self.connectionStatus = "Mac is connecting..."
+        }
+    }
 
     func streamClient(_ client: StreamClient, didFinishPairingWithResult success: Bool) {
         DispatchQueue.main.async {
             self.isPairingRequired = false
+            self.hostGeneratedPIN = nil
             self.connectionStatus = success ? "Connected" : "Pairing failed"
             self.isConnected = success
             if success {
@@ -727,6 +738,13 @@ struct ContentView: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
 
+                if let hostPin = viewModel.hostGeneratedPIN {
+                    HostPINDisplayView(pin: hostPin) {
+                        viewModel.disconnect()
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+
                 if viewModel.isScreenSaverActive {
                     Color.black
                         .edgesIgnoringSafeArea(.all)
@@ -935,6 +953,61 @@ struct PINEntryView: View {
                 isTextFieldFocused = false
                 onSubmit()
             }
+        }
+    }
+}
+
+struct HostPINDisplayView: View {
+    let pin: String
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color(hex: "0B0F19").ignoresSafeArea(.all)
+
+            VStack(spacing: 32) {
+                VStack(spacing: 8) {
+                    Image(systemName: "display.and.macbook")
+                        .font(.system(size: 56))
+                        .foregroundStyle(
+                            LinearGradient(colors: [.emerald, .indigo],
+                                           startPoint: .topLeading,
+                                           endPoint: .bottomTrailing)
+                        )
+
+                    Text("Mac is Connecting...")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+
+                    Text("Enter this PIN on your Mac to complete pairing")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                }
+
+                Text(pin)
+                    .font(.system(size: 64, weight: .bold, design: .monospaced))
+                    .foregroundColor(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.emerald.opacity(0.6), lineWidth: 2)
+                            )
+                    )
+
+                Button(action: onCancel) {
+                    Text("Cancel")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: 280)
+                }
+            }
+            .padding(40)
         }
     }
 }

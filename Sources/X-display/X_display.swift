@@ -2,6 +2,7 @@
 import Foundation
 import AppKit
 import CoreGraphics
+import Network
 import ScreenCaptureKit
 #if canImport(CVirtualDisplay)
 import CVirtualDisplay
@@ -24,7 +25,7 @@ private struct PendingVideoFrame {
 final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput, SCStreamDelegate, VideoEncoderDelegate, StreamServerDelegate {
     private var stream: SCStream?
     private let encoder = VideoEncoder()
-    private let server = StreamServer()
+    let server = StreamServer()
     private let captureQueue = DispatchQueue(label: "com.xdisplay.capture-queue", qos: .userInteractive)
     private let fallbackCaptureQueue = DispatchQueue(label: "com.xdisplay.fallback-capture-queue", qos: .userInteractive)
     private var fallbackCaptureTimer: DispatchSourceTimer?
@@ -640,6 +641,38 @@ final class ScreenCaptureManager: NSObject, @unchecked Sendable, SCStreamOutput,
         onClientInfoReceived?(event)
     }
 
+    func streamServer(_ server: StreamServer, didDiscoverDevices devices: [NWEndpoint]) {
+        Task { @MainActor in
+            if let delegate = NSApp.delegate as? XDisplayAppManager {
+                delegate.discoveredDevices = devices
+                delegate.updateMenu()
+            }
+        }
+    }
+    
+    func streamServer(_ server: StreamServer, didRequestPINForSession sessionID: UUID) {
+        Task { @MainActor in
+            let alert = NSAlert()
+            alert.messageText = "Pairing Request from iPad"
+            alert.informativeText = "Please enter the PIN displayed on your iPad:"
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "Connect")
+            alert.addButton(withTitle: "Cancel")
+            
+            let inputField = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+            inputField.placeholderString = "0000"
+            alert.accessoryView = inputField
+            
+            NSApp.activate(ignoringOtherApps: true)
+            
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                let pin = inputField.stringValue
+                server.submitPIN(pin, forSession: sessionID)
+            }
+        }
+    }
+
     private func pointInDisplay(x: Float, y: Float) -> CGPoint? {
         guard let displayID = self.displayID,
               let configuration = captureConfiguration else {
@@ -818,6 +851,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         scale: .standard1x
     )
     private var selectedCodec: XDisplayVideoCodec = .h264
+    var discoveredDevices: [NWEndpoint] = []
 
     private static let resolutionPresets: [DisplayResolutionPreset] = [
         // --- iPad Pro 13" (M4) ---
@@ -894,6 +928,9 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             startDisplay()
         } else {
             print("[*] Auto-start disabled. Use the menu to start virtual display.")
+            // Browsing for reverse connection without starting display
+            captureManager.server.delegate = captureManager
+            captureManager.server.startBrowsing()
         }
     }
 
@@ -926,7 +963,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         updateMenu()
     }
 
-    private func updateMenu() {
+    func updateMenu() {
         let menu = NSMenu()
 
         // 1. Status Indicator
@@ -977,12 +1014,45 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem.separator())
 
-        // 4. Quit Action
+        // 4. Available iPads (Discovered devices)
+        if !discoveredDevices.isEmpty {
+            let devicesItem = NSMenuItem(title: "Connect to iPad...", action: nil, keyEquivalent: "")
+            let devicesMenu = NSMenu()
+            for (index, device) in discoveredDevices.enumerated() {
+                var deviceName = "iPad"
+                if case let .service(name, _, _, _) = device {
+                    deviceName = name
+                }
+                let item = NSMenuItem(title: deviceName, action: #selector(connectToDiscoveredDevice(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = index
+                devicesMenu.addItem(item)
+            }
+            devicesItem.submenu = devicesMenu
+            menu.addItem(devicesItem)
+        }
+
+        menu.addItem(NSMenuItem.separator())
+
+        // 5. Quit Action
         let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 
         statusItem?.menu = menu
+    }
+    
+    @objc private func connectToDiscoveredDevice(_ sender: NSMenuItem) {
+        guard let index = sender.representedObject as? Int,
+              discoveredDevices.indices.contains(index) else { return }
+        
+        let endpoint = discoveredDevices[index]
+        
+        if !isDisplayActive {
+            startDisplay()
+        }
+        
+        captureManager.server.connect(to: endpoint)
     }
 
     private func performStartDisplay() async throws {
