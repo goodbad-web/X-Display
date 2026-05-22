@@ -72,7 +72,7 @@ class VideoEncoder {
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ProfileLevel, value: codec.profileLevel)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ExpectedFrameRate, value: 60 as CFNumber)
 
-        let bitRate = targetBitRate(width: width, height: height)
+        let bitRate = targetBitRate(width: width, height: height, codec: codec)
         let dataRateLimit: [NSNumber] = [
             NSNumber(value: bitRate / 8),
             NSNumber(value: 1)
@@ -312,9 +312,11 @@ class VideoEncoder {
         }
     }
 
-    private func targetBitRate(width: Int, height: Int) -> Int {
-        let scaledBitRate = width * height * 12
-        return min(max(scaledBitRate, 8_000_000), 50_000_000)
+    private func targetBitRate(width: Int, height: Int, codec: XDisplayVideoCodec) -> Int {
+        let baseRate = width * height * 12
+        let codecMultiplier = codec == .hevc ? 0.65 : 1.0 // HEVC is 35% more efficient, saving bandwidth
+        let scaledBitRate = Int(Double(baseRate) * codecMultiplier)
+        return min(max(scaledBitRate, 5_000_000), 40_000_000)
     }
 
     private func resetTiming() {
