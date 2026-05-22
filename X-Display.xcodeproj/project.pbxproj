@@ -33,9 +33,9 @@
 
 /* Begin PBXFileReference section */
 		04C2E9C4F957E21887C51669 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-		0AB41F63E12C19CDDBDD296F /* X-Display-Client.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "X-Display-Client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0AB41F63E12C19CDDBDD296F /* X-Display-Client.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "X-Display-Client.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E5EDCE1CE211B20C414A57A /* MetalRendererView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRendererView.swift; sourceTree = "<group>"; };
-		202A228318548DD227E329EB /* XDisplayShared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = XDisplayShared; path = XDisplayShared; sourceTree = SOURCE_ROOT; };
+		202A228318548DD227E329EB /* XDisplayShared */ = {isa = PBXFileReference; lastKnownFileType = folder; path = XDisplayShared; sourceTree = SOURCE_ROOT; };
 		21ED29364738174351C3C9EF /* ClientReceiverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientReceiverView.swift; sourceTree = "<group>"; };
 		290006FF26BEE7AA02629929 /* X_display.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = X_display.swift; sourceTree = "<group>"; };
 		2AE32DDE95E4A23795B2AD0F /* StreamServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamServer.swift; sourceTree = "<group>"; };
@@ -339,6 +339,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "iPad-client/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -479,6 +480,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "iPad-client/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

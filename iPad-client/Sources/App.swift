@@ -483,6 +483,13 @@ struct PINEntryView: View {
                     TextField("0000", text: $pin)
                         .focused($isTextFieldFocused)
                         .keyboardType(.numberPad)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            if pin.count == 4 {
+                                isTextFieldFocused = false
+                                onSubmit()
+                            }
+                        }
                         .textFieldStyle(PlainTextFieldStyle())
                         .font(.system(size: 48, weight: .bold, design: .monospaced))
                         .multilineTextAlignment(.center)
@@ -532,9 +539,8 @@ struct PINEntryView: View {
             }
             .padding(40)
         }
-        .ignoresSafeArea(.keyboard)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                 isTextFieldFocused = true
             }
         }
