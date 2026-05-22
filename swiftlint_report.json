@@ -1,0 +1,4070 @@
+[
+  {
+    "character" : 77,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/StreamProtocol.swift",
+    "line" : 183,
+    "reason" : "Tuples should have at most 2 members",
+    "rule_id" : "large_tuple",
+    "severity" : "Warning",
+    "type" : "Large Tuple"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/StreamProtocol.swift",
+    "line" : 101,
+    "reason" : "Line should be 120 characters or less; currently it has 122 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/StreamProtocol.swift",
+    "line" : 183,
+    "reason" : "Line should be 120 characters or less; currently it has 135 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/StreamProtocol.swift",
+    "line" : 86,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/StreamProtocol.swift",
+    "line" : 93,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/StreamProtocol.swift",
+    "line" : 100,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/DisplayConfiguration.swift",
+    "line" : 67,
+    "reason" : "Line should be 120 characters or less; currently it has 129 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 168,
+    "reason" : "Function should have complexity 10 or less; currently complexity is 15",
+    "rule_id" : "cyclomatic_complexity",
+    "severity" : "Warning",
+    "type" : "Cyclomatic Complexity"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 476,
+    "reason" : "File should contain 400 lines or less: currently contains 476",
+    "rule_id" : "file_length",
+    "severity" : "Warning",
+    "type" : "File Length"
+  },
+  {
+    "character" : 5,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 28,
+    "reason" : "Function body should span 50 lines or less excluding comments and whitespace: currently spans 60 lines",
+    "rule_id" : "function_body_length",
+    "severity" : "Warning",
+    "type" : "Function Body Length"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 168,
+    "reason" : "Function body should span 50 lines or less excluding comments and whitespace: currently spans 53 lines",
+    "rule_id" : "function_body_length",
+    "severity" : "Warning",
+    "type" : "Function Body Length"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 177,
+    "reason" : "Variable name 'i' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 44,
+    "reason" : "Line should be 120 characters or less; currently it has 177 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 174,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 10,
+    "reason" : "Class body should span 350 lines or less excluding comments and whitespace: currently spans 381 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Error",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 34,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 248,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 58,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 248,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 73,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 248,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 96,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/VideoDecoder.swift",
+    "line" : 248,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 51,
+    "reason" : "Line should be 120 characters or less; currently it has 125 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 21,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 28,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 30,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 41,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 44,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 54,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 59,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 64,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 78,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/DeviceBrowser.swift",
+    "line" : 42,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 819,
+    "reason" : "Colons should be next to the identifier when specifying a type and next to the key in dictionary literals",
+    "rule_id" : "colon",
+    "severity" : "Warning",
+    "type" : "Colon Spacing"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 940,
+    "reason" : "File should contain 400 lines or less: currently contains 940",
+    "rule_id" : "file_length",
+    "severity" : "Warning",
+    "type" : "File Length"
+  },
+  {
+    "character" : 56,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 143,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 66,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 143,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 30,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 148,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 40,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 148,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 62,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 427,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 65,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 427,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 50,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 431,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 53,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 431,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 804,
+    "reason" : "Variable name 'a' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 804,
+    "reason" : "Variable name 'r' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 19,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 804,
+    "reason" : "Variable name 'g' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 22,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 804,
+    "reason" : "Variable name 'b' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 24,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 384,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 117,
+    "reason" : "Line should be 120 characters or less; currently it has 127 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 485,
+    "reason" : "Line should be 120 characters or less; currently it has 160 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 530,
+    "reason" : "Line should be 120 characters or less; currently it has 135 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 594,
+    "reason" : "Line should be 120 characters or less; currently it has 129 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 73,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 513,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 129,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 594,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 101,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 638,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 24,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 893,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 24,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 911,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 94,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 100,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 108,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 112,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 125,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 129,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 168,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 187,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 194,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 197,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 200,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 206,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 284,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 289,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 298,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 412,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 931,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 38,
+    "reason" : "Class body should span 250 lines or less excluding comments and whitespace: currently spans 280 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/App.swift",
+    "line" : 377,
+    "reason" : "Struct body should span 350 lines or less excluding comments and whitespace: currently spans 369 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Error",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 10,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Package.swift",
+    "line" : 24,
+    "reason" : "Collection literals should not have trailing commas",
+    "rule_id" : "trailing_comma",
+    "severity" : "Warning",
+    "type" : "Trailing Comma"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 125,
+    "reason" : "Imports should be unique",
+    "rule_id" : "duplicate_imports",
+    "severity" : "Warning",
+    "type" : "Duplicate Imports"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 392,
+    "reason" : "Imports should be unique",
+    "rule_id" : "duplicate_imports",
+    "severity" : "Warning",
+    "type" : "Duplicate Imports"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 502,
+    "reason" : "Imports should be unique",
+    "rule_id" : "duplicate_imports",
+    "severity" : "Warning",
+    "type" : "Duplicate Imports"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 547,
+    "reason" : "File should contain 400 lines or less: currently contains 547",
+    "rule_id" : "file_length",
+    "severity" : "Warning",
+    "type" : "File Length"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 143,
+    "reason" : "Variable name 'h' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 171,
+    "reason" : "Variable name 'fd' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Warning",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 19,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 197,
+    "reason" : "Variable name 'fd' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Warning",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 19,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 209,
+    "reason" : "Variable name 'fd' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Warning",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 63,
+    "reason" : "Line should be 120 characters or less; currently it has 176 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 67,
+    "reason" : "Line should be 120 characters or less; currently it has 144 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 86,
+    "reason" : "Line should be 120 characters or less; currently it has 175 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 90,
+    "reason" : "Line should be 120 characters or less; currently it has 147 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 388,
+    "reason" : "Line should be 200 characters or less; currently it has 209 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 456,
+    "reason" : "Line should be 120 characters or less; currently it has 151 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 508,
+    "reason" : "Line should be 120 characters or less; currently it has 177 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 34,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 33,
+    "reason" : "Prefer non-optional `Data(_:)` initializer when converting `String` to `Data`",
+    "rule_id" : "non_optional_string_data_conversion",
+    "severity" : "Warning",
+    "type" : "Non-optional String -> Data Conversion"
+  },
+  {
+    "character" : 4,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 108,
+    "reason" : "FIXMEs should be resolved (Copied from `Lock.swift` in TS...)",
+    "rule_id" : "todo",
+    "severity" : "Warning",
+    "type" : "Todo"
+  },
+  {
+    "character" : 4,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 227,
+    "reason" : "FIXMEs should be resolved (Copied from `XCTEvents.swift`,...)",
+    "rule_id" : "todo",
+    "severity" : "Warning",
+    "type" : "Todo"
+  },
+  {
+    "character" : 8,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 256,
+    "reason" : "TODOs should be resolved (Handle `userInfo: [AnyHashable...)",
+    "rule_id" : "todo",
+    "severity" : "Warning",
+    "type" : "Todo"
+  },
+  {
+    "character" : null,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 547,
+    "reason" : "Files should have a single trailing newline",
+    "rule_id" : "trailing_newline",
+    "severity" : "Warning",
+    "type" : "Trailing Newline"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 542,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 90,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/.build/arm64-apple-macosx/debug/XDisplaySharedPackageTests.derived/runner.swift",
+    "line" : 524,
+    "reason" : "Prefer `-> Void` over `-> ()`",
+    "rule_id" : "void_return",
+    "severity" : "Warning",
+    "type" : "Void Return"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/MetalRendererView.swift",
+    "line" : 111,
+    "reason" : "Function body should span 50 lines or less excluding comments and whitespace: currently spans 51 lines",
+    "rule_id" : "function_body_length",
+    "severity" : "Warning",
+    "type" : "Function Body Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/MetalRendererView.swift",
+    "line" : 211,
+    "reason" : "Line should be 120 characters or less; currently it has 155 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/MetalRendererView.swift",
+    "line" : 167,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/MetalRendererView.swift",
+    "line" : 170,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 11,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 13,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 17,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 25,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 28,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 34,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/KeychainManager.swift",
+    "line" : 40,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/SettingsView.swift",
+    "line" : 79,
+    "reason" : "Line should be 120 characters or less; currently it has 121 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/SettingsView.swift",
+    "line" : 130,
+    "reason" : "Line should be 200 characters or less; currently it has 210 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 32,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/SettingsView.swift",
+    "line" : 140,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 51,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/SettingsView.swift",
+    "line" : 166,
+    "reason" : "Trailing closure syntax should not be used when passing more than one closure argument",
+    "rule_id" : "multiple_closures_with_trailing_closure",
+    "severity" : "Warning",
+    "type" : "Multiple Closures with Trailing Closure"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/SettingsView.swift",
+    "line" : 129,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/SettingsView.swift",
+    "line" : 135,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 7,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 8,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 21,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 76,
+    "reason" : "Variable name 'b' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 259,
+    "reason" : "Variable name 'b' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 21,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 311,
+    "reason" : "Variable name 'b' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 327,
+    "reason" : "Variable name 'b' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 14,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 15,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 16,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 9,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 17,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 71,
+    "reason" : "Line should be 120 characters or less; currently it has 145 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 165,
+    "reason" : "Line should be 120 characters or less; currently it has 161 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 173,
+    "reason" : "Line should be 120 characters or less; currently it has 123 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 385,
+    "reason" : "Line should be 120 characters or less; currently it has 124 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : null,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 399,
+    "reason" : "Files should have a single trailing newline",
+    "rule_id" : "trailing_newline",
+    "severity" : "Warning",
+    "type" : "Trailing Newline"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 18,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 30,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 38,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 45,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 51,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 57,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 72,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 87,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 94,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 102,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 110,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 117,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 123,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 129,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 136,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 143,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 148,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 153,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 164,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 172,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 177,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 181,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 184,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 186,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 191,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 198,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 210,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 213,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 230,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 235,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 238,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 243,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 249,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 252,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 255,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 261,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 264,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 281,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 284,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 319,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 322,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 345,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 351,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 354,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 362,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 375,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 377,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 383,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 12,
+    "reason" : "Struct body should span 250 lines or less excluding comments and whitespace: currently spans 311 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 5,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 39,
+    "reason" : "Class body should span 250 lines or less excluding comments and whitespace: currently spans 286 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/TouchOverlayView.swift",
+    "line" : 398,
+    "reason" : "Limit vertical whitespace to a single empty line; currently 3",
+    "rule_id" : "vertical_whitespace",
+    "severity" : "Warning",
+    "type" : "Vertical Whitespace"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 294,
+    "reason" : "Function should have complexity 10 or less; currently complexity is 21",
+    "rule_id" : "cyclomatic_complexity",
+    "severity" : "Error",
+    "type" : "Cyclomatic Complexity"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 405,
+    "reason" : "File should contain 400 lines or less: currently contains 405",
+    "rule_id" : "file_length",
+    "severity" : "Warning",
+    "type" : "File Length"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 294,
+    "reason" : "Function body should span 50 lines or less excluding comments and whitespace: currently spans 100 lines",
+    "rule_id" : "function_body_length",
+    "severity" : "Warning",
+    "type" : "Function Body Length"
+  },
+  {
+    "character" : 52,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 119,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 62,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 119,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 56,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 135,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 66,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 135,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 30,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 150,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 40,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 150,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 110,
+    "reason" : "Line should be 120 characters or less; currently it has 150 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 233,
+    "reason" : "Line should be 120 characters or less; currently it has 125 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 269,
+    "reason" : "Line should be 120 characters or less; currently it has 131 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 326,
+    "reason" : "Line should be 120 characters or less; currently it has 157 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 18,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 24,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 34,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 38,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 43,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 45,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 49,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 68,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 78,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 91,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 98,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 101,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 105,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 109,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 111,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 118,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 121,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 123,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 128,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 137,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 139,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 143,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 152,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 154,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 158,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 167,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 169,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 173,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 182,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 184,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 188,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 196,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 199,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 205,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 209,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 218,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 220,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 229,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 235,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 241,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 250,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 262,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 268,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 271,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 277,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 286,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 288,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 293,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 303,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 316,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 339,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 349,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 353,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 374,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 379,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 385,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 400,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 13,
+    "reason" : "Class body should span 250 lines or less excluding comments and whitespace: currently spans 319 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 96,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 233,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 102,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 269,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/iPad-client/Sources/StreamClient.swift",
+    "line" : 195,
+    "reason" : "Limit vertical whitespace to a single empty line; currently 3",
+    "rule_id" : "vertical_whitespace",
+    "severity" : "Warning",
+    "type" : "Vertical Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 125,
+    "reason" : "Imports should be unique",
+    "rule_id" : "duplicate_imports",
+    "severity" : "Warning",
+    "type" : "Duplicate Imports"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 392,
+    "reason" : "Imports should be unique",
+    "rule_id" : "duplicate_imports",
+    "severity" : "Warning",
+    "type" : "Duplicate Imports"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 502,
+    "reason" : "Imports should be unique",
+    "rule_id" : "duplicate_imports",
+    "severity" : "Warning",
+    "type" : "Duplicate Imports"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 547,
+    "reason" : "File should contain 400 lines or less: currently contains 547",
+    "rule_id" : "file_length",
+    "severity" : "Warning",
+    "type" : "File Length"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 143,
+    "reason" : "Variable name 'h' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 171,
+    "reason" : "Variable name 'fd' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Warning",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 19,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 197,
+    "reason" : "Variable name 'fd' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Warning",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 19,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 209,
+    "reason" : "Variable name 'fd' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Warning",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 63,
+    "reason" : "Line should be 120 characters or less; currently it has 176 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 67,
+    "reason" : "Line should be 120 characters or less; currently it has 144 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 86,
+    "reason" : "Line should be 120 characters or less; currently it has 175 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 90,
+    "reason" : "Line should be 120 characters or less; currently it has 147 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 388,
+    "reason" : "Line should be 200 characters or less; currently it has 209 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 456,
+    "reason" : "Line should be 120 characters or less; currently it has 151 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 508,
+    "reason" : "Line should be 120 characters or less; currently it has 177 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 34,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 33,
+    "reason" : "Prefer non-optional `Data(_:)` initializer when converting `String` to `Data`",
+    "rule_id" : "non_optional_string_data_conversion",
+    "severity" : "Warning",
+    "type" : "Non-optional String -> Data Conversion"
+  },
+  {
+    "character" : 4,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 108,
+    "reason" : "FIXMEs should be resolved (Copied from `Lock.swift` in TS...)",
+    "rule_id" : "todo",
+    "severity" : "Warning",
+    "type" : "Todo"
+  },
+  {
+    "character" : 4,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 227,
+    "reason" : "FIXMEs should be resolved (Copied from `XCTEvents.swift`,...)",
+    "rule_id" : "todo",
+    "severity" : "Warning",
+    "type" : "Todo"
+  },
+  {
+    "character" : 8,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 256,
+    "reason" : "TODOs should be resolved (Handle `userInfo: [AnyHashable...)",
+    "rule_id" : "todo",
+    "severity" : "Warning",
+    "type" : "Todo"
+  },
+  {
+    "character" : null,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 547,
+    "reason" : "Files should have a single trailing newline",
+    "rule_id" : "trailing_newline",
+    "severity" : "Warning",
+    "type" : "Trailing Newline"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 542,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 90,
+    "file" : "/Users/hiroshi/Developer/X-display/.build/arm64-apple-macosx/debug/X-displayPackageTests.derived/runner.swift",
+    "line" : 524,
+    "reason" : "Prefer `-> Void` over `-> ()`",
+    "rule_id" : "void_return",
+    "severity" : "Warning",
+    "type" : "Void Return"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 12,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 13,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 44,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 16,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 54,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 16,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 71,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 72,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 47,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 74,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 57,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 74,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 123,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 124,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 126,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 27,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 126,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 169,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 16,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 170,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 44,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 177,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 54,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 177,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 177,
+    "reason" : "Line should be 120 characters or less; currently it has 137 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : null,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 275,
+    "reason" : "Files should have a single trailing newline",
+    "rule_id" : "trailing_newline",
+    "severity" : "Warning",
+    "type" : "Trailing Newline"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/XDisplayShared/Sources/XDisplayShared/TouchProtocol.swift",
+    "line" : 275,
+    "reason" : "Limit vertical whitespace to a single empty line; currently 2",
+    "rule_id" : "vertical_whitespace",
+    "severity" : "Warning",
+    "type" : "Vertical Whitespace"
+  },
+  {
+    "character" : 10,
+    "file" : "/Users/hiroshi/Developer/X-display/Package.swift",
+    "line" : 31,
+    "reason" : "Collection literals should not have trailing commas",
+    "rule_id" : "trailing_comma",
+    "severity" : "Warning",
+    "type" : "Trailing Comma"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 102,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 133,
+    "reason" : "Line should be 120 characters or less; currently it has 122 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 150,
+    "reason" : "Line should be 120 characters or less; currently it has 133 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 162,
+    "reason" : "Line should be 120 characters or less; currently it has 148 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 190,
+    "reason" : "Line should be 120 characters or less; currently it has 122 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 311,
+    "reason" : "Line should be 120 characters or less; currently it has 129 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 13,
+    "reason" : "Class body should span 250 lines or less excluding comments and whitespace: currently spans 276 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 54,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 53,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 81,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/VideoEncoder.swift",
+    "line" : 53,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 1187,
+    "reason" : "File should contain 1000 lines or less: currently contains 1187",
+    "rule_id" : "file_length",
+    "severity" : "Error",
+    "type" : "File Length"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 573,
+    "reason" : "`where` clauses are preferred over a single `if` inside a `for`",
+    "rule_id" : "for_where",
+    "severity" : "Warning",
+    "type" : "Prefer For-Where"
+  },
+  {
+    "character" : 17,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 632,
+    "reason" : "`where` clauses are preferred over a single `if` inside a `for`",
+    "rule_id" : "for_where",
+    "severity" : "Warning",
+    "type" : "Prefer For-Where"
+  },
+  {
+    "character" : 33,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 643,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 43,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 643,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 82,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 660,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 92,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 660,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 99,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 693,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 109,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 693,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 73,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 721,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 83,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 721,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 24,
+    "reason" : "Line should be 120 characters or less; currently it has 143 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 29,
+    "reason" : "Line should be 120 characters or less; currently it has 121 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 77,
+    "reason" : "Line should be 120 characters or less; currently it has 162 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 110,
+    "reason" : "Line should be 120 characters or less; currently it has 134 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 177,
+    "reason" : "Line should be 200 characters or less; currently it has 236 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 203,
+    "reason" : "Line should be 120 characters or less; currently it has 148 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 218,
+    "reason" : "Line should be 120 characters or less; currently it has 142 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 222,
+    "reason" : "Line should be 120 characters or less; currently it has 142 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 238,
+    "reason" : "Line should be 120 characters or less; currently it has 128 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 239,
+    "reason" : "Line should be 120 characters or less; currently it has 124 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 288,
+    "reason" : "Line should be 120 characters or less; currently it has 123 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 317,
+    "reason" : "Line should be 120 characters or less; currently it has 124 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 334,
+    "reason" : "Line should be 120 characters or less; currently it has 143 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 495,
+    "reason" : "Line should be 120 characters or less; currently it has 123 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 559,
+    "reason" : "Line should be 120 characters or less; currently it has 122 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 562,
+    "reason" : "Line should be 120 characters or less; currently it has 130 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 689,
+    "reason" : "Line should be 120 characters or less; currently it has 148 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 759,
+    "reason" : "Line should be 120 characters or less; currently it has 144 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 766,
+    "reason" : "Line should be 120 characters or less; currently it has 128 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 768,
+    "reason" : "Line should be 120 characters or less; currently it has 128 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 824,
+    "reason" : "Line should be 120 characters or less; currently it has 199 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 825,
+    "reason" : "Line should be 120 characters or less; currently it has 196 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 828,
+    "reason" : "Line should be 120 characters or less; currently it has 190 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 829,
+    "reason" : "Line should be 200 characters or less; currently it has 207 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 832,
+    "reason" : "Line should be 120 characters or less; currently it has 200 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 833,
+    "reason" : "Line should be 120 characters or less; currently it has 184 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 834,
+    "reason" : "Line should be 120 characters or less; currently it has 199 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 837,
+    "reason" : "Line should be 200 characters or less; currently it has 209 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 838,
+    "reason" : "Line should be 200 characters or less; currently it has 208 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 841,
+    "reason" : "Line should be 120 characters or less; currently it has 193 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 842,
+    "reason" : "Line should be 120 characters or less; currently it has 192 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 845,
+    "reason" : "Line should be 120 characters or less; currently it has 169 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 846,
+    "reason" : "Line should be 120 characters or less; currently it has 165 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 849,
+    "reason" : "Line should be 120 characters or less; currently it has 167 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 878,
+    "reason" : "Line should be 120 characters or less; currently it has 126 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 946,
+    "reason" : "Line should be 120 characters or less; currently it has 123 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 1004,
+    "reason" : "Line should be 200 characters or less; currently it has 251 characters",
+    "rule_id" : "line_length",
+    "severity" : "Error",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 577,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 580,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 591,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 594,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 596,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 604,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 612,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 620,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 723,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 730,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 737,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 760,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 771,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 783,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 787,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 790,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 884,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 991,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 1001,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 1075,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 1107,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 7,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 24,
+    "reason" : "Class body should span 350 lines or less excluding comments and whitespace: currently spans 639 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Error",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 799,
+    "reason" : "Class body should span 250 lines or less excluding comments and whitespace: currently spans 285 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 8,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 1160,
+    "reason" : "Type name 'X_display' should only contain alphanumeric and other allowed characters",
+    "rule_id" : "type_name",
+    "severity" : "Error",
+    "type" : "Type Name"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 720,
+    "reason" : "Limit vertical whitespace to a single empty line; currently 2",
+    "rule_id" : "vertical_whitespace",
+    "severity" : "Warning",
+    "type" : "Vertical Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/X_display.swift",
+    "line" : 795,
+    "reason" : "Limit vertical whitespace to a single empty line; currently 2",
+    "rule_id" : "vertical_whitespace",
+    "severity" : "Warning",
+    "type" : "Vertical Whitespace"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 233,
+    "reason" : "Function should have complexity 10 or less; currently complexity is 20",
+    "rule_id" : "cyclomatic_complexity",
+    "severity" : "Warning",
+    "type" : "Cyclomatic Complexity"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 441,
+    "reason" : "File should contain 400 lines or less: currently contains 441",
+    "rule_id" : "file_length",
+    "severity" : "Warning",
+    "type" : "File Length"
+  },
+  {
+    "character" : 13,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 233,
+    "reason" : "Function body should span 50 lines or less excluding comments and whitespace: currently spans 98 lines",
+    "rule_id" : "function_body_length",
+    "severity" : "Warning",
+    "type" : "Function Body Length"
+  },
+  {
+    "character" : 82,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 8,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 92,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 8,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 99,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 9,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 109,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 9,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 73,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 10,
+    "reason" : "Variable name 'x' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 83,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 10,
+    "reason" : "Variable name 'y' should be between 3 and 40 characters long",
+    "rule_id" : "identifier_name",
+    "severity" : "Error",
+    "type" : "Identifier Name"
+  },
+  {
+    "character" : 25,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 282,
+    "reason" : "Optional should be implicitly initialized without nil",
+    "rule_id" : "implicit_optional_initialization",
+    "severity" : "Warning",
+    "type" : "Implicit Optional Initialization"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 174,
+    "reason" : "Line should be 120 characters or less; currently it has 132 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 209,
+    "reason" : "Line should be 120 characters or less; currently it has 138 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 276,
+    "reason" : "Line should be 120 characters or less; currently it has 149 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 355,
+    "reason" : "Line should be 120 characters or less; currently it has 138 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 358,
+    "reason" : "Line should be 120 characters or less; currently it has 127 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 429,
+    "reason" : "Line should be 120 characters or less; currently it has 150 characters",
+    "rule_id" : "line_length",
+    "severity" : "Warning",
+    "type" : "Line Length"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 25,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 29,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 32,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 51,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 54,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 64,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 70,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 75,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 80,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 82,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 85,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 96,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 100,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 103,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 107,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 118,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 123,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 127,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 139,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 153,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 156,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 161,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 164,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 171,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 181,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 190,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 202,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 208,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 216,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 225,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 227,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 232,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 242,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 254,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 257,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 266,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 271,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 273,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 281,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 287,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 291,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 304,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 310,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 324,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 327,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 342,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 347,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 351,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 376,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 387,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 394,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 397,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 401,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 403,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 1,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 433,
+    "reason" : "Lines should not have trailing whitespace",
+    "rule_id" : "trailing_whitespace",
+    "severity" : "Warning",
+    "type" : "Trailing Whitespace"
+  },
+  {
+    "character" : 7,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 40,
+    "reason" : "Class body should span 250 lines or less excluding comments and whitespace: currently spans 338 lines",
+    "rule_id" : "type_body_length",
+    "severity" : "Warning",
+    "type" : "Type Body Length"
+  },
+  {
+    "character" : 103,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 174,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 109,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 209,
+    "reason" : "Unused parameter in a closure should be replaced with _",
+    "rule_id" : "unused_closure_parameter",
+    "severity" : "Warning",
+    "type" : "Unused Closure Parameter"
+  },
+  {
+    "character" : 5,
+    "file" : "/Users/hiroshi/Developer/X-display/Sources/X-display/StreamServer.swift",
+    "line" : 376,
+    "reason" : "Limit vertical whitespace to a single empty line; currently 2",
+    "rule_id" : "vertical_whitespace",
+    "severity" : "Warning",
+    "type" : "Vertical Whitespace"
+  }
+]
