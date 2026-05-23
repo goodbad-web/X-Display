@@ -173,10 +173,27 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
             fps = (maxFps == 30) ? UInt8(30) : UInt8(60)
         }
         
+        #if os(iOS)
+        let bounds = UIScreen.main.bounds
+        let scale = UIScreen.main.scale
+        let w = max(bounds.width, bounds.height)
+        let h = min(bounds.width, bounds.height)
+        let logicalWidth = UInt16(w)
+        let logicalHeight = UInt16(h)
+        let scaleUInt8 = UInt8(scale)
+        #else
+        let logicalWidth: UInt16 = 1920
+        let logicalHeight: UInt16 = 1080
+        let scaleUInt8: UInt8 = 1
+        #endif
+        
         streamClient.sendClientInfo(
             isPortrait: self.isClientPortrait,
             preferredCodec: codec,
-            maxFrameRate: fps
+            maxFrameRate: fps,
+            logicalWidth: logicalWidth,
+            logicalHeight: logicalHeight,
+            scale: scaleUInt8
         )
     }
 

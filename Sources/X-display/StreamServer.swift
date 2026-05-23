@@ -62,6 +62,7 @@ final class StreamServer: @unchecked Sendable {
     
     private let statusLock = NSLock()
     private var _hasActivePairedConnections = false
+    private var _currentSentFPS: Double = 0.0
     
     private let serverID: UUID = {
         if let uuidString = UserDefaults.standard.string(forKey: "XDisplayServerID"),
@@ -77,6 +78,12 @@ final class StreamServer: @unchecked Sendable {
         statusLock.lock()
         defer { statusLock.unlock() }
         return _hasActivePairedConnections
+    }
+    
+    var currentSentFPS: Double {
+        statusLock.lock()
+        defer { statusLock.unlock() }
+        return _currentSentFPS
     }
     
     func start(port: UInt16) throws {
@@ -607,6 +614,9 @@ final class StreamServer: @unchecked Sendable {
             if shouldLog {
                 let elapsedMs = Double(elapsedNs) / 1_000_000.0
                 let sentFPS = interval > 0 ? Double(sentDelta) / interval : 0
+                self.statusLock.lock()
+                self._currentSentFPS = sentFPS
+                self.statusLock.unlock()
                 print(String(format: "[Timing] broadcast: %.2f ms (avg %.2f ms, max %.2f ms) | sent FPS: %.1f", elapsedMs, averageMs, maxMs, sentFPS))
             }
         }

@@ -67,15 +67,31 @@ public struct XDisplayClientInfoEvent: Equatable, Sendable {
     public let isPortrait: Bool
     public let preferredCodec: XDisplayVideoCodec
     public let maxFrameRate: UInt8
+    public let logicalWidth: UInt16
+    public let logicalHeight: UInt16
+    public let scale: UInt8
 
-    public init(isPortrait: Bool, preferredCodec: XDisplayVideoCodec = .h264, maxFrameRate: UInt8 = 60) {
+    public init(isPortrait: Bool, preferredCodec: XDisplayVideoCodec = .h264, maxFrameRate: UInt8 = 60, logicalWidth: UInt16 = 1920, logicalHeight: UInt16 = 1080, scale: UInt8 = 1) {
         self.isPortrait = isPortrait
         self.preferredCodec = preferredCodec
         self.maxFrameRate = maxFrameRate
+        self.logicalWidth = logicalWidth
+        self.logicalHeight = logicalHeight
+        self.scale = scale
     }
 
     public func encodeRawPayload() -> Data {
-        Data([isPortrait ? 1 : 0, preferredCodec.rawValue, maxFrameRate])
+        var data = Data()
+        data.reserveCapacity(8)
+        data.append(isPortrait ? 1 : 0)
+        data.append(preferredCodec.rawValue)
+        data.append(maxFrameRate)
+        var w = logicalWidth.bigEndian
+        withUnsafeBytes(of: &w) { data.append(contentsOf: $0) }
+        var h = logicalHeight.bigEndian
+        withUnsafeBytes(of: &h) { data.append(contentsOf: $0) }
+        data.append(scale)
+        return data
     }
 
     public static func decodeRawPayload(_ payload: Data) throws -> XDisplayClientInfoEvent {
@@ -97,8 +113,18 @@ public struct XDisplayClientInfoEvent: Equatable, Sendable {
         } else {
             maxFrameRate = 60
         }
+
+        var logicalWidth: UInt16 = 1920
+        var logicalHeight: UInt16 = 1080
+        var scale: UInt8 = 1
+
+        if payload.count >= 8 {
+            logicalWidth = (UInt16(payload[3]) << 8) | UInt16(payload[4])
+            logicalHeight = (UInt16(payload[5]) << 8) | UInt16(payload[6])
+            scale = payload[7]
+        }
         
-        return XDisplayClientInfoEvent(isPortrait: isPortrait, preferredCodec: preferredCodec, maxFrameRate: maxFrameRate)
+        return XDisplayClientInfoEvent(isPortrait: isPortrait, preferredCodec: preferredCodec, maxFrameRate: maxFrameRate, logicalWidth: logicalWidth, logicalHeight: logicalHeight, scale: scale)
     }
 }
 

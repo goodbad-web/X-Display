@@ -309,13 +309,16 @@ class StreamClient {
 
 
     
-    func sendClientInfo(isPortrait: Bool, preferredCodec: XDisplayVideoCodec, maxFrameRate: UInt8) {
+    func sendClientInfo(isPortrait: Bool, preferredCodec: XDisplayVideoCodec, maxFrameRate: UInt8, logicalWidth: UInt16, logicalHeight: UInt16, scale: UInt8) {
         guard isRunning, isPaired, let key = sessionKey else { return }
         
         let rawEvent = XDisplayClientInfoEvent(
             isPortrait: isPortrait,
             preferredCodec: preferredCodec,
-            maxFrameRate: maxFrameRate
+            maxFrameRate: maxFrameRate,
+            logicalWidth: logicalWidth,
+            logicalHeight: logicalHeight,
+            scale: scale
         ).encodeRawPayload()
         
         do {

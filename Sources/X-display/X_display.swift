@@ -932,6 +932,8 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         logicalHeight: 1080,
         scale: .standard1x
     )
+    private var isAutoResolutionEnabled = true
+    private var statusUpdateTimer: Timer?
     private var selectedCodec: XDisplayVideoCodec = .h264
     var discoveredDevices: [NWEndpoint] = []
 
@@ -980,9 +982,22 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
            Self.resolutionPresets.indices.contains(savedResolutionIndex) {
             selectedConfiguration = Self.resolutionPresets[savedResolutionIndex].configuration
         }
+        if let savedAutoRes = UserDefaults.standard.object(forKey: "isAutoResolutionEnabled") as? Bool {
+            isAutoResolutionEnabled = savedAutoRes
+        } else {
+            UserDefaults.standard.set(true, forKey: "isAutoResolutionEnabled")
+            isAutoResolutionEnabled = true
+        }
+        
         if let savedCodecRawValue = UserDefaults.standard.object(forKey: "selectedCodecRawValue") as? Int,
            let codec = XDisplayVideoCodec(rawValue: UInt8(savedCodecRawValue)) {
             selectedCodec = codec
+        }
+        
+        statusUpdateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.updateMenu()
+            }
         }
 
         // Configure as a background/accessory app (no Dock icon)
@@ -1049,10 +1064,32 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
 
         // 1. Status Indicator
-        let statusTitle = isDisplayActive ? "Status: Active Streaming" : "Status: Idle"
+        let statusTitle: String
+        let detailsTitle: String?
+
+        if isDisplayActive {
+            let server = captureManager.server
+            if server.hasActivePairedConnections {
+                statusTitle = "Status: Active Streaming"
+                detailsTitle = String(format: "FPS: %.1f | Codec: %@", server.currentSentFPS, selectedCodec.displayName)
+            } else {
+                statusTitle = "Status: Waiting for Client..."
+                detailsTitle = nil
+            }
+        } else {
+            statusTitle = "Status: Idle"
+            detailsTitle = nil
+        }
+
         let statusMenuItem = NSMenuItem(title: statusTitle, action: nil, keyEquivalent: "")
         statusMenuItem.isEnabled = false
         menu.addItem(statusMenuItem)
+        
+        if let details = detailsTitle {
+            let detailsMenuItem = NSMenuItem(title: details, action: nil, keyEquivalent: "")
+            detailsMenuItem.isEnabled = false
+            menu.addItem(detailsMenuItem)
+        }
 
         menu.addItem(NSMenuItem.separator())
 
@@ -1071,11 +1108,17 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         let resItem = NSMenuItem(title: "Resolution", action: nil, keyEquivalent: "")
         let resMenu = NSMenu()
 
+        let autoItem = NSMenuItem(title: "Auto (Native iPad Resolution)", action: #selector(toggleAutoResolution(_:)), keyEquivalent: "")
+        autoItem.target = self
+        autoItem.state = isAutoResolutionEnabled ? .on : .off
+        resMenu.addItem(autoItem)
+        resMenu.addItem(NSMenuItem.separator())
+
         for (index, preset) in Self.resolutionPresets.enumerated() {
             let item = NSMenuItem(title: preset.title, action: #selector(selectResolution(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = index
-            item.state = (preset.configuration == selectedConfiguration) ? .on : .off
+            item.state = (!isAutoResolutionEnabled && preset.configuration == selectedConfiguration) ? .on : .off
             resMenu.addItem(item)
         }
 
@@ -1229,11 +1272,19 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         }
     }
 
+    @objc private func toggleAutoResolution(_ sender: NSMenuItem) {
+        isAutoResolutionEnabled = true
+        UserDefaults.standard.set(true, forKey: "isAutoResolutionEnabled")
+        updateMenu()
+    }
+
     @objc private func selectResolution(_ sender: NSMenuItem) {
         guard let index = sender.representedObject as? Int,
               Self.resolutionPresets.indices.contains(index) else {
             return
         }
+        isAutoResolutionEnabled = false
+        UserDefaults.standard.set(false, forKey: "isAutoResolutionEnabled")
         selectedConfiguration = Self.resolutionPresets[index].configuration
         UserDefaults.standard.set(index, forKey: "selectedResolutionIndex")
         restartDisplayIfNeeded(reason: "resolution change")
@@ -1247,6 +1298,22 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
             self.isClientPortrait = event.isPortrait
             needsRestart = true
             restartReason += "rotation to \(event.isPortrait ? "Portrait" : "Landscape"), "
+        }
+
+        if self.isAutoResolutionEnabled {
+            let scaleMultiplier = event.scale >= 2 ? 2 : 1
+            let receivedScale = XDisplayScale(multiplier: scaleMultiplier) ?? .standard1x
+            let receivedConfig = XDisplayAppManager.makeConfiguration(
+                logicalWidth: Int(event.logicalWidth),
+                logicalHeight: Int(event.logicalHeight),
+                scale: receivedScale,
+                pixelsPerInch: receivedScale == .retina2x ? 264.0 : 132.0
+            )
+            if self.selectedConfiguration != receivedConfig {
+                self.selectedConfiguration = receivedConfig
+                needsRestart = true
+                restartReason += "auto resolution adapted to \(receivedConfig.logicalSize.width)x\(receivedConfig.logicalSize.height), "
+            }
         }
 
         if self.selectedCodec != event.preferredCodec {
@@ -1325,6 +1392,7 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
     }
 
     @objc private func quitApp() {
+        statusUpdateTimer?.invalidate()
         stopDisplay()
         NSApp.terminate(nil)
     }

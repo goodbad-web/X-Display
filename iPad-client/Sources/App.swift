@@ -57,6 +57,15 @@ struct ContentView: View {
                             .aspectRatio(viewModel.frameSize, contentMode: .fit)
                             .blur(radius: viewModel.isTransitioning ? 30 : 0)
                             .opacity(viewModel.isTransitioning ? 0.6 : 1.0)
+                            .overlay(
+                                Group {
+                                    if viewModel.isTransitioning {
+                                        ProgressView()
+                                            .controlSize(.large)
+                                            .tint(.white)
+                                    }
+                                }
+                            )
 
                         TouchOverlayView(
                             onTouchEvent: { event in
