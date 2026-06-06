@@ -252,7 +252,7 @@ final class StreamServer: @unchecked Sendable {
         }
     }
     
-    private func sendPacket(_ payload: Data, to connection: NWConnection, completion: (() -> Void)? = nil) {
+    private func sendPacket(_ payload: Data, to connection: NWConnection, completion: (@Sendable () -> Void)? = nil) {
         let packet = XDisplayPacketCodec.encodePacket(payload: payload)
         
         connection.send(content: packet, completion: .contentProcessed({ error in

@@ -1240,10 +1240,11 @@ class XDisplayAppManager: NSObject, NSApplicationDelegate {
         print("[*] Stopping screen capture stream...")
         await captureManager.stopCapture(keepServer: keepServer)
 
+        windowRestorer.restoreLayoutToMainDisplay()
+
         print("[*] Destroying virtual display and releasing ports...")
         helper.destroyVirtualDisplay()
 
-        windowRestorer.restoreLayoutToMainDisplay()
         print("[+] Streaming stopped & resources cleaned up.")
     }
 

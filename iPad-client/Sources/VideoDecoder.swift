@@ -20,11 +20,8 @@ class VideoDecoder {
         }
     }
 
-    private struct SendableUnmanaged<Instance: AnyObject>: @unchecked Sendable {
-        let value: Unmanaged<Instance>
-        init(_ value: Unmanaged<Instance>) {
-            self.value = value
-        }
+    private struct SendablePixelBuffer: @unchecked Sendable {
+        let buffer: CVPixelBuffer
     }
 
     weak var delegate: VideoDecoderDelegate?
@@ -269,15 +266,11 @@ class VideoDecoder {
             infoFlagsOut: &flagsOut
         ) { [weak self] (status, infoFlags, imageBuffer, taggedBuffers, presentationTimeStamp, presentationDuration) in
             guard status == noErr, let pixelBuffer = imageBuffer else { return }
-            let sendableUnmanaged = SendableUnmanaged(Unmanaged.passRetained(pixelBuffer))
+            let sendableBuffer = SendablePixelBuffer(buffer: pixelBuffer)
             Task { @MainActor [weak self] in
-                guard let self = self else {
-                    sendableUnmanaged.value.release()
-                    return
-                }
-                let buffer = sendableUnmanaged.value.takeRetainedValue()
+                guard let self = self else { return }
                 self.recordDecodedFrame()
-                self.delegate?.videoDecoder(self, didDecodeImageBuffer: buffer)
+                self.delegate?.videoDecoder(self, didDecodeImageBuffer: sendableBuffer.buffer)
             }
         }
 
