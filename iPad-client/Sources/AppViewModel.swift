@@ -262,6 +262,7 @@ class AppViewModel: ObservableObject, StreamClientDelegate, VideoDecoderDelegate
                         self.isConnected = false
                         self.isPairingRequired = false
                     }
+                    self.isAutoSwitching = true
                     self.connect(endpoint: fallbackEndpoint, type: .wireless)
                 } else {
                     self.connectionStatus = "Failed: \(error.localizedDescription)"
